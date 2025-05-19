@@ -1,0 +1,42 @@
+
+export interface Supplier {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export interface InvoiceLine {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  estimatedCost: number;
+  supplierId: string;
+  supplierName: string;
+  supplierPartNumber: string;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  reference: string;
+  createdAt: string;
+  dueDate: string;
+  status: string;
+  totalAmount: number;
+  notes?: string;
+  supplier: Supplier;
+  invoiceLines: InvoiceLine[];
+  updatedAt: string;
+}
+
+export interface InvoiceFormData {
+  invoiceNumber: string;
+  reference: string;
+  dueDate: string;
+  status: string;
+  supplierId: string;
+  notes: string;
+  invoiceLines: InvoiceLine[];
+}

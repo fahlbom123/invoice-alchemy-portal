@@ -1,11 +1,26 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center justify-center pt-20 pb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Supplier Invoice Management System</h1>
+          <p className="text-xl text-gray-600 mb-8 text-center max-w-2xl">
+            Efficiently track and manage your supplier invoices with estimated costs and detailed supplier information.
+          </p>
+          <Button 
+            size="lg" 
+            onClick={() => navigate('/dashboard')}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Go to Dashboard
+          </Button>
+        </div>
       </div>
     </div>
   );
