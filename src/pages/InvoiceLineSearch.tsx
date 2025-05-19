@@ -16,7 +16,7 @@ const InvoiceLineSearch = () => {
   const navigate = useNavigate();
   const { invoices, isLoading } = useInvoices();
   const { suppliers } = useSuppliers();
-  const [supplierId, setSupplierId] = useState<string>("");
+  const [supplierId, setSupplierId] = useState<string>("all");
   const [minCost, setMinCost] = useState<string>("");
   const [maxCost, setMaxCost] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -35,7 +35,7 @@ const InvoiceLineSearch = () => {
   const handleSearch = () => {
     // Filter invoice lines based on search criteria
     const filtered = allInvoiceLines.filter(line => {
-      const matchesSupplier = !supplierId || line.supplierId === supplierId;
+      const matchesSupplier = supplierId === "all" || line.supplierId === supplierId;
       const matchesMinCost = !minCost || line.estimatedCost >= parseFloat(minCost);
       const matchesMaxCost = !maxCost || line.estimatedCost <= parseFloat(maxCost);
       const matchesDescription = !description || 
@@ -49,7 +49,7 @@ const InvoiceLineSearch = () => {
   };
 
   const handleClear = () => {
-    setSupplierId("");
+    setSupplierId("all");
     setMinCost("");
     setMaxCost("");
     setDescription("");
@@ -86,7 +86,7 @@ const InvoiceLineSearch = () => {
                     <SelectValue placeholder="All Suppliers" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Suppliers</SelectItem>
+                    <SelectItem value="all">All Suppliers</SelectItem>
                     {suppliers.map(supplier => (
                       <SelectItem key={supplier.id} value={supplier.id}>
                         {supplier.name}
