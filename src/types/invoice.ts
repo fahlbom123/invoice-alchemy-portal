@@ -18,6 +18,7 @@ export interface InvoiceLine {
   bookingNumber?: string;
   confirmationNumber?: string;
   departureDate?: string;
+  paymentStatus?: "paid" | "unpaid" | "partial";
 }
 
 // Extended invoice line with invoice reference

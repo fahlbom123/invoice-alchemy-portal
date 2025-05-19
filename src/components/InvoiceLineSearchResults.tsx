@@ -4,6 +4,7 @@ import { formatCurrency } from "@/lib/formatters";
 import { InvoiceLine } from "@/types/invoice";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Check, X, CircleHalf } from "lucide-react";
 
 // Extend InvoiceLine to include invoice reference
 interface SearchResultLine extends InvoiceLine {
@@ -12,6 +13,7 @@ interface SearchResultLine extends InvoiceLine {
   bookingNumber?: string;
   confirmationNumber?: string;
   departureDate?: string;
+  paymentStatus?: "paid" | "unpaid" | "partial";
 }
 
 interface InvoiceLineSearchResultsProps {
@@ -20,6 +22,19 @@ interface InvoiceLineSearchResultsProps {
 
 const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProps) => {
   const navigate = useNavigate();
+  
+  // Function to render payment status icon
+  const renderPaymentStatus = (status?: string) => {
+    switch (status) {
+      case "paid":
+        return <Check className="h-5 w-5 text-green-500" />;
+      case "partial":
+        return <CircleHalf className="h-5 w-5 text-amber-500" />;
+      case "unpaid":
+      default:
+        return <X className="h-5 w-5 text-red-500" />;
+    }
+  };
   
   return (
     <div className="border rounded-md overflow-hidden">
@@ -35,6 +50,7 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
             <TableHead>Qty</TableHead>
             <TableHead>Unit Price</TableHead>
             <TableHead>Est. Cost</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -50,6 +66,7 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
               <TableCell>{line.quantity}</TableCell>
               <TableCell>{formatCurrency(line.unitPrice)}</TableCell>
               <TableCell className="font-medium">{formatCurrency(line.estimatedCost)}</TableCell>
+              <TableCell>{renderPaymentStatus(line.paymentStatus)}</TableCell>
               <TableCell className="text-right">
                 {line.invoiceId && (
                   <Button

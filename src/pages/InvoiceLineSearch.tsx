@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { InvoiceLine } from "@/types/invoice";
 import { useNavigate } from "react-router-dom";
 import { useInvoices } from "@/hooks/useInvoices";
@@ -24,6 +25,7 @@ const InvoiceLineSearch = () => {
   const [confirmationNumber, setConfirmationNumber] = useState<string>("");
   const [departureDateStart, setDepartureDateStart] = useState<string>("");
   const [departureDateEnd, setDepartureDateEnd] = useState<string>("");
+  const [paymentStatus, setPaymentStatus] = useState<string>("all");
   const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -35,7 +37,8 @@ const InvoiceLineSearch = () => {
       invoiceNumber: invoice.invoiceNumber,
       bookingNumber: line.bookingNumber || "",
       confirmationNumber: line.confirmationNumber || "",
-      departureDate: line.departureDate || ""
+      departureDate: line.departureDate || "",
+      paymentStatus: line.paymentStatus || "unpaid" // Default to unpaid if not specified
     }))
   );
 
@@ -68,9 +71,13 @@ const InvoiceLineSearch = () => {
         // If we're filtering by date but the line has no date, don't include it
         matchesDepartureDate = false;
       }
+
+      // Payment status check
+      const matchesPaymentStatus = paymentStatus === "all" || line.paymentStatus === paymentStatus;
       
       return matchesSupplier && matchesMinCost && matchesMaxCost && matchesDescription && 
-             matchesBookingNumber && matchesConfirmationNumber && matchesDepartureDate;
+             matchesBookingNumber && matchesConfirmationNumber && matchesDepartureDate && 
+             matchesPaymentStatus;
     });
     
     setSearchResults(filtered);
@@ -86,6 +93,7 @@ const InvoiceLineSearch = () => {
     setConfirmationNumber("");
     setDepartureDateStart("");
     setDepartureDateEnd("");
+    setPaymentStatus("all");
     setSearchResults([]);
     setHasSearched(false);
   };
@@ -199,6 +207,32 @@ const InvoiceLineSearch = () => {
                   onChange={(e) => setMaxCost(e.target.value)}
                   placeholder="0.00"
                 />
+              </div>
+
+              <div className="space-y-3 col-span-2">
+                <Label>Payment Status</Label>
+                <RadioGroup 
+                  className="flex space-x-4"
+                  value={paymentStatus}
+                  onValueChange={setPaymentStatus}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="all" id="all" />
+                    <Label htmlFor="all">All</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="paid" id="paid" />
+                    <Label htmlFor="paid">Paid</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="unpaid" id="unpaid" />
+                    <Label htmlFor="unpaid">Unpaid</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="partial" id="partial" />
+                    <Label htmlFor="partial">Not Fully Paid</Label>
+                  </div>
+                </RadioGroup>
               </div>
             </div>
             
