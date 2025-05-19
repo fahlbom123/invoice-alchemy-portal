@@ -4,7 +4,7 @@ import { formatCurrency } from "@/lib/formatters";
 import { InvoiceLine } from "@/types/invoice";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, X, CircleHalf } from "lucide-react";
+import { Check, X, Circle } from "lucide-react";
 
 // Extend InvoiceLine to include invoice reference
 interface SearchResultLine extends InvoiceLine {
@@ -29,7 +29,7 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
       case "paid":
         return <Check className="h-5 w-5 text-green-500" />;
       case "partial":
-        return <CircleHalf className="h-5 w-5 text-amber-500" />;
+        return <Circle className="h-5 w-5 text-amber-500" />;
       case "unpaid":
       default:
         return <X className="h-5 w-5 text-red-500" />;
