@@ -5,6 +5,7 @@ import { InvoiceLine } from "@/types/invoice";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, X, Circle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 // Extend InvoiceLine to include invoice reference
 interface SearchResultLine extends InvoiceLine {
@@ -33,6 +34,19 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
       case "unpaid":
       default:
         return <X className="h-5 w-5 text-red-500" />;
+    }
+  };
+
+  // Function to render payment status badge
+  const renderPaymentStatusBadge = (status?: string) => {
+    switch (status) {
+      case "paid":
+        return <Badge variant="default" className="bg-green-500 hover:bg-green-600">Paid</Badge>;
+      case "partial":
+        return <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">Partial</Badge>;
+      case "unpaid":
+      default:
+        return <Badge variant="default" className="bg-red-500 hover:bg-red-600">Unpaid</Badge>;
     }
   };
   
@@ -66,7 +80,12 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
               <TableCell>{line.quantity}</TableCell>
               <TableCell>{formatCurrency(line.unitPrice)}</TableCell>
               <TableCell className="font-medium">{formatCurrency(line.estimatedCost)}</TableCell>
-              <TableCell>{renderPaymentStatus(line.paymentStatus)}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {renderPaymentStatus(line.paymentStatus)}
+                  {renderPaymentStatusBadge(line.paymentStatus)}
+                </div>
+              </TableCell>
               <TableCell className="text-right">
                 {line.invoiceId && (
                   <Button
