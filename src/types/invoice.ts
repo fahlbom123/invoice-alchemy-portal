@@ -17,6 +17,12 @@ export interface InvoiceLine {
   supplierPartNumber: string;
 }
 
+// Extended invoice line with invoice reference
+export interface InvoiceLineWithReference extends InvoiceLine {
+  invoiceId: string;
+  invoiceNumber: string;
+}
+
 export interface Invoice {
   id: string;
   invoiceNumber: string;

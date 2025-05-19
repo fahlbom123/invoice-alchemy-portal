@@ -12,14 +12,24 @@ const Index = () => {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Supplier Invoice Management System</h1>
           <p className="text-xl text-gray-600 mb-8 text-center max-w-2xl">
             Efficiently track and manage your supplier invoices with estimated costs and detailed supplier information.
+            Match estimated costs with actual costs from customer invoices.
           </p>
-          <Button 
-            size="lg" 
-            onClick={() => navigate('/dashboard')}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Go to Dashboard
-          </Button>
+          <div className="flex gap-4 flex-wrap justify-center">
+            <Button 
+              size="lg" 
+              onClick={() => navigate('/dashboard')}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Go to Dashboard
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              onClick={() => navigate('/invoice-lines/search')}
+            >
+              Search Invoice Lines
+            </Button>
+          </div>
         </div>
       </div>
     </div>

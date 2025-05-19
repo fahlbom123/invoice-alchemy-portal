@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { Invoice } from "@/types/invoice";
+import { Invoice, InvoiceLine, InvoiceLineWithReference } from "@/types/invoice";
 import { mockInvoices } from "@/data/mockData";
 
 export function useInvoices() {
@@ -107,4 +106,24 @@ export function useSaveInvoice() {
   };
 
   return { saveInvoice, isLoading };
+}
+
+export function useInvoiceLines() {
+  const { invoices, isLoading } = useInvoices();
+  const [invoiceLines, setInvoiceLines] = useState<InvoiceLineWithReference[]>([]);
+  
+  useEffect(() => {
+    if (!isLoading && invoices.length > 0) {
+      const allLines = invoices.flatMap(invoice => 
+        invoice.invoiceLines.map(line => ({
+          ...line,
+          invoiceId: invoice.id,
+          invoiceNumber: invoice.invoiceNumber
+        }))
+      );
+      setInvoiceLines(allLines);
+    }
+  }, [invoices, isLoading]);
+  
+  return { invoiceLines, isLoading };
 }
