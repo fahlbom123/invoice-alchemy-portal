@@ -20,6 +20,10 @@ const InvoiceLineSearch = () => {
   const [minCost, setMinCost] = useState<string>("");
   const [maxCost, setMaxCost] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [bookingNumber, setBookingNumber] = useState<string>("");
+  const [confirmationNumber, setConfirmationNumber] = useState<string>("");
+  const [departureDateStart, setDepartureDateStart] = useState<string>("");
+  const [departureDateEnd, setDepartureDateEnd] = useState<string>("");
   const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -28,7 +32,10 @@ const InvoiceLineSearch = () => {
     invoice.invoiceLines.map(line => ({
       ...line,
       invoiceId: invoice.id,
-      invoiceNumber: invoice.invoiceNumber
+      invoiceNumber: invoice.invoiceNumber,
+      bookingNumber: line.bookingNumber || "",
+      confirmationNumber: line.confirmationNumber || "",
+      departureDate: line.departureDate || ""
     }))
   );
 
@@ -41,7 +48,29 @@ const InvoiceLineSearch = () => {
       const matchesDescription = !description || 
         line.description.toLowerCase().includes(description.toLowerCase());
       
-      return matchesSupplier && matchesMinCost && matchesMaxCost && matchesDescription;
+      // New search parameters
+      const matchesBookingNumber = !bookingNumber || 
+        (line.bookingNumber && line.bookingNumber.toLowerCase().includes(bookingNumber.toLowerCase()));
+      
+      const matchesConfirmationNumber = !confirmationNumber || 
+        (line.confirmationNumber && line.confirmationNumber.toLowerCase().includes(confirmationNumber.toLowerCase()));
+      
+      // Date range check
+      let matchesDepartureDate = true;
+      if (line.departureDate) {
+        if (departureDateStart && new Date(line.departureDate) < new Date(departureDateStart)) {
+          matchesDepartureDate = false;
+        }
+        if (departureDateEnd && new Date(line.departureDate) > new Date(departureDateEnd)) {
+          matchesDepartureDate = false;
+        }
+      } else if (departureDateStart || departureDateEnd) {
+        // If we're filtering by date but the line has no date, don't include it
+        matchesDepartureDate = false;
+      }
+      
+      return matchesSupplier && matchesMinCost && matchesMaxCost && matchesDescription && 
+             matchesBookingNumber && matchesConfirmationNumber && matchesDepartureDate;
     });
     
     setSearchResults(filtered);
@@ -53,6 +82,10 @@ const InvoiceLineSearch = () => {
     setMinCost("");
     setMaxCost("");
     setDescription("");
+    setBookingNumber("");
+    setConfirmationNumber("");
+    setDepartureDateStart("");
+    setDepartureDateEnd("");
     setSearchResults([]);
     setHasSearched(false);
   };
@@ -103,6 +136,46 @@ const InvoiceLineSearch = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Search by description..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bookingNumber">Booking Number</Label>
+                <Input
+                  id="bookingNumber"
+                  value={bookingNumber}
+                  onChange={(e) => setBookingNumber(e.target.value)}
+                  placeholder="Search by booking number..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmationNumber">Confirmation Number</Label>
+                <Input
+                  id="confirmationNumber"
+                  value={confirmationNumber}
+                  onChange={(e) => setConfirmationNumber(e.target.value)}
+                  placeholder="Search by confirmation number..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="departureDateStart">Departure Date (From)</Label>
+                <Input
+                  id="departureDateStart"
+                  type="date"
+                  value={departureDateStart}
+                  onChange={(e) => setDepartureDateStart(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="departureDateEnd">Departure Date (To)</Label>
+                <Input
+                  id="departureDateEnd"
+                  type="date"
+                  value={departureDateEnd}
+                  onChange={(e) => setDepartureDateEnd(e.target.value)}
                 />
               </div>
 

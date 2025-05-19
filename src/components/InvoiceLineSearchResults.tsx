@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 interface SearchResultLine extends InvoiceLine {
   invoiceId?: string;
   invoiceNumber?: string;
+  bookingNumber?: string;
+  confirmationNumber?: string;
+  departureDate?: string;
 }
 
 interface InvoiceLineSearchResultsProps {
@@ -26,10 +29,12 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
             <TableHead>Invoice #</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Supplier</TableHead>
-            <TableHead>Part Number</TableHead>
-            <TableHead>Quantity</TableHead>
+            <TableHead>Booking #</TableHead>
+            <TableHead>Confirmation #</TableHead>
+            <TableHead>Departure Date</TableHead>
+            <TableHead>Qty</TableHead>
             <TableHead>Unit Price</TableHead>
-            <TableHead>Estimated Cost</TableHead>
+            <TableHead>Est. Cost</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -39,7 +44,9 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
               <TableCell>{line.invoiceNumber}</TableCell>
               <TableCell>{line.description}</TableCell>
               <TableCell>{line.supplierName}</TableCell>
-              <TableCell>{line.supplierPartNumber}</TableCell>
+              <TableCell>{line.bookingNumber}</TableCell>
+              <TableCell>{line.confirmationNumber}</TableCell>
+              <TableCell>{line.departureDate}</TableCell>
               <TableCell>{line.quantity}</TableCell>
               <TableCell>{formatCurrency(line.unitPrice)}</TableCell>
               <TableCell className="font-medium">{formatCurrency(line.estimatedCost)}</TableCell>

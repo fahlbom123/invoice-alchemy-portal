@@ -15,6 +15,9 @@ export interface InvoiceLine {
   supplierId: string;
   supplierName: string;
   supplierPartNumber: string;
+  bookingNumber?: string;
+  confirmationNumber?: string;
+  departureDate?: string;
 }
 
 // Extended invoice line with invoice reference
