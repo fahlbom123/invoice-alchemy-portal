@@ -153,7 +153,7 @@ const SearchResultRow = ({
               value={editingVat}
               onChange={(e) => setEditingVat(e.target.value)}
               className="w-24"
-              placeholder="VAT %"
+              placeholder="VAT"
             />
             <Button
               variant="ghost"
