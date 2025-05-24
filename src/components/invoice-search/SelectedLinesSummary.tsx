@@ -63,11 +63,11 @@ const SelectedLinesSummary = ({
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2 border-t border-gray-200">
               <div className="flex items-center gap-4">
-                <span className="text-gray-600 font-medium">Total Estimated Summary:</span>
+                <span className="text-gray-600 font-medium">Total Estimated:</span>
                 <span className="font-bold">{formatCurrency(totalEstimatedSummary, undefined)}</span>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-gray-600 font-medium">Total Actual Summary:</span>
+                <span className="text-gray-600 font-medium">Total Actual:</span>
                 <span className="font-bold">{formatCurrency(totalActualSummary, undefined)}</span>
               </div>
             </div>
