@@ -134,6 +134,21 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
     return formatCurrency((cost * vatRate) / 100, undefined);
   };
 
+  // New function to handle clicking on estimated cost/VAT to set actual values
+  const handleSetActualFromEstimated = (lineId: string) => {
+    const line = lines.find(l => l.id === lineId);
+    if (line) {
+      setLines(currentLines => 
+        currentLines.map(l => 
+          l.id === lineId 
+            ? { ...l, actualCost: l.estimatedCost, actualVat: l.estimatedVat } 
+            : l
+        )
+      );
+      toast.success("Actual cost and VAT set from estimated values");
+    }
+  };
+
   const handleEditCost = (lineId: string) => {
     const line = lines.find(l => l.id === lineId);
     if (line) {
@@ -352,8 +367,20 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
                 <TableCell>{line.departureDate}</TableCell>
                 <TableCell>{line.quantity}</TableCell>
                 <TableCell>{line.currency || "USD"}</TableCell>
-                <TableCell className="font-medium">{formatCurrency(line.estimatedCost, undefined)}</TableCell>
-                <TableCell>{calculateVatAmount(line.estimatedCost, line.estimatedVat)}</TableCell>
+                <TableCell 
+                  className="font-medium cursor-pointer hover:bg-blue-50 transition-colors"
+                  onClick={() => handleSetActualFromEstimated(line.id)}
+                  title="Click to set actual cost"
+                >
+                  {formatCurrency(line.estimatedCost, undefined)}
+                </TableCell>
+                <TableCell 
+                  className="cursor-pointer hover:bg-blue-50 transition-colors"
+                  onClick={() => handleSetActualFromEstimated(line.id)}
+                  title="Click to set actual VAT"
+                >
+                  {calculateVatAmount(line.estimatedCost, line.estimatedVat)}
+                </TableCell>
                 <TableCell>
                   {editingLine === line.id ? (
                     <Input
