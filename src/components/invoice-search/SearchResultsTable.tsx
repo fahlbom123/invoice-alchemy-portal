@@ -60,51 +60,82 @@ const SearchResultsTable = ({
   setEditingVat,
 }: SearchResultsTableProps) => {
   return (
-    <div className="border rounded-md overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-12">
-              <Checkbox 
-                onCheckedChange={(checked) => onSelectAll(!!checked)} 
+    <>
+      {/* Desktop Table View */}
+      <div className="hidden md:block border rounded-md overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12">
+                <Checkbox 
+                  onCheckedChange={(checked) => onSelectAll(!!checked)} 
+                />
+              </TableHead>
+              <TableHead>Invoice</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Supplier</TableHead>
+              <TableHead>Booking</TableHead>
+              <TableHead>Confirmation</TableHead>
+              <TableHead>Departure Date</TableHead>
+              <TableHead>Qty</TableHead>
+              <TableHead>Currency</TableHead>
+              <TableHead>Est. Cost</TableHead>
+              <TableHead>Est. VAT</TableHead>
+              <TableHead>Actual Cost</TableHead>
+              <TableHead>Actual VAT</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Fully Paid</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {lines.map((line) => (
+              <SearchResultRow
+                key={line.id}
+                line={line}
+                editingLine={editingLine}
+                editingCost={editingCost}
+                editingVat={editingVat}
+                onSelectLine={onSelectLine}
+                onEditActualCost={onEditActualCost}
+                onSaveActualCost={onSaveActualCost}
+                onCancelEdit={onCancelEdit}
+                onToggleFullyPaid={onToggleFullyPaid}
+                setEditingCost={setEditingCost}
+                setEditingVat={setEditingVat}
               />
-            </TableHead>
-            <TableHead>Invoice</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Supplier</TableHead>
-            <TableHead>Booking</TableHead>
-            <TableHead>Confirmation</TableHead>
-            <TableHead>Departure Date</TableHead>
-            <TableHead>Qty</TableHead>
-            <TableHead>Currency</TableHead>
-            <TableHead>Est. Cost</TableHead>
-            <TableHead>Est. VAT</TableHead>
-            <TableHead>Actual Cost</TableHead>
-            <TableHead>Actual VAT</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Fully Paid</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {lines.map((line) => (
-            <SearchResultRow
-              key={line.id}
-              line={line}
-              editingLine={editingLine}
-              editingCost={editingCost}
-              editingVat={editingVat}
-              onSelectLine={onSelectLine}
-              onEditActualCost={onEditActualCost}
-              onSaveActualCost={onSaveActualCost}
-              onCancelEdit={onCancelEdit}
-              onToggleFullyPaid={onToggleFullyPaid}
-              setEditingCost={setEditingCost}
-              setEditingVat={setEditingVat}
-            />
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-md">
+          <Checkbox 
+            onCheckedChange={(checked) => onSelectAll(!!checked)} 
+          />
+          <span className="text-sm font-medium">Select All</span>
+        </div>
+        
+        {lines.map((line) => (
+          <SearchResultRow
+            key={line.id}
+            line={line}
+            editingLine={editingLine}
+            editingCost={editingCost}
+            editingVat={editingVat}
+            onSelectLine={onSelectLine}
+            onEditActualCost={onEditActualCost}
+            onSaveActualCost={onSaveActualCost}
+            onCancelEdit={onCancelEdit}
+            onToggleFullyPaid={onToggleFullyPaid}
+            setEditingCost={setEditingCost}
+            setEditingVat={setEditingVat}
+            isMobile={true}
+          />
+        ))}
+      </div>
+    </>
   );
 };
 

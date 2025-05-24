@@ -48,6 +48,7 @@ interface SearchResultRowProps {
   onToggleFullyPaid: (lineId: string, isPaid: boolean) => void;
   setEditingCost: (cost: string) => void;
   setEditingVat: (vat: string) => void;
+  isMobile?: boolean;
 }
 
 const SearchResultRow = ({
@@ -62,6 +63,7 @@ const SearchResultRow = ({
   onToggleFullyPaid,
   setEditingCost,
   setEditingVat,
+  isMobile = false,
 }: SearchResultRowProps) => {
   const navigate = useNavigate();
 
@@ -83,6 +85,156 @@ const SearchResultRow = ({
     if (vatRate === undefined) return "-";
     return formatCurrency((cost * vatRate) / 100, undefined);
   };
+
+  if (isMobile) {
+    return (
+      <div className="border rounded-lg p-4 bg-white shadow-sm">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Checkbox 
+              checked={line.selected} 
+              onCheckedChange={(checked) => onSelectLine(line.id, !!checked)} 
+            />
+            <div>
+              <div className="font-medium text-sm">{line.invoiceNumber}</div>
+              <div className="text-xs text-gray-500">{line.supplierName}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {renderPaymentStatusBadge(line.paymentStatus)}
+            <Switch 
+              checked={line.paymentStatus === "paid"}
+              onCheckedChange={(checked) => onToggleFullyPaid(line.id, checked)}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2 text-sm">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <span className="text-gray-500">Description:</span>
+              <div className="font-medium">{line.description}</div>
+            </div>
+            <div>
+              <span className="text-gray-500">Qty:</span>
+              <div>{line.quantity}</div>
+            </div>
+          </div>
+
+          {line.bookingNumber && (
+            <div>
+              <span className="text-gray-500">Booking:</span>
+              <div>{line.bookingNumber}</div>
+            </div>
+          )}
+
+          {line.confirmationNumber && (
+            <div>
+              <span className="text-gray-500">Confirmation:</span>
+              <div>{line.confirmationNumber}</div>
+            </div>
+          )}
+
+          {line.departureDate && (
+            <div>
+              <span className="text-gray-500">Departure:</span>
+              <div>{line.departureDate}</div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+            <div>
+              <span className="text-gray-500 text-xs">Estimated Cost:</span>
+              <div className="font-medium">{formatCurrency(line.estimatedCost, undefined)}</div>
+              <span className="text-gray-500 text-xs">Estimated VAT:</span>
+              <div className="text-sm">{calculateVatAmount(line.estimatedCost, line.estimatedVat)}</div>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">Actual Cost:</span>
+              {editingLine === `${line.id}-cost` ? (
+                <div className="flex items-center gap-1 mt-1">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editingCost}
+                    onChange={(e) => setEditingCost(e.target.value)}
+                    className="w-20 h-8 text-xs"
+                    placeholder="Cost"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSaveActualCost(line.id)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Save className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onCancelEdit}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div 
+                  className="cursor-pointer hover:bg-blue-50 transition-colors p-1 rounded text-sm font-medium"
+                  onClick={() => onEditActualCost(`${line.id}-cost`)}
+                  title="Click to edit actual cost"
+                >
+                  {line.actualCost ? formatCurrency(line.actualCost, undefined) : "Click to edit"}
+                </div>
+              )}
+              
+              <span className="text-gray-500 text-xs">Actual VAT:</span>
+              {editingLine === `${line.id}-vat` ? (
+                <div className="flex items-center gap-1 mt-1">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editingVat}
+                    onChange={(e) => setEditingVat(e.target.value)}
+                    className="w-20 h-8 text-xs"
+                    placeholder="VAT"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSaveActualCost(line.id)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Save className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onCancelEdit}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div 
+                  className="cursor-pointer hover:bg-blue-50 transition-colors p-1 rounded text-sm"
+                  onClick={() => onEditActualCost(`${line.id}-vat`)}
+                  title="Click to edit actual VAT"
+                >
+                  {line.actualVat && line.actualCost 
+                    ? calculateVatAmount(line.actualCost, line.actualVat)
+                    : "Click to edit"}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <TableRow>
