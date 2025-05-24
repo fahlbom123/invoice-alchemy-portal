@@ -33,6 +33,7 @@ const InvoiceForm = () => {
     currency: "USD",
     totalAmount: 0,
     totalVat: 0,
+    ocr: "",
   });
 
   // Get the selected supplier details
@@ -56,6 +57,7 @@ const InvoiceForm = () => {
         currency: invoice.currency || "USD",
         totalAmount: invoice.totalAmount || 0,
         totalVat: invoice.totalVat || 0,
+        ocr: invoice.ocr || "",
       });
     }
   }, [invoice, isEditing]);
@@ -233,7 +235,7 @@ const InvoiceForm = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="dueDate">Due Date</Label>
+                    <Label htmlFor="dueDate">Payment Date</Label>
                     <Input
                       id="dueDate"
                       name="dueDate"
@@ -307,6 +309,17 @@ const InvoiceForm = () => {
                       value={formData.totalVat || ""}
                       onChange={handleNumberInputChange}
                       placeholder="0.00"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="ocr">OCR</Label>
+                    <Input
+                      id="ocr"
+                      name="ocr"
+                      value={formData.ocr || ""}
+                      onChange={handleInputChange}
+                      placeholder="OCR number"
                     />
                   </div>
 

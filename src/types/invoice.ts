@@ -1,3 +1,4 @@
+
 export interface Supplier {
   id: string;
   name: string;
@@ -56,6 +57,7 @@ export interface Invoice {
   currency?: string;
   vat?: number;
   totalVat?: number;
+  ocr?: string;
 }
 
 export interface InvoiceFormData {
@@ -71,4 +73,5 @@ export interface InvoiceFormData {
   vat?: number;
   totalAmount?: number;
   totalVat?: number;
+  ocr?: string;
 }
