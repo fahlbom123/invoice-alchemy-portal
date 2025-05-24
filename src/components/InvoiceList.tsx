@@ -58,10 +58,10 @@ const InvoiceList = ({ invoices }: InvoiceListProps) => {
                 <TableHead>Invoice #</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Invoice Date</TableHead>
-                <TableHead>Due Date</TableHead>
+                <TableHead>Pay Date</TableHead>
                 <TableHead>Currency</TableHead>
                 <TableHead>Amount</TableHead>
-                <TableHead>VAT</TableHead>
+                <TableHead>Currency</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -75,7 +75,7 @@ const InvoiceList = ({ invoices }: InvoiceListProps) => {
                   <TableCell>{formatDate(invoice.dueDate)}</TableCell>
                   <TableCell>{invoice.currency || "USD"}</TableCell>
                   <TableCell>{formatCurrency(invoice.totalAmount, undefined)}</TableCell>
-                  <TableCell>{invoice.vat ? `${invoice.vat}%` : "-"}</TableCell>
+                  <TableCell>{invoice.currency || "USD"}</TableCell>
                   <TableCell>
                     <Badge className={getBadgeVariant(invoice.status)}>
                       {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
