@@ -48,6 +48,7 @@ export interface Invoice {
   invoiceLines: InvoiceLine[];
   updatedAt: string;
   currency?: string;
+  vat?: number;
 }
 
 export interface InvoiceFormData {
@@ -60,4 +61,5 @@ export interface InvoiceFormData {
   notes: string;
   invoiceLines: InvoiceLine[];
   currency?: string;
+  vat?: number;
 }

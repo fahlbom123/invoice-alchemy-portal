@@ -1,8 +1,8 @@
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number, currency: string = 'USD'): string {
   return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+    style: currency ? 'currency' : 'decimal',
+    currency: currency || 'USD',
     minimumFractionDigits: 2,
   }).format(amount);
 }
