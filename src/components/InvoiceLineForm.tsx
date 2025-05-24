@@ -37,9 +37,9 @@ const InvoiceLineForm = ({
     const updatedLine = { ...line };
     
     if (name === 'quantity' || name === 'unitPrice' || name === 'actualCost') {
-      updatedLine[name as keyof InvoiceLine] = parseFloat(value) || 0;
+      updatedLine[name as keyof Pick<InvoiceLine, 'quantity' | 'unitPrice' | 'actualCost'>] = parseFloat(value) || 0;
     } else {
-      // Fix for TS2322 error - use type assertion to tell TypeScript this is a valid key
+      // Use type assertion to ensure TypeScript understands this is a valid key
       (updatedLine as any)[name] = value;
     }
     

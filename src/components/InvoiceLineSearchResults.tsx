@@ -15,6 +15,9 @@ interface SearchResultLine extends InvoiceLine {
   confirmationNumber?: string;
   departureDate?: string;
   paymentStatus?: "paid" | "unpaid" | "partial";
+  supplier?: {
+    accountNumber?: string;
+  };
 }
 
 interface InvoiceLineSearchResultsProps {
