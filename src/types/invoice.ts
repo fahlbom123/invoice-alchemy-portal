@@ -1,4 +1,3 @@
-
 export interface Supplier {
   id: string;
   name: string;
@@ -7,6 +6,10 @@ export interface Supplier {
   accountNumber?: string;
   defaultCurrency?: string;
   currencyRate?: number;
+  address?: string;
+  zipCode?: string;
+  city?: string;
+  country?: string;
 }
 
 export interface InvoiceLine {

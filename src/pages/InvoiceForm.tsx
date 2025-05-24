@@ -105,7 +105,11 @@ const InvoiceForm = () => {
         phone: supplier.phone,
         accountNumber: supplier.accountNumber,
         defaultCurrency: supplier.defaultCurrency,
-        currencyRate: supplier.currencyRate
+        currencyRate: supplier.currencyRate,
+        address: supplier.address,
+        zipCode: supplier.zipCode,
+        city: supplier.city,
+        country: supplier.country
       }
     };
 
@@ -162,6 +166,31 @@ const InvoiceForm = () => {
                       <div>
                         <p><span className="font-medium">Email:</span> {selectedSupplier.email}</p>
                         <p><span className="font-medium">Phone:</span> {selectedSupplier.phone}</p>
+                        {selectedSupplier.address && (
+                          <p><span className="font-medium">Address:</span> {selectedSupplier.address}</p>
+                        )}
+                        <div className="flex gap-2">
+                          {selectedSupplier.zipCode && (
+                            <p><span className="font-medium">Zip:</span> {selectedSupplier.zipCode}</p>
+                          )}
+                          {selectedSupplier.city && (
+                            <p><span className="font-medium">City:</span> {selectedSupplier.city}</p>
+                          )}
+                        </div>
+                        {selectedSupplier.country && (
+                          <p><span className="font-medium">Country:</span> {selectedSupplier.country}</p>
+                        )}
+                      </div>
+                      <div>
+                        {selectedSupplier.accountNumber && (
+                          <p><span className="font-medium">Account Number:</span> {selectedSupplier.accountNumber}</p>
+                        )}
+                        {selectedSupplier.defaultCurrency && (
+                          <p><span className="font-medium">Default Currency:</span> {selectedSupplier.defaultCurrency}</p>
+                        )}
+                        {selectedSupplier.currencyRate && (
+                          <p><span className="font-medium">Currency Rate:</span> {selectedSupplier.currencyRate}</p>
+                        )}
                       </div>
                     </div>
                   </div>
