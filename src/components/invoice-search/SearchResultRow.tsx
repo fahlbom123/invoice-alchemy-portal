@@ -77,21 +77,6 @@ const SearchResultRow = ({
         return <Badge variant="default" className="bg-red-500 hover:bg-red-600">Unpaid</Badge>;
     }
   };
-  
-  // Calculate cost difference
-  const calculateCostDifference = (estimated: number, actual?: number) => {
-    if (actual === undefined) return null;
-    
-    const diff = actual - estimated;
-    const formattedDiff = formatCurrency(Math.abs(diff), undefined);
-    
-    if (diff > 0) {
-      return <span className="text-red-500">+{formattedDiff}</span>;
-    } else if (diff < 0) {
-      return <span className="text-green-500">-{formattedDiff}</span>;
-    }
-    return <span>0</span>;
-  };
 
   // Calculate VAT amount (changed to display as currency)
   const calculateVatAmount = (cost: number, vatRate?: number) => {
@@ -181,7 +166,6 @@ const SearchResultRow = ({
           </div>
         )}
       </TableCell>
-      <TableCell>{calculateCostDifference(line.estimatedCost, line.actualCost)}</TableCell>
       <TableCell>
         {renderPaymentStatusBadge(line.paymentStatus)}
       </TableCell>
@@ -190,17 +174,6 @@ const SearchResultRow = ({
           checked={line.paymentStatus === "paid"}
           onCheckedChange={(checked) => onToggleFullyPaid(line.id, checked)}
         />
-      </TableCell>
-      <TableCell className="text-right">
-        {line.invoiceId && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(`/invoices/${line.invoiceId}?from=search`)}
-          >
-            View Invoice
-          </Button>
-        )}
       </TableCell>
     </TableRow>
   );

@@ -81,10 +81,8 @@ const SearchResultsTable = ({
             <TableHead>Est. VAT</TableHead>
             <TableHead>Actual Cost</TableHead>
             <TableHead>Actual VAT</TableHead>
-            <TableHead>Diff.</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Fully Paid</TableHead>
-            <TableHead className="text-right">View</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
