@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,17 @@ import { useInvoices } from "@/hooks/useInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
 import { formatCurrency } from "@/lib/formatters";
+
+// Extended type for invoice lines with additional properties
+interface ExtendedInvoiceLine extends InvoiceLine {
+  invoiceId: string;
+  invoiceNumber: string;
+  bookingNumber: string;
+  confirmationNumber: string;
+  departureDate: string;
+  paymentStatus: "paid" | "unpaid" | "partial";
+  invoiceTotalAmount: number;
+}
 
 const InvoiceLineSearch = () => {
   const navigate = useNavigate();
@@ -26,11 +38,11 @@ const InvoiceLineSearch = () => {
   const [departureDateStart, setDepartureDateStart] = useState<string>("");
   const [departureDateEnd, setDepartureDateEnd] = useState<string>("");
   const [paymentStatus, setPaymentStatus] = useState<string>("all");
-  const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
+  const [searchResults, setSearchResults] = useState<ExtendedInvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
   // Extract all invoice lines from all invoices - now include invoice total amount
-  const allInvoiceLines = invoices.flatMap(invoice => 
+  const allInvoiceLines: ExtendedInvoiceLine[] = invoices.flatMap(invoice => 
     invoice.invoiceLines.map(line => ({
       ...line,
       invoiceId: invoice.id,
@@ -44,7 +56,7 @@ const InvoiceLineSearch = () => {
   );
 
   // Calculate total invoice amount from search results
-  const calculateTotalInvoiceAmount = (results: InvoiceLine[]) => {
+  const calculateTotalInvoiceAmount = (results: ExtendedInvoiceLine[]) => {
     const uniqueInvoices = new Map();
     results.forEach(line => {
       if (line.invoiceId && line.invoiceTotalAmount !== undefined) {
