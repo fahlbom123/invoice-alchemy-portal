@@ -44,10 +44,12 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
         if (line.id === id) {
           const updatedLine = { ...line, selected: checked };
           
-          // When checking a line, set actual cost and VAT to estimated values
+          // When checking a line, set actual cost and VAT to estimated values only if actual cost has no value
           if (checked) {
-            updatedLine.actualCost = line.estimatedCost;
-            updatedLine.actualVat = line.estimatedVat;
+            if (!updatedLine.actualCost || updatedLine.actualCost === 0) {
+              updatedLine.actualCost = line.estimatedCost;
+              updatedLine.actualVat = line.estimatedVat;
+            }
           }
           
           return updatedLine;
@@ -67,10 +69,12 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
       currentLines.map(line => {
         const updatedLine = { ...line, selected: checked };
         
-        // When checking all lines, set actual cost and VAT to estimated values
+        // When checking all lines, set actual cost and VAT to estimated values only if actual cost has no value
         if (checked) {
-          updatedLine.actualCost = line.estimatedCost;
-          updatedLine.actualVat = line.estimatedVat;
+          if (!updatedLine.actualCost || updatedLine.actualCost === 0) {
+            updatedLine.actualCost = line.estimatedCost;
+            updatedLine.actualVat = line.estimatedVat;
+          }
         }
         
         return updatedLine;
