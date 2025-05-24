@@ -106,10 +106,15 @@ const InvoiceDetail = () => {
                     <p><span className="font-medium">Due Date:</span> {formatDate(invoice.dueDate)}</p>
                     <p><span className="font-medium">Reference:</span> {invoice.reference}</p>
                     <p>
-                      <span className="font-medium">Total Amount:</span> 
-                      {formatCurrency(invoice.totalAmount)} 
-                      {invoice.currency && invoice.currency !== "USD" && ` (${invoice.currency})`}
+                      <span className="font-medium">Currency:</span> {invoice.currency || "USD"}
                     </p>
+                    <p>
+                      <span className="font-medium">Total Amount:</span> 
+                      {formatCurrency(invoice.totalAmount, undefined)} 
+                    </p>
+                    {invoice.vat !== undefined && (
+                      <p><span className="font-medium">VAT:</span> {invoice.vat}%</p>
+                    )}
                   </div>
                 </div>
               </div>

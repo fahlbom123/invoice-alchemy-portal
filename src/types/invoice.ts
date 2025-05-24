@@ -26,6 +26,9 @@ export interface InvoiceLine {
   fullyInvoiced?: boolean;
   currency?: string;
   invoiceType?: "single" | "multi";
+  estimatedVat?: number;
+  actualVat?: number;
+  selected?: boolean;
 }
 
 // Extended invoice line with invoice reference

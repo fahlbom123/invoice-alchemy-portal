@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,9 @@ const InvoiceForm = () => {
     dueDate: new Date().toISOString().split('T')[0],
     supplierId: "",
     notes: "",
-    invoiceLines: []
+    invoiceLines: [],
+    invoiceDate: new Date().toISOString().split('T')[0],
+    currency: "USD",
   });
 
   useEffect(() => {
@@ -39,9 +40,14 @@ const InvoiceForm = () => {
         reference: invoice.reference,
         status: invoice.status,
         dueDate: new Date(invoice.dueDate).toISOString().split('T')[0],
+        invoiceDate: invoice.invoiceDate 
+          ? new Date(invoice.invoiceDate).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
         supplierId: invoice.supplier.id,
         notes: invoice.notes || "",
-        invoiceLines: invoice.invoiceLines
+        invoiceLines: invoice.invoiceLines,
+        currency: invoice.currency || "USD",
+        vat: invoice.vat
       });
     }
   }, [invoice, isEditing]);
@@ -57,6 +63,11 @@ const InvoiceForm = () => {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleVatChange = (value: string) => {
+    const vatValue = value === "" ? undefined : parseFloat(value);
+    setFormData(prev => ({ ...prev, vat: vatValue }));
   };
 
   const handleAddInvoiceLine = () => {
@@ -125,7 +136,10 @@ const InvoiceForm = () => {
         id: supplier.id,
         name: supplier.name,
         email: supplier.email,
-        phone: supplier.phone
+        phone: supplier.phone,
+        accountNumber: supplier.accountNumber,
+        defaultCurrency: supplier.defaultCurrency,
+        currencyRate: supplier.currencyRate
       }
     };
 
@@ -178,6 +192,18 @@ const InvoiceForm = () => {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="invoiceDate">Invoice Date</Label>
+                  <Input
+                    id="invoiceDate"
+                    name="invoiceDate"
+                    type="date"
+                    value={formData.invoiceDate}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="dueDate">Due Date</Label>
                   <Input
                     id="dueDate"
@@ -223,6 +249,41 @@ const InvoiceForm = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="currency">Currency</Label>
+                  <Select
+                    value={formData.currency || "USD"}
+                    onValueChange={(value) => handleSelectChange('currency', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
+                      <SelectItem value="CAD">CAD</SelectItem>
+                      <SelectItem value="AUD">AUD</SelectItem>
+                      <SelectItem value="JPY">JPY</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="vat">VAT % (Optional)</Label>
+                  <Input
+                    id="vat"
+                    name="vat"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={formData.vat || ""}
+                    onChange={(e) => handleVatChange(e.target.value)}
+                    placeholder="e.g., 20"
+                  />
                 </div>
 
                 <div className="space-y-2">
