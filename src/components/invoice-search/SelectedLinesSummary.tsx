@@ -51,10 +51,6 @@ const SelectedLinesSummary = ({
                   <span className="text-gray-600 text-xs">Total Actual VAT:</span>
                   <span className="font-medium">{formatCurrency(totalActualVat, undefined)}</span>
                 </div>
-                <div className="flex flex-col space-y-1">
-                  <span className="text-gray-600 font-medium text-xs">Total Actual:</span>
-                  <span className="font-bold">{formatCurrency(totalActualSummary, undefined)}</span>
-                </div>
               </div>
               <div className="flex flex-col space-y-1">
                 <span className="text-gray-600 text-xs">Invoiced:</span>
@@ -67,10 +63,14 @@ const SelectedLinesSummary = ({
                 </span>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-6 pt-2 border-t border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-gray-200">
               <div className="flex flex-col space-y-1">
                 <span className="text-gray-600 font-medium text-xs">Total Estimated:</span>
                 <span className="font-bold">{formatCurrency(totalEstimatedSummary, undefined)}</span>
+              </div>
+              <div className="flex flex-col space-y-1">
+                <span className="text-gray-600 font-medium text-xs">Total Actual:</span>
+                <span className="font-bold">{formatCurrency(totalActualSummary, undefined)}</span>
               </div>
             </div>
           </div>
