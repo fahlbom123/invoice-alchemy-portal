@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/formatters";
@@ -78,14 +77,27 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
       return sum;
     }, 0);
 
+    const totalActualCost = selectedLinesData.reduce((sum, line) => {
+      return sum + (line.actualCost || 0);
+    }, 0);
+    
+    const totalActualVat = selectedLinesData.reduce((sum, line) => {
+      if (line.actualCost && line.actualVat) {
+        return sum + (line.actualCost * line.actualVat) / 100;
+      }
+      return sum;
+    }, 0);
+
     return {
       totalEstimatedCost,
       totalEstimatedVat,
+      totalActualCost,
+      totalActualVat,
       count: selectedLinesData.length
     };
   };
 
-  const { totalEstimatedCost, totalEstimatedVat, count } = calculateSelectedTotals();
+  const { totalEstimatedCost, totalEstimatedVat, totalActualCost, totalActualVat, count } = calculateSelectedTotals();
 
   // Function to render payment status badge
   const renderPaymentStatusBadge = (status?: string) => {
@@ -261,14 +273,26 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
           <div className="flex items-center justify-between">
             <div className="space-y-2">
               <span className="font-medium block">{count} lines selected</span>
-              <div className="text-sm space-y-1">
-                <div className="flex items-center gap-4">
-                  <span className="text-gray-600">Total Estimated Cost:</span>
-                  <span className="font-medium">{formatCurrency(totalEstimatedCost, undefined)}</span>
+              <div className="text-sm grid grid-cols-2 gap-8">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-4">
+                    <span className="text-gray-600">Total Estimated Cost:</span>
+                    <span className="font-medium">{formatCurrency(totalEstimatedCost, undefined)}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-gray-600">Total Estimated VAT:</span>
+                    <span className="font-medium">{formatCurrency(totalEstimatedVat, undefined)}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-gray-600">Total Estimated VAT:</span>
-                  <span className="font-medium">{formatCurrency(totalEstimatedVat, undefined)}</span>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-4">
+                    <span className="text-gray-600">Total Actual Cost:</span>
+                    <span className="font-medium">{formatCurrency(totalActualCost, undefined)}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-gray-600">Total Actual VAT:</span>
+                    <span className="font-medium">{formatCurrency(totalActualVat, undefined)}</span>
+                  </div>
                 </div>
               </div>
             </div>
