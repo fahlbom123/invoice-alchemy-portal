@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -87,7 +86,7 @@ const InvoiceList = ({ invoices }: InvoiceListProps) => {
                       size="sm"
                       onClick={() => navigate(`/invoices/view/${invoice.id}`)}
                     >
-                      Edit
+                      View
                     </Button>
                   </TableCell>
                 </TableRow>
