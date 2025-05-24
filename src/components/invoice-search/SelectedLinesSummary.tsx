@@ -23,6 +23,7 @@ const SelectedLinesSummary = ({
 }: SelectedLinesSummaryProps) => {
   const totalEstimatedSummary = totalEstimatedCost + totalEstimatedVat;
   const totalActualSummary = totalActualCost + totalActualVat;
+  const diffAmount = totalInvoicedAmount - totalActualSummary;
 
   return (
     <div className="mb-4 p-4 bg-blue-50 rounded-md border border-blue-200">
@@ -30,7 +31,7 @@ const SelectedLinesSummary = ({
         <div className="space-y-2">
           <span className="font-medium block">{count} lines selected</span>
           <div className="text-sm space-y-2">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="flex items-center gap-4">
                 <span className="text-gray-600">Total Estimated Cost:</span>
                 <span className="font-medium">{formatCurrency(totalEstimatedCost, undefined)}</span>
@@ -42,6 +43,12 @@ const SelectedLinesSummary = ({
               <div className="flex items-center gap-4">
                 <span className="text-gray-600">Invoiced:</span>
                 <span className="font-medium">{formatCurrency(totalInvoicedAmount, undefined)}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-gray-600">Diff:</span>
+                <span className={`font-medium ${diffAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(diffAmount, undefined)}
+                </span>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
