@@ -31,43 +31,43 @@ const SelectedLinesSummary = ({
         <div className="space-y-2">
           <span className="font-medium block">{count} lines selected</span>
           <div className="text-sm space-y-2">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600">Total Estimated Cost:</span>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="flex flex-col space-y-1">
+                <span className="text-gray-600 text-xs">Total Estimated Cost:</span>
                 <span className="font-medium">{formatCurrency(totalEstimatedCost, undefined)}</span>
               </div>
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600">Total Actual Cost:</span>
+              <div className="flex flex-col space-y-1">
+                <span className="text-gray-600 text-xs">Total Actual Cost:</span>
                 <span className="font-medium">{formatCurrency(totalActualCost, undefined)}</span>
               </div>
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600">Invoiced:</span>
+              <div className="flex flex-col space-y-1">
+                <span className="text-gray-600 text-xs">Invoiced:</span>
                 <span className="font-medium">{formatCurrency(totalInvoicedAmount, undefined)}</span>
               </div>
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600">Diff:</span>
+              <div className="flex flex-col space-y-1">
+                <span className="text-gray-600 text-xs">Diff:</span>
                 <span className={`font-medium ${diffAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatCurrency(diffAmount, undefined)}
                 </span>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600">Total Estimated VAT:</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col space-y-1">
+                <span className="text-gray-600 text-xs">Total Estimated VAT:</span>
                 <span className="font-medium">{formatCurrency(totalEstimatedVat, undefined)}</span>
               </div>
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600">Total Actual VAT:</span>
+              <div className="flex flex-col space-y-1">
+                <span className="text-gray-600 text-xs">Total Actual VAT:</span>
                 <span className="font-medium">{formatCurrency(totalActualVat, undefined)}</span>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2 border-t border-gray-200">
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600 font-medium">Total Estimated:</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-gray-200">
+              <div className="flex flex-col space-y-1">
+                <span className="text-gray-600 font-medium text-xs">Total Estimated:</span>
                 <span className="font-bold">{formatCurrency(totalEstimatedSummary, undefined)}</span>
               </div>
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600 font-medium">Total Actual:</span>
+              <div className="flex flex-col space-y-1">
+                <span className="text-gray-600 font-medium text-xs">Total Actual:</span>
                 <span className="font-bold">{formatCurrency(totalActualSummary, undefined)}</span>
               </div>
             </div>
