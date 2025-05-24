@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { InvoiceLine } from "@/types/invoice";
@@ -115,29 +114,52 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
   const { totalEstimatedCost, totalEstimatedVat, totalActualCost, totalActualVat, count } = calculateSelectedTotals();
 
   const handleEditActualCost = (lineId: string) => {
-    const line = lines.find(l => l.id === lineId);
-    if (line) {
-      setEditingLine(lineId);
-      setEditingCost(line.actualCost?.toString() || "");
-      setEditingVat(line.actualVat?.toString() || "");
+    if (lineId.includes('-cost')) {
+      const actualLineId = lineId.replace('-cost', '');
+      const line = lines.find(l => l.id === actualLineId);
+      if (line) {
+        setEditingLine(lineId);
+        setEditingCost(line.actualCost?.toString() || "");
+      }
+    } else if (lineId.includes('-vat')) {
+      const actualLineId = lineId.replace('-vat', '');
+      const line = lines.find(l => l.id === actualLineId);
+      if (line) {
+        setEditingLine(lineId);
+        setEditingVat(line.actualVat?.toString() || "");
+      }
     }
   };
 
   const handleSaveActualCost = (lineId: string) => {
-    if (!editingCost && !editingVat) return;
+    if (editingLine?.includes('-cost')) {
+      if (!editingCost) return;
+      const actualCost = parseFloat(editingCost);
+      
+      setLines(currentLines => 
+        currentLines.map(line => 
+          line.id === lineId 
+            ? { ...line, actualCost } 
+            : line
+        )
+      );
+      
+      toast.success("Actual cost saved successfully");
+    } else if (editingLine?.includes('-vat')) {
+      if (!editingVat) return;
+      const actualVat = parseFloat(editingVat);
+      
+      setLines(currentLines => 
+        currentLines.map(line => 
+          line.id === lineId 
+            ? { ...line, actualVat } 
+            : line
+        )
+      );
+      
+      toast.success("Actual VAT saved successfully");
+    }
 
-    const actualCost = editingCost ? parseFloat(editingCost) : undefined;
-    const actualVat = editingVat ? parseFloat(editingVat) : undefined;
-
-    setLines(currentLines => 
-      currentLines.map(line => 
-        line.id === lineId 
-          ? { ...line, actualCost, actualVat } 
-          : line
-      )
-    );
-
-    toast.success("Actual cost and VAT saved successfully");
     setEditingLine(null);
     setEditingCost("");
     setEditingVat("");

@@ -107,7 +107,7 @@ const SearchResultRow = ({
         {calculateVatAmount(line.estimatedCost, line.estimatedVat)}
       </TableCell>
       <TableCell>
-        {editingLine === line.id ? (
+        {editingLine === `${line.id}-cost` ? (
           <div className="flex items-center gap-2">
             <Input
               type="number"
@@ -136,7 +136,7 @@ const SearchResultRow = ({
         ) : (
           <div 
             className="cursor-pointer hover:bg-blue-50 transition-colors p-1 rounded"
-            onClick={() => onEditActualCost(line.id)}
+            onClick={() => onEditActualCost(`${line.id}-cost`)}
             title="Click to edit actual cost"
           >
             {line.actualCost ? formatCurrency(line.actualCost, undefined) : "Click to edit"}
@@ -144,20 +144,36 @@ const SearchResultRow = ({
         )}
       </TableCell>
       <TableCell>
-        {editingLine === line.id ? (
-          <Input
-            type="number"
-            min="0"
-            step="0.01"
-            value={editingVat}
-            onChange={(e) => setEditingVat(e.target.value)}
-            className="w-24"
-            placeholder="VAT %"
-          />
+        {editingLine === `${line.id}-vat` ? (
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={editingVat}
+              onChange={(e) => setEditingVat(e.target.value)}
+              className="w-24"
+              placeholder="VAT %"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onSaveActualCost(line.id)}
+            >
+              <Save className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCancelEdit}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         ) : (
           <div 
             className="cursor-pointer hover:bg-blue-50 transition-colors p-1 rounded"
-            onClick={() => onEditActualCost(line.id)}
+            onClick={() => onEditActualCost(`${line.id}-vat`)}
             title="Click to edit actual VAT"
           >
             {line.actualVat && line.actualCost 
