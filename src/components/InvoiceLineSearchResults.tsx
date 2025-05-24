@@ -5,7 +5,7 @@ import { formatCurrency } from "@/lib/formatters";
 import { InvoiceLine } from "@/types/invoice";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, X, Circle, Divide } from "lucide-react";
+import { Check, X, Edit, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -40,6 +40,9 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
   const [registerCostValue, setRegisterCostValue] = useState<string>("");
   const [registerVatValue, setRegisterVatValue] = useState<string>("");
   const [registerCostLineId, setRegisterCostLineId] = useState<string | null>(null);
+  const [editingLine, setEditingLine] = useState<string | null>(null);
+  const [editingCost, setEditingCost] = useState<string>("");
+  const [editingVat, setEditingVat] = useState<string>("");
 
   const handleSelectLine = (id: string, checked: boolean) => {
     setLines(currentLines => 
@@ -62,19 +65,6 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
     setSelectedLines(checked ? [...lines] : []);
   };
 
-  // Function to render payment status icon
-  const renderPaymentStatus = (status?: string) => {
-    switch (status) {
-      case "paid":
-        return <Check className="h-5 w-5 text-green-500" />;
-      case "partial":
-        return <Circle className="h-5 w-5 text-amber-500" />;
-      case "unpaid":
-      default:
-        return <X className="h-5 w-5 text-red-500" />;
-    }
-  };
-
   // Function to render payment status badge
   const renderPaymentStatusBadge = (status?: string) => {
     switch (status) {
@@ -85,24 +75,6 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
       case "unpaid":
       default:
         return <Badge variant="default" className="bg-red-500 hover:bg-red-600">Unpaid</Badge>;
-    }
-  };
-
-  // Function to render fully invoiced status
-  const renderFullyInvoicedStatus = (fullyInvoiced?: boolean) => {
-    return fullyInvoiced ? 
-      <Check className="h-5 w-5 text-green-500" /> : 
-      <X className="h-5 w-5 text-red-500" />;
-  };
-
-  // Function to render invoice type
-  const renderInvoiceType = (type?: string) => {
-    switch (type) {
-      case "multi":
-        return <div className="flex items-center gap-1"><Divide className="h-4 w-4" /> <span>Multi</span></div>;
-      case "single":
-      default:
-        return <span>Single</span>;
     }
   };
   
@@ -125,6 +97,35 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
   const calculateVatAmount = (cost: number, vatRate?: number) => {
     if (vatRate === undefined) return "-";
     return formatCurrency((cost * vatRate) / 100, undefined);
+  };
+
+  const handleEditCost = (lineId: string) => {
+    const line = lines.find(l => l.id === lineId);
+    if (line) {
+      setEditingLine(lineId);
+      setEditingCost(line.actualCost?.toString() || line.estimatedCost.toString());
+      setEditingVat(line.actualVat?.toString() || "");
+    }
+  };
+
+  const handleSaveCost = (lineId: string) => {
+    if (!editingCost) return;
+
+    const actualCost = parseFloat(editingCost);
+    const actualVat = editingVat ? parseFloat(editingVat) : undefined;
+
+    setLines(currentLines => 
+      currentLines.map(line => 
+        line.id === lineId 
+          ? { ...line, actualCost, actualVat } 
+          : line
+      )
+    );
+
+    toast.success("Cost saved successfully");
+    setEditingLine(null);
+    setEditingCost("");
+    setEditingVat("");
   };
 
   const handleRegisterCost = (lineId: string) => {
@@ -243,20 +244,17 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
               <TableHead>Invoice #</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Supplier</TableHead>
-              <TableHead>Account #</TableHead>
               <TableHead>Booking #</TableHead>
               <TableHead>Confirmation #</TableHead>
               <TableHead>Departure Date</TableHead>
-              <TableHead>Type</TableHead>
               <TableHead>Qty</TableHead>
               <TableHead>Currency</TableHead>
               <TableHead>Est. Cost</TableHead>
               <TableHead>Est. VAT</TableHead>
               <TableHead>Actual Cost</TableHead>
               <TableHead>Actual VAT</TableHead>
-              <TableHead>Difference</TableHead>
+              <TableHead>Diff.</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Fully Invoiced</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -272,34 +270,67 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
                 <TableCell>{line.invoiceNumber}</TableCell>
                 <TableCell>{line.description}</TableCell>
                 <TableCell>{line.supplierName}</TableCell>
-                <TableCell>{line.supplier?.accountNumber || "-"}</TableCell>
                 <TableCell>{line.bookingNumber}</TableCell>
                 <TableCell>{line.confirmationNumber}</TableCell>
                 <TableCell>{line.departureDate}</TableCell>
-                <TableCell>{renderInvoiceType(line.invoiceType)}</TableCell>
                 <TableCell>{line.quantity}</TableCell>
                 <TableCell>{line.currency || "USD"}</TableCell>
                 <TableCell className="font-medium">{formatCurrency(line.estimatedCost, undefined)}</TableCell>
                 <TableCell>{calculateVatAmount(line.estimatedCost, line.estimatedVat)}</TableCell>
-                <TableCell>{line.actualCost ? formatCurrency(line.actualCost, undefined) : "-"}</TableCell>
-                <TableCell>{line.actualVat ? calculateVatAmount(line.actualCost || 0, line.actualVat) : "-"}</TableCell>
+                <TableCell>
+                  {editingLine === line.id ? (
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={editingCost}
+                      onChange={(e) => setEditingCost(e.target.value)}
+                      className="w-24"
+                    />
+                  ) : (
+                    line.actualCost ? formatCurrency(line.actualCost, undefined) : "-"
+                  )}
+                </TableCell>
+                <TableCell>
+                  {editingLine === line.id ? (
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={editingVat}
+                      onChange={(e) => setEditingVat(e.target.value)}
+                      className="w-24"
+                      placeholder="VAT %"
+                    />
+                  ) : (
+                    line.actualVat ? calculateVatAmount(line.actualCost || 0, line.actualVat) : "-"
+                  )}
+                </TableCell>
                 <TableCell>{calculateCostDifference(line.estimatedCost, line.actualCost)}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    {renderPaymentStatus(line.paymentStatus)}
-                    {renderPaymentStatusBadge(line.paymentStatus)}
-                  </div>
+                  {renderPaymentStatusBadge(line.paymentStatus)}
                 </TableCell>
-                <TableCell>{renderFullyInvoicedStatus(line.fullyInvoiced)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRegisterCost(line.id)}
-                    >
-                      Register Cost
-                    </Button>
+                    {editingLine === line.id ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSaveCost(line.id)}
+                      >
+                        <Save className="h-4 w-4 mr-1" />
+                        Save
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditCost(line.id)}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                    )}
                     {line.invoiceId && (
                       <Button
                         variant="ghost"
