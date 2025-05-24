@@ -19,12 +19,14 @@ const SelectedLinesSummary = ({
   totalActualVat,
   onRegisterMultipleInvoices,
 }: SelectedLinesSummaryProps) => {
+  const invoicedTotal = totalActualCost + totalActualVat;
+
   return (
     <div className="mb-4 p-4 bg-blue-50 rounded-md border border-blue-200">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <span className="font-medium block">{count} lines selected</span>
-          <div className="text-sm grid grid-cols-2 gap-8">
+          <div className="text-sm grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-1">
               <div className="flex items-center gap-4">
                 <span className="text-gray-600">Total Estimated Cost:</span>
@@ -43,6 +45,10 @@ const SelectedLinesSummary = ({
               <div className="flex items-center gap-4">
                 <span className="text-gray-600">Total Actual VAT:</span>
                 <span className="font-medium">{formatCurrency(totalActualVat, undefined)}</span>
+              </div>
+              <div className="flex items-center gap-4 pt-2 border-t border-blue-200">
+                <span className="text-gray-900 font-medium">Invoiced:</span>
+                <span className="font-bold">{formatCurrency(invoicedTotal, undefined)}</span>
               </div>
             </div>
           </div>
