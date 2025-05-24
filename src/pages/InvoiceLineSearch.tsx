@@ -43,6 +43,17 @@ const InvoiceLineSearch = () => {
     }))
   );
 
+  // Calculate total invoice amount from search results
+  const calculateTotalInvoiceAmount = (results: InvoiceLine[]) => {
+    const uniqueInvoices = new Map();
+    results.forEach(line => {
+      if (line.invoiceId && line.invoiceTotalAmount !== undefined) {
+        uniqueInvoices.set(line.invoiceId, line.invoiceTotalAmount);
+      }
+    });
+    return Array.from(uniqueInvoices.values()).reduce((sum, amount) => sum + amount, 0);
+  };
+
   const handleSearch = () => {
     // Filter invoice lines based on search criteria
     const filtered = allInvoiceLines.filter(line => {
@@ -262,7 +273,10 @@ const InvoiceLineSearch = () => {
             </CardHeader>
             <CardContent>
               {searchResults.length > 0 ? (
-                <InvoiceLineSearchResults invoiceLines={searchResults} />
+                <InvoiceLineSearchResults 
+                  invoiceLines={searchResults} 
+                  invoiceTotalAmount={calculateTotalInvoiceAmount(searchResults)}
+                />
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   No invoice lines found matching your criteria.
