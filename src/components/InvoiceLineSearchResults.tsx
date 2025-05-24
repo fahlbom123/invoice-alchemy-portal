@@ -24,10 +24,11 @@ interface SearchResultLine extends InvoiceLine {
 
 interface InvoiceLineSearchResultsProps {
   invoiceLines: SearchResultLine[];
+  invoiceTotalAmount: number;
   onRegister?: (selectedLines: SearchResultLine[], totals: { totalActualCost: number; totalActualVat: number; }) => void;
 }
 
-const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearchResultsProps) => {
+const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister }: InvoiceLineSearchResultsProps) => {
   const [lines, setLines] = useState<SearchResultLine[]>(invoiceLines);
   const [selectedLines, setSelectedLines] = useState<SearchResultLine[]>([]);
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
@@ -268,6 +269,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
           totalActualCost={totalActualCost}
           totalActualVat={totalActualVat}
           totalInvoicedAmount={totalInvoicedAmount}
+          invoiceTotalAmount={invoiceTotalAmount}
           onRegisterMultipleInvoices={handleRegisterMultipleInvoices}
         />
       )}
