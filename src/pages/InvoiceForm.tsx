@@ -54,7 +54,6 @@ const InvoiceForm = () => {
         notes: invoice.notes || "",
         invoiceLines: invoice.invoiceLines,
         currency: invoice.currency || "USD",
-        vat: invoice.vat,
         totalAmount: invoice.totalAmount || 0,
         totalVat: invoice.totalVat || 0,
       });
@@ -78,11 +77,6 @@ const InvoiceForm = () => {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleVatChange = (value: string) => {
-    const vatValue = value === "" ? undefined : parseFloat(value);
-    setFormData(prev => ({ ...prev, vat: vatValue }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -259,7 +253,7 @@ const InvoiceForm = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="totalAmount">Total Amount</Label>
+                    <Label htmlFor="totalAmount">Total Amount incl VAT</Label>
                     <Input
                       id="totalAmount"
                       name="totalAmount"
@@ -271,22 +265,6 @@ const InvoiceForm = () => {
                       placeholder="0.00"
                       required
                     />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="vat">VAT Amount</Label>
-                    <div className="relative">
-                      <Input
-                        id="vat"
-                        name="vat"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={formData.vat || ""}
-                        onChange={(e) => handleVatChange(e.target.value)}
-                        placeholder="0.00"
-                      />
-                    </div>
                   </div>
                   
                   <div className="space-y-2">
