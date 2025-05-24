@@ -131,10 +131,6 @@ const InvoiceForm = () => {
           <Button variant="outline" onClick={() => navigate('/dashboard')}>
             Back to Dashboard
           </Button>
-          <div className="text-right">
-            <p className="text-sm text-gray-500">Total Amount</p>
-            <p className="text-2xl font-bold">{formatCurrency(formData.totalAmount, formData.currency)}</p>
-          </div>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -142,10 +138,6 @@ const InvoiceForm = () => {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>{isEditing ? "Edit Supplier Invoice" : "Create New Supplier Invoice"}</CardTitle>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Total Amount</p>
-                  <p className="text-2xl font-bold">{formatCurrency(formData.totalAmount, formData.currency)}</p>
-                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -279,9 +271,6 @@ const InvoiceForm = () => {
                       placeholder="0.00"
                       required
                     />
-                    <div className="text-sm text-gray-500 mt-1">
-                      {formatCurrency(formData.totalAmount || 0, formData.currency)}
-                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -297,11 +286,6 @@ const InvoiceForm = () => {
                         onChange={(e) => handleVatChange(e.target.value)}
                         placeholder="0.00"
                       />
-                      {formData.vat !== undefined && (
-                        <div className="text-sm text-gray-500 mt-1">
-                          {formatCurrency(formData.vat, formData.currency)}
-                        </div>
-                      )}
                     </div>
                   </div>
                   
@@ -317,9 +301,6 @@ const InvoiceForm = () => {
                       onChange={handleNumberInputChange}
                       placeholder="0.00"
                     />
-                    <div className="text-sm text-gray-500 mt-1">
-                      {formatCurrency(formData.totalVat || 0, formData.currency)}
-                    </div>
                   </div>
 
                   <div className="space-y-2">
