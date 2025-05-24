@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { InvoiceLine } from "@/types/invoice";
@@ -20,6 +19,7 @@ interface SearchResultLine extends InvoiceLine {
     currencyRate?: number;
   };
   selected?: boolean;
+  invoiceTotalAmount?: number; // Add this field
 }
 
 interface InvoiceLineSearchResultsProps {
@@ -107,16 +107,26 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
       return sum;
     }, 0);
 
+    // Calculate total invoiced amount from unique invoices
+    const uniqueInvoices = new Map();
+    selectedLinesData.forEach(line => {
+      if (line.invoiceId && line.invoiceTotalAmount) {
+        uniqueInvoices.set(line.invoiceId, line.invoiceTotalAmount);
+      }
+    });
+    const totalInvoicedAmount = Array.from(uniqueInvoices.values()).reduce((sum, amount) => sum + amount, 0);
+
     return {
       totalEstimatedCost,
       totalEstimatedVat,
       totalActualCost,
       totalActualVat,
+      totalInvoicedAmount,
       count: selectedLinesData.length
     };
   };
 
-  const { totalEstimatedCost, totalEstimatedVat, totalActualCost, totalActualVat, count } = calculateSelectedTotals();
+  const { totalEstimatedCost, totalEstimatedVat, totalActualCost, totalActualVat, totalInvoicedAmount, count } = calculateSelectedTotals();
 
   const handleEditActualCost = (lineId: string) => {
     if (lineId.includes('-cost')) {
@@ -257,6 +267,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
           totalEstimatedVat={totalEstimatedVat}
           totalActualCost={totalActualCost}
           totalActualVat={totalActualVat}
+          totalInvoicedAmount={totalInvoicedAmount}
           onRegisterMultipleInvoices={handleRegisterMultipleInvoices}
         />
       )}

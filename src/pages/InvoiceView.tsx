@@ -56,7 +56,7 @@ const InvoiceView = () => {
   const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Extract all invoice lines from all invoices
+  // Extract all invoice lines from all invoices - now include invoice total amount
   const allInvoiceLines = invoices.flatMap(invoice => 
     invoice.invoiceLines.map(line => ({
       ...line,
@@ -65,7 +65,8 @@ const InvoiceView = () => {
       bookingNumber: line.bookingNumber || "",
       confirmationNumber: line.confirmationNumber || "",
       departureDate: line.departureDate || "",
-      paymentStatus: line.paymentStatus || "unpaid"
+      paymentStatus: line.paymentStatus || "unpaid",
+      invoiceTotalAmount: invoice.totalAmount || 0
     }))
   );
 

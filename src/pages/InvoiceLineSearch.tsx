@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +16,7 @@ const InvoiceLineSearch = () => {
   const navigate = useNavigate();
   const { invoices, isLoading } = useInvoices();
   const { suppliers } = useSuppliers();
+  
   const [supplierId, setSupplierId] = useState<string>("all");
   const [minCost, setMinCost] = useState<string>("");
   const [maxCost, setMaxCost] = useState<string>("");
@@ -29,7 +29,7 @@ const InvoiceLineSearch = () => {
   const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Extract all invoice lines from all invoices
+  // Extract all invoice lines from all invoices - now include invoice total amount
   const allInvoiceLines = invoices.flatMap(invoice => 
     invoice.invoiceLines.map(line => ({
       ...line,
@@ -38,7 +38,8 @@ const InvoiceLineSearch = () => {
       bookingNumber: line.bookingNumber || "",
       confirmationNumber: line.confirmationNumber || "",
       departureDate: line.departureDate || "",
-      paymentStatus: line.paymentStatus || "unpaid" // Default to unpaid if not specified
+      paymentStatus: line.paymentStatus || "unpaid",
+      invoiceTotalAmount: invoice.totalAmount || 0
     }))
   );
 

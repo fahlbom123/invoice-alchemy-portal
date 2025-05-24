@@ -8,6 +8,7 @@ interface SelectedLinesSummaryProps {
   totalEstimatedVat: number;
   totalActualCost: number;
   totalActualVat: number;
+  totalInvoicedAmount: number;
   onRegisterMultipleInvoices: () => void;
 }
 
@@ -17,10 +18,9 @@ const SelectedLinesSummary = ({
   totalEstimatedVat,
   totalActualCost,
   totalActualVat,
+  totalInvoicedAmount,
   onRegisterMultipleInvoices,
 }: SelectedLinesSummaryProps) => {
-  const invoicedTotal = totalActualCost + totalActualVat;
-
   return (
     <div className="mb-4 p-4 bg-blue-50 rounded-md border border-blue-200">
       <div className="flex items-center justify-between">
@@ -48,7 +48,7 @@ const SelectedLinesSummary = ({
               </div>
               <div className="flex items-center gap-4 pt-2 border-t border-blue-200">
                 <span className="text-gray-900 font-medium">Invoiced:</span>
-                <span className="font-bold">{formatCurrency(invoicedTotal, undefined)}</span>
+                <span className="font-bold">{formatCurrency(totalInvoicedAmount, undefined)}</span>
               </div>
             </div>
           </div>
