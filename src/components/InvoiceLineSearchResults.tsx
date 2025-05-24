@@ -134,34 +134,19 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
     return formatCurrency((cost * vatRate) / 100, undefined);
   };
 
-  // New function to handle clicking on estimated cost/VAT to set actual values
-  const handleSetActualFromEstimated = (lineId: string) => {
-    const line = lines.find(l => l.id === lineId);
-    if (line) {
-      setLines(currentLines => 
-        currentLines.map(l => 
-          l.id === lineId 
-            ? { ...l, actualCost: l.estimatedCost, actualVat: l.estimatedVat } 
-            : l
-        )
-      );
-      toast.success("Actual cost and VAT set from estimated values");
-    }
-  };
-
-  const handleEditCost = (lineId: string) => {
+  const handleEditActualCost = (lineId: string) => {
     const line = lines.find(l => l.id === lineId);
     if (line) {
       setEditingLine(lineId);
-      setEditingCost(line.actualCost?.toString() || line.estimatedCost.toString());
+      setEditingCost(line.actualCost?.toString() || "");
       setEditingVat(line.actualVat?.toString() || "");
     }
   };
 
-  const handleSaveCost = (lineId: string) => {
-    if (!editingCost) return;
+  const handleSaveActualCost = (lineId: string) => {
+    if (!editingCost && !editingVat) return;
 
-    const actualCost = parseFloat(editingCost);
+    const actualCost = editingCost ? parseFloat(editingCost) : undefined;
     const actualVat = editingVat ? parseFloat(editingVat) : undefined;
 
     setLines(currentLines => 
@@ -172,7 +157,13 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
       )
     );
 
-    toast.success("Cost saved successfully");
+    toast.success("Actual cost and VAT saved successfully");
+    setEditingLine(null);
+    setEditingCost("");
+    setEditingVat("");
+  };
+
+  const handleCancelEdit = () => {
     setEditingLine(null);
     setEditingCost("");
     setEditingVat("");
@@ -367,32 +358,47 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
                 <TableCell>{line.departureDate}</TableCell>
                 <TableCell>{line.quantity}</TableCell>
                 <TableCell>{line.currency || "USD"}</TableCell>
-                <TableCell 
-                  className="font-medium cursor-pointer hover:bg-blue-50 transition-colors"
-                  onClick={() => handleSetActualFromEstimated(line.id)}
-                  title="Click to set actual cost"
-                >
+                <TableCell className="font-medium">
                   {formatCurrency(line.estimatedCost, undefined)}
                 </TableCell>
-                <TableCell 
-                  className="cursor-pointer hover:bg-blue-50 transition-colors"
-                  onClick={() => handleSetActualFromEstimated(line.id)}
-                  title="Click to set actual VAT"
-                >
+                <TableCell>
                   {calculateVatAmount(line.estimatedCost, line.estimatedVat)}
                 </TableCell>
                 <TableCell>
                   {editingLine === line.id ? (
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={editingCost}
-                      onChange={(e) => setEditingCost(e.target.value)}
-                      className="w-24"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={editingCost}
+                        onChange={(e) => setEditingCost(e.target.value)}
+                        className="w-24"
+                        placeholder="Cost"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSaveActualCost(line.id)}
+                      >
+                        <Save className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCancelEdit}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   ) : (
-                    line.actualCost ? formatCurrency(line.actualCost, undefined) : "-"
+                    <div 
+                      className="cursor-pointer hover:bg-blue-50 transition-colors p-1 rounded"
+                      onClick={() => handleEditActualCost(line.id)}
+                      title="Click to edit actual cost"
+                    >
+                      {line.actualCost ? formatCurrency(line.actualCost, undefined) : "Click to edit"}
+                    </div>
                   )}
                 </TableCell>
                 <TableCell>
@@ -404,31 +410,28 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
                       value={editingVat}
                       onChange={(e) => setEditingVat(e.target.value)}
                       className="w-24"
-                      placeholder="VAT amount"
+                      placeholder="VAT %"
                     />
                   ) : (
-                    line.actualVat && line.actualCost 
-                      ? formatCurrency((line.actualCost * line.actualVat) / 100, undefined) 
-                      : "-"
+                    <div 
+                      className="cursor-pointer hover:bg-blue-50 transition-colors p-1 rounded"
+                      onClick={() => handleEditActualCost(line.id)}
+                      title="Click to edit actual VAT"
+                    >
+                      {line.actualVat && line.actualCost 
+                        ? formatCurrency((line.actualCost * line.actualVat) / 100, undefined) 
+                        : "Click to edit"}
+                    </div>
                   )}
                 </TableCell>
                 <TableCell>{calculateCostDifference(line.estimatedCost, line.actualCost)}</TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
-                    {editingLine === line.id ? (
+                    {editingLine !== line.id && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleSaveCost(line.id)}
-                      >
-                        <Save className="h-4 w-4 mr-1" />
-                        Save
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditCost(line.id)}
+                        onClick={() => handleEditActualCost(line.id)}
                       >
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
