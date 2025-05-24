@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/formatters";
@@ -11,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 // Extend InvoiceLine to include invoice reference
 interface SearchResultLine extends InvoiceLine {
@@ -93,7 +93,7 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
     return <span>0</span>;
   };
 
-  // Calculate VAT amount
+  // Calculate VAT amount (changed to display as currency)
   const calculateVatAmount = (cost: number, vatRate?: number) => {
     if (vatRate === undefined) return "-";
     return formatCurrency((cost * vatRate) / 100, undefined);
@@ -172,6 +172,19 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
     // For now we'll just show a success message
   };
 
+  // New function to toggle fully paid status
+  const handleToggleFullyPaid = (lineId: string, isPaid: boolean) => {
+    setLines(currentLines => 
+      currentLines.map(line => 
+        line.id === lineId 
+          ? { ...line, paymentStatus: isPaid ? "paid" : "unpaid" } 
+          : line
+      )
+    );
+    
+    toast.success(`Payment status ${isPaid ? 'marked as paid' : 'marked as unpaid'}`);
+  };
+
   const hasSelectedLines = selectedLines.length > 0;
   
   return (
@@ -241,11 +254,11 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
                   onCheckedChange={(checked) => handleSelectAll(!!checked)} 
                 />
               </TableHead>
-              <TableHead>Invoice #</TableHead>
+              <TableHead>Invoice</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Supplier</TableHead>
-              <TableHead>Booking #</TableHead>
-              <TableHead>Confirmation #</TableHead>
+              <TableHead>Booking</TableHead>
+              <TableHead>Confirmation</TableHead>
               <TableHead>Departure Date</TableHead>
               <TableHead>Qty</TableHead>
               <TableHead>Currency</TableHead>
@@ -254,8 +267,9 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
               <TableHead>Actual Cost</TableHead>
               <TableHead>Actual VAT</TableHead>
               <TableHead>Diff.</TableHead>
+              <TableHead>Actions</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Fully Paid</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -300,16 +314,15 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
                       value={editingVat}
                       onChange={(e) => setEditingVat(e.target.value)}
                       className="w-24"
-                      placeholder="VAT %"
+                      placeholder="VAT amount"
                     />
                   ) : (
-                    line.actualVat ? calculateVatAmount(line.actualCost || 0, line.actualVat) : "-"
+                    line.actualVat && line.actualCost 
+                      ? formatCurrency((line.actualCost * line.actualVat) / 100, undefined) 
+                      : "-"
                   )}
                 </TableCell>
                 <TableCell>{calculateCostDifference(line.estimatedCost, line.actualCost)}</TableCell>
-                <TableCell>
-                  {renderPaymentStatusBadge(line.paymentStatus)}
-                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     {editingLine === line.id ? (
@@ -341,6 +354,15 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
                       </Button>
                     )}
                   </div>
+                </TableCell>
+                <TableCell>
+                  {renderPaymentStatusBadge(line.paymentStatus)}
+                </TableCell>
+                <TableCell>
+                  <Switch 
+                    checked={line.paymentStatus === "paid"}
+                    onCheckedChange={(checked) => handleToggleFullyPaid(line.id, checked)}
+                  />
                 </TableCell>
               </TableRow>
             ))}
