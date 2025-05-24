@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -120,7 +121,12 @@ const InvoiceForm = () => {
     try {
       await saveInvoice(completeFormData);
       toast.success(isEditing ? "Invoice updated successfully" : "Invoice created successfully");
-      navigate('/dashboard');
+      
+      if (isEditing && id) {
+        navigate(`/invoices/view/${id}`);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       toast.error("Failed to save invoice. Please try again.");
     }
