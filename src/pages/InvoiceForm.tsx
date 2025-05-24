@@ -10,8 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useInvoiceById, useSaveInvoice } from "@/hooks/useInvoices";
-import { InvoiceFormData, InvoiceLine } from "@/types/invoice";
-import InvoiceLineForm from "@/components/InvoiceLineForm";
+import { InvoiceFormData } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
 
 const InvoiceForm = () => {
@@ -76,19 +75,6 @@ const InvoiceForm = () => {
     setFormData(prev => ({ ...prev, vat: vatValue }));
   };
 
-  const handleUpdateInvoiceLine = (index: number, line: InvoiceLine) => {
-    const updatedLines = [...formData.invoiceLines];
-    updatedLines[index] = line;
-    setFormData(prev => ({ ...prev, invoiceLines: updatedLines }));
-  };
-
-  const handleRemoveInvoiceLine = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      invoiceLines: prev.invoiceLines.filter((_, i) => i !== index)
-    }));
-  };
-
   const totalAmount = formData.invoiceLines.reduce(
     (sum, line) => sum + line.estimatedCost,
     0
@@ -141,6 +127,10 @@ const InvoiceForm = () => {
           <Button variant="outline" onClick={() => navigate('/dashboard')}>
             Back to Dashboard
           </Button>
+          <div className="text-right">
+            <p className="text-sm text-gray-500">Total Amount</p>
+            <p className="text-2xl font-bold">{formatCurrency(totalAmount, formData.currency)}</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -148,12 +138,10 @@ const InvoiceForm = () => {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>{isEditing ? "Edit Supplier Invoice" : "Create New Supplier Invoice"}</CardTitle>
-                {formData.invoiceLines.length > 0 && (
-                  <div className="text-right">
-                    <p className="text-sm text-gray-500">Total Amount</p>
-                    <p className="text-2xl font-bold">{formatCurrency(totalAmount)}</p>
-                  </div>
-                )}
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Total Amount</p>
+                  <p className="text-2xl font-bold">{formatCurrency(totalAmount, formData.currency)}</p>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -276,16 +264,23 @@ const InvoiceForm = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="vat">VAT Amount</Label>
-                    <Input
-                      id="vat"
-                      name="vat"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.vat || ""}
-                      onChange={(e) => handleVatChange(e.target.value)}
-                      placeholder="e.g., 100"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="vat"
+                        name="vat"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.vat || ""}
+                        onChange={(e) => handleVatChange(e.target.value)}
+                        placeholder="0.00"
+                      />
+                      {formData.vat !== undefined && (
+                        <div className="text-sm text-gray-500 mt-1">
+                          {formatCurrency(formData.vat, formData.currency)}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -298,42 +293,6 @@ const InvoiceForm = () => {
                       placeholder="Additional notes..."
                     />
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Invoice Lines</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {formData.invoiceLines.length === 0 ? (
-                <div className="text-center py-6 text-gray-500">
-                  No invoice lines yet.
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {formData.invoiceLines.map((line, index) => (
-                    <div key={line.id} className="pb-6 border-b border-gray-200 last:border-0 last:pb-0">
-                      <InvoiceLineForm
-                        line={line}
-                        index={index}
-                        onUpdate={handleUpdateInvoiceLine}
-                        onRemove={handleRemoveInvoiceLine}
-                        suppliers={suppliers}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              <Separator className="my-6" />
-              
-              <div className="flex justify-end">
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Total Amount</p>
-                  <p className="text-2xl font-bold">{formatCurrency(totalAmount)}</p>
                 </div>
               </div>
             </CardContent>
