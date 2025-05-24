@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import InvoiceForm from "./pages/InvoiceForm";
+import InvoiceView from "./pages/InvoiceView";
 import InvoiceLineSearch from "./pages/InvoiceLineSearch";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/invoices/:id" element={<InvoiceDetail />} />
+          <Route path="/invoices/view/:id" element={<InvoiceView />} />
           <Route path="/invoices/new" element={<InvoiceForm />} />
           <Route path="/invoices/edit/:id" element={<InvoiceForm />} />
           <Route path="/invoice-lines/search" element={<InvoiceLineSearch />} />
