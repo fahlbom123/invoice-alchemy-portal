@@ -127,7 +127,11 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
       const line = lines.find(l => l.id === actualLineId);
       if (line) {
         setEditingLine(lineId);
-        setEditingVat(line.actualVat?.toString() || "");
+        // Display the actual VAT amount for editing, not the percentage
+        const currentVatAmount = line.actualVat && line.actualCost 
+          ? (line.actualCost * line.actualVat) / 100 
+          : 0;
+        setEditingVat(currentVatAmount.toString());
       }
     }
   };
@@ -148,13 +152,13 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
       toast.success("Actual cost saved successfully");
     } else if (editingLine?.includes('-vat')) {
       if (!editingVat) return;
-      // Save the VAT amount as entered, not as a percentage
+      // Save the VAT amount directly, then calculate the rate for storage
       const actualVatAmount = parseFloat(editingVat);
       
       setLines(currentLines => 
         currentLines.map(line => {
           if (line.id === lineId) {
-            // Calculate the VAT rate from the entered amount and actual cost
+            // Calculate and store the VAT rate based on the entered amount
             const vatRate = line.actualCost ? (actualVatAmount / line.actualCost) * 100 : 0;
             return { ...line, actualVat: vatRate };
           }
