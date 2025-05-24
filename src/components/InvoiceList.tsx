@@ -85,7 +85,7 @@ const InvoiceList = ({ invoices }: InvoiceListProps) => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => navigate(`/invoices/${invoice.id}`)}
+                      onClick={() => navigate(`/invoices/edit/${invoice.id}`)}
                     >
                       Edit
                     </Button>
