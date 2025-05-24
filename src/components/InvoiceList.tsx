@@ -87,7 +87,7 @@ const InvoiceList = ({ invoices }: InvoiceListProps) => {
                       size="sm"
                       onClick={() => navigate(`/invoices/${invoice.id}`)}
                     >
-                      View
+                      Edit
                     </Button>
                   </TableCell>
                 </TableRow>
