@@ -58,7 +58,7 @@ const InvoiceList = ({ invoices }: InvoiceListProps) => {
                 <TableHead>Invoice #</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Invoice Date</TableHead>
-                <TableHead>Due Date</TableHead>
+                <TableHead>Payment Date</TableHead>
                 <TableHead>Currency</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>VAT</TableHead>
@@ -87,7 +87,7 @@ const InvoiceList = ({ invoices }: InvoiceListProps) => {
                       size="sm"
                       onClick={() => navigate(`/invoices/${invoice.id}`)}
                     >
-                      View
+                      Show Invoice
                     </Button>
                   </TableCell>
                 </TableRow>
