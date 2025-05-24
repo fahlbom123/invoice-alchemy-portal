@@ -76,25 +76,6 @@ const InvoiceForm = () => {
     setFormData(prev => ({ ...prev, vat: vatValue }));
   };
 
-  const handleAddInvoiceLine = () => {
-    setFormData(prev => ({
-      ...prev,
-      invoiceLines: [
-        ...prev.invoiceLines,
-        {
-          id: `temp-${Date.now()}`,
-          description: "",
-          quantity: 1,
-          unitPrice: 0,
-          estimatedCost: 0,
-          supplierId: "",
-          supplierName: "",
-          supplierPartNumber: ""
-        }
-      ]
-    }));
-  };
-
   const handleUpdateInvoiceLine = (index: number, line: InvoiceLine) => {
     const updatedLines = [...formData.invoiceLines];
     updatedLines[index] = line;
@@ -118,11 +99,6 @@ const InvoiceForm = () => {
 
     if (!formData.supplierId) {
       toast.error("Please select a supplier");
-      return;
-    }
-
-    if (formData.invoiceLines.length === 0) {
-      toast.error("Please add at least one invoice line");
       return;
     }
 
@@ -170,11 +146,19 @@ const InvoiceForm = () => {
         <form onSubmit={handleSubmit}>
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>{isEditing ? "Edit Supplier Invoice" : "Create New Supplier Invoice"}</CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle>{isEditing ? "Edit Supplier Invoice" : "Create New Supplier Invoice"}</CardTitle>
+                {formData.invoiceLines.length > 0 && (
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500">Total Amount</p>
+                    <p className="text-2xl font-bold">{formatCurrency(totalAmount)}</p>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-2 md:col-span-2">
+              <div className="space-y-6">
+                <div className="space-y-2">
                   <Label htmlFor="supplierId">Supplier</Label>
                   <Select
                     value={formData.supplierId}
@@ -194,132 +178,126 @@ const InvoiceForm = () => {
                 </div>
 
                 {selectedSupplier && (
-                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200 md:col-span-2">
+                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
                     <h3 className="font-medium mb-2">Supplier Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div>
                         <p><span className="font-medium">Email:</span> {selectedSupplier.email}</p>
                         <p><span className="font-medium">Phone:</span> {selectedSupplier.phone}</p>
                       </div>
-                      <div>
-                        <p><span className="font-medium">Address:</span> {selectedSupplier.address}</p>
-                        <p>
-                          <span className="font-medium">City/Zip:</span> {selectedSupplier.city}, {selectedSupplier.zipCode}
-                        </p>
-                        <p><span className="font-medium">Country:</span> {selectedSupplier.country}</p>
-                      </div>
                     </div>
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="invoiceNumber">Invoice Number</Label>
-                  <Input
-                    id="invoiceNumber"
-                    name="invoiceNumber"
-                    value={formData.invoiceNumber}
-                    onChange={handleInputChange}
-                    placeholder="INV-001"
-                    required
-                  />
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="invoiceNumber">Invoice Number</Label>
+                    <Input
+                      id="invoiceNumber"
+                      name="invoiceNumber"
+                      value={formData.invoiceNumber}
+                      onChange={handleInputChange}
+                      placeholder="INV-001"
+                      required
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="reference">Reference (Optional)</Label>
-                  <Input
-                    id="reference"
-                    name="reference"
-                    value={formData.reference}
-                    onChange={handleInputChange}
-                    placeholder="Purchase Order #"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reference">Reference (Optional)</Label>
+                    <Input
+                      id="reference"
+                      name="reference"
+                      value={formData.reference}
+                      onChange={handleInputChange}
+                      placeholder="Purchase Order #"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="invoiceDate">Invoice Date</Label>
-                  <Input
-                    id="invoiceDate"
-                    name="invoiceDate"
-                    type="date"
-                    value={formData.invoiceDate}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="invoiceDate">Invoice Date</Label>
+                    <Input
+                      id="invoiceDate"
+                      name="invoiceDate"
+                      type="date"
+                      value={formData.invoiceDate}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="dueDate">Due Date</Label>
-                  <Input
-                    id="dueDate"
-                    name="dueDate"
-                    type="date"
-                    value={formData.dueDate}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dueDate">Due Date</Label>
+                    <Input
+                      id="dueDate"
+                      name="dueDate"
+                      type="date"
+                      value={formData.dueDate}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => handleSelectChange('status', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="paid">Paid</SelectItem>
-                      <SelectItem value="overdue">Overdue</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <Select
+                      value={formData.status}
+                      onValueChange={(value) => handleSelectChange('status', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="overdue">Overdue</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
-                  <Select
-                    value={formData.currency || "USD"}
-                    onValueChange={(value) => handleSelectChange('currency', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select currency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="GBP">GBP</SelectItem>
-                      <SelectItem value="CAD">CAD</SelectItem>
-                      <SelectItem value="AUD">AUD</SelectItem>
-                      <SelectItem value="JPY">JPY</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Currency</Label>
+                    <Select
+                      value={formData.currency || "USD"}
+                      onValueChange={(value) => handleSelectChange('currency', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                        <SelectItem value="GBP">GBP</SelectItem>
+                        <SelectItem value="CAD">CAD</SelectItem>
+                        <SelectItem value="AUD">AUD</SelectItem>
+                        <SelectItem value="JPY">JPY</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="vat">VAT % (Optional)</Label>
-                  <Input
-                    id="vat"
-                    name="vat"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={formData.vat || ""}
-                    onChange={(e) => handleVatChange(e.target.value)}
-                    placeholder="e.g., 20"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="vat">VAT Amount</Label>
+                    <Input
+                      id="vat"
+                      name="vat"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.vat || ""}
+                      onChange={(e) => handleVatChange(e.target.value)}
+                      placeholder="e.g., 100"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes (Optional)</Label>
-                  <Input
-                    id="notes"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleInputChange}
-                    placeholder="Additional notes..."
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes (Optional)</Label>
+                    <Input
+                      id="notes"
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleInputChange}
+                      placeholder="Additional notes..."
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -327,17 +305,12 @@ const InvoiceForm = () => {
 
           <Card className="mb-6">
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Invoice Lines</CardTitle>
-                <Button type="button" variant="outline" onClick={handleAddInvoiceLine}>
-                  Add Line Item
-                </Button>
-              </div>
+              <CardTitle>Invoice Lines</CardTitle>
             </CardHeader>
             <CardContent>
               {formData.invoiceLines.length === 0 ? (
                 <div className="text-center py-6 text-gray-500">
-                  No invoice lines yet. Click "Add Line Item" to add one.
+                  No invoice lines yet.
                 </div>
               ) : (
                 <div className="space-y-6">
