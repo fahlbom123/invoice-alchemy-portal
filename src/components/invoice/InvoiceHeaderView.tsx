@@ -1,20 +1,30 @@
-
 import React from "react";
 import { InvoiceFormData } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
 
 interface InvoiceHeaderViewProps {
   formData: InvoiceFormData;
+  registeredTotals?: {
+    totalActualCost: number;
+    totalActualVat: number;
+  } | null;
 }
 
-const InvoiceHeaderView = ({ formData }: InvoiceHeaderViewProps) => {
+const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProps) => {
   // Helper function to capitalize status
   const capitalizeStatus = (status: string) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
-  // Calculate registered totals from invoice lines
+  // Calculate registered totals from invoice lines or use passed totals
   const calculateRegisteredTotals = () => {
+    if (registeredTotals) {
+      return {
+        totalRegisteredCost: registeredTotals.totalActualCost,
+        totalRegisteredVat: registeredTotals.totalActualVat
+      };
+    }
+
     const totalRegisteredCost = formData.invoiceLines.reduce((sum, line) => {
       return sum + (line.actualCost || 0);
     }, 0);

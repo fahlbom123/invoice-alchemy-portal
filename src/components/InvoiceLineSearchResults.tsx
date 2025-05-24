@@ -30,9 +30,10 @@ interface SearchResultLine extends InvoiceLine {
 
 interface InvoiceLineSearchResultsProps {
   invoiceLines: SearchResultLine[];
+  onRegister?: (selectedLines: SearchResultLine[], totals: { totalActualCost: number; totalActualVat: number; }) => void;
 }
 
-const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProps) => {
+const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearchResultsProps) => {
   const navigate = useNavigate();
   const [lines, setLines] = useState<SearchResultLine[]>(invoiceLines);
   const [selectedLines, setSelectedLines] = useState<SearchResultLine[]>([]);
@@ -201,9 +202,12 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
       return;
     }
     
-    toast.success(`Ready to register ${selectedLines.length} invoice lines`);
-    // Here would go the code to navigate to a registration form or modal
-    // For now we'll just show a success message
+    // Call the onRegister callback with selected lines and totals
+    if (onRegister) {
+      onRegister(selectedLines, { totalActualCost, totalActualVat });
+    }
+    
+    toast.success(`Registered ${selectedLines.length} invoice lines`);
   };
 
   // New function to toggle fully paid status

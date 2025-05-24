@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -37,6 +36,12 @@ const InvoiceView = () => {
     totalVat: 0,
     ocr: "",
   });
+
+  // Add state for registered totals
+  const [registeredTotals, setRegisteredTotals] = useState<{
+    totalActualCost: number;
+    totalActualVat: number;
+  } | null>(null);
 
   // Search state
   const [supplierId, setSupplierId] = useState<string>("all");
@@ -138,6 +143,11 @@ const InvoiceView = () => {
     setHasSearched(false);
   };
 
+  // Add function to handle registration
+  const handleRegistration = (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }) => {
+    setRegisteredTotals(totals);
+  };
+
   if (isLoading || isLoadingInvoices) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
@@ -187,7 +197,7 @@ const InvoiceView = () => {
               <SupplierDetails supplier={invoice.supplier} />
 
               {/* Invoice Header Information */}
-              <InvoiceHeaderView formData={formData} />
+              <InvoiceHeaderView formData={formData} registeredTotals={registeredTotals} />
             </div>
           </CardContent>
         </Card>
@@ -343,7 +353,10 @@ const InvoiceView = () => {
             </CardHeader>
             <CardContent>
               {searchResults.length > 0 ? (
-                <InvoiceLineSearchResults invoiceLines={searchResults} />
+                <InvoiceLineSearchResults 
+                  invoiceLines={searchResults} 
+                  onRegister={handleRegistration}
+                />
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   No invoice lines found matching your criteria.
