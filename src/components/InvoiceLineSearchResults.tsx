@@ -107,10 +107,10 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
       return sum;
     }, 0);
 
-    // Calculate total invoiced amount from unique invoices
+    // Calculate total invoiced amount from unique invoices - this should show the Total Amount incl VAT from supplier invoice details
     const uniqueInvoices = new Map();
     selectedLinesData.forEach(line => {
-      if (line.invoiceId && line.invoiceTotalAmount) {
+      if (line.invoiceId && line.invoiceTotalAmount !== undefined) {
         uniqueInvoices.set(line.invoiceId, line.invoiceTotalAmount);
       }
     });
