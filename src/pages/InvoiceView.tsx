@@ -357,6 +357,7 @@ const InvoiceView = () => {
                 <InvoiceLineSearchResults 
                   invoiceLines={searchResults} 
                   onRegister={handleRegistration}
+                  invoiceTotalAmount={invoice.totalAmount || 0}
                 />
               ) : (
                 <div className="text-center py-8 text-gray-500">
