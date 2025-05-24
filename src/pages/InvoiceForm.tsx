@@ -31,6 +31,8 @@ const InvoiceForm = () => {
     invoiceLines: [],
     invoiceDate: new Date().toISOString().split('T')[0],
     currency: "USD",
+    totalAmount: 0,
+    totalVat: 0,
   });
 
   // Get the selected supplier details
@@ -52,7 +54,9 @@ const InvoiceForm = () => {
         notes: invoice.notes || "",
         invoiceLines: invoice.invoiceLines,
         currency: invoice.currency || "USD",
-        vat: invoice.vat
+        vat: invoice.vat,
+        totalAmount: invoice.totalAmount || 0,
+        totalVat: invoice.totalVat || 0,
       });
     }
   }, [invoice, isEditing]);
@@ -66,6 +70,12 @@ const InvoiceForm = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleNumberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const numValue = value === "" ? 0 : parseFloat(value);
+    setFormData(prev => ({ ...prev, [name]: numValue }));
+  };
+
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -74,11 +84,6 @@ const InvoiceForm = () => {
     const vatValue = value === "" ? undefined : parseFloat(value);
     setFormData(prev => ({ ...prev, vat: vatValue }));
   };
-
-  const totalAmount = formData.invoiceLines.reduce(
-    (sum, line) => sum + line.estimatedCost,
-    0
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,7 +104,6 @@ const InvoiceForm = () => {
       id: isEditing ? id : `invoice-${Date.now()}`,
       createdAt: isEditing ? invoice!.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      totalAmount,
       supplier: {
         id: supplier.id,
         name: supplier.name,
@@ -129,7 +133,7 @@ const InvoiceForm = () => {
           </Button>
           <div className="text-right">
             <p className="text-sm text-gray-500">Total Amount</p>
-            <p className="text-2xl font-bold">{formatCurrency(totalAmount, formData.currency)}</p>
+            <p className="text-2xl font-bold">{formatCurrency(formData.totalAmount, formData.currency)}</p>
           </div>
         </div>
 
@@ -140,7 +144,7 @@ const InvoiceForm = () => {
                 <CardTitle>{isEditing ? "Edit Supplier Invoice" : "Create New Supplier Invoice"}</CardTitle>
                 <div className="text-right">
                   <p className="text-sm text-gray-500">Total Amount</p>
-                  <p className="text-2xl font-bold">{formatCurrency(totalAmount, formData.currency)}</p>
+                  <p className="text-2xl font-bold">{formatCurrency(formData.totalAmount, formData.currency)}</p>
                 </div>
               </div>
             </CardHeader>
@@ -261,6 +265,24 @@ const InvoiceForm = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="totalAmount">Total Amount</Label>
+                    <Input
+                      id="totalAmount"
+                      name="totalAmount"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.totalAmount || ""}
+                      onChange={handleNumberInputChange}
+                      placeholder="0.00"
+                      required
+                    />
+                    <div className="text-sm text-gray-500 mt-1">
+                      {formatCurrency(formData.totalAmount || 0, formData.currency)}
+                    </div>
+                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="vat">VAT Amount</Label>
@@ -280,6 +302,23 @@ const InvoiceForm = () => {
                           {formatCurrency(formData.vat, formData.currency)}
                         </div>
                       )}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="totalVat">Total VAT</Label>
+                    <Input
+                      id="totalVat"
+                      name="totalVat"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.totalVat || ""}
+                      onChange={handleNumberInputChange}
+                      placeholder="0.00"
+                    />
+                    <div className="text-sm text-gray-500 mt-1">
+                      {formatCurrency(formData.totalVat || 0, formData.currency)}
                     </div>
                   </div>
 
