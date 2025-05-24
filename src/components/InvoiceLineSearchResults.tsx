@@ -47,9 +47,20 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
 
   const handleSelectLine = (id: string, checked: boolean) => {
     setLines(currentLines => 
-      currentLines.map(line => 
-        line.id === id ? { ...line, selected: checked } : line
-      )
+      currentLines.map(line => {
+        if (line.id === id) {
+          const updatedLine = { ...line, selected: checked };
+          
+          // When checking a line, set actual cost and VAT to estimated values
+          if (checked) {
+            updatedLine.actualCost = line.estimatedCost;
+            updatedLine.actualVat = line.estimatedVat;
+          }
+          
+          return updatedLine;
+        }
+        return line;
+      })
     );
 
     const updatedSelectedLines = lines.filter(line => 
@@ -60,7 +71,17 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
 
   const handleSelectAll = (checked: boolean) => {
     setLines(currentLines => 
-      currentLines.map(line => ({ ...line, selected: checked }))
+      currentLines.map(line => {
+        const updatedLine = { ...line, selected: checked };
+        
+        // When checking all lines, set actual cost and VAT to estimated values
+        if (checked) {
+          updatedLine.actualCost = line.estimatedCost;
+          updatedLine.actualVat = line.estimatedVat;
+        }
+        
+        return updatedLine;
+      })
     );
     
     setSelectedLines(checked ? [...lines] : []);
@@ -335,7 +356,6 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
               <TableHead>Actual Cost</TableHead>
               <TableHead>Actual VAT</TableHead>
               <TableHead>Diff.</TableHead>
-              <TableHead>Actions</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Fully Paid</TableHead>
               <TableHead className="text-right">View</TableHead>
@@ -425,20 +445,6 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
                   )}
                 </TableCell>
                 <TableCell>{calculateCostDifference(line.estimatedCost, line.actualCost)}</TableCell>
-                <TableCell>
-                  <div className="flex justify-end gap-2">
-                    {editingLine !== line.id && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditActualCost(line.id)}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
                 <TableCell>
                   {renderPaymentStatusBadge(line.paymentStatus)}
                 </TableCell>
