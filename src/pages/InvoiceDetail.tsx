@@ -1,16 +1,21 @@
 
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useInvoiceById } from "@/hooks/useInvoices";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import InvoiceLinesList from "@/components/InvoiceLinesList";
+import { ArrowLeft } from "lucide-react";
 
 const InvoiceDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { invoice, isLoading } = useInvoiceById(id!);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check if we came from the search page
+  const fromSearch = new URLSearchParams(location.search).get('from') === 'search';
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
@@ -40,12 +45,23 @@ const InvoiceDetail = () => {
     }
   };
 
+  const handleBackClick = () => {
+    if (fromSearch) {
+      // Go back to the search results
+      navigate('/invoice-lines/search');
+    } else {
+      // Go back to dashboard
+      navigate('/dashboard');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <Button variant="outline" onClick={() => navigate('/dashboard')}>
-            Back to Dashboard
+          <Button variant="outline" onClick={handleBackClick}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {fromSearch ? 'Back to Search Results' : 'Back to Dashboard'}
           </Button>
           <Button onClick={() => navigate(`/invoices/edit/${id}`)}>
             Edit Invoice
@@ -71,14 +87,29 @@ const InvoiceDetail = () => {
                     <p className="font-medium">{invoice.supplier.name}</p>
                     <p>{invoice.supplier.email}</p>
                     <p>{invoice.supplier.phone}</p>
+                    {invoice.supplier.accountNumber && (
+                      <p><span className="font-medium">Account Number:</span> {invoice.supplier.accountNumber}</p>
+                    )}
+                    {invoice.supplier.defaultCurrency && (
+                      <p><span className="font-medium">Supplier Currency:</span> {invoice.supplier.defaultCurrency} 
+                        {invoice.supplier.currencyRate && ` (Rate: ${invoice.supplier.currencyRate})`}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Invoice Details</h3>
                   <div className="mt-2">
+                    {invoice.invoiceDate && (
+                      <p><span className="font-medium">Invoice Date:</span> {formatDate(invoice.invoiceDate)}</p>
+                    )}
                     <p><span className="font-medium">Due Date:</span> {formatDate(invoice.dueDate)}</p>
                     <p><span className="font-medium">Reference:</span> {invoice.reference}</p>
-                    <p><span className="font-medium">Total Amount:</span> {formatCurrency(invoice.totalAmount)}</p>
+                    <p>
+                      <span className="font-medium">Total Amount:</span> 
+                      {formatCurrency(invoice.totalAmount)} 
+                      {invoice.currency && invoice.currency !== "USD" && ` (${invoice.currency})`}
+                    </p>
                   </div>
                 </div>
               </div>

@@ -4,6 +4,9 @@ export interface Supplier {
   name: string;
   email: string;
   phone: string;
+  accountNumber?: string;
+  defaultCurrency?: string;
+  currencyRate?: number;
 }
 
 export interface InvoiceLine {
@@ -12,6 +15,7 @@ export interface InvoiceLine {
   quantity: number;
   unitPrice: number;
   estimatedCost: number;
+  actualCost?: number;
   supplierId: string;
   supplierName: string;
   supplierPartNumber: string;
@@ -19,6 +23,9 @@ export interface InvoiceLine {
   confirmationNumber?: string;
   departureDate?: string;
   paymentStatus?: "paid" | "unpaid" | "partial";
+  fullyInvoiced?: boolean;
+  currency?: string;
+  invoiceType?: "single" | "multi";
 }
 
 // Extended invoice line with invoice reference
@@ -33,20 +40,24 @@ export interface Invoice {
   reference: string;
   createdAt: string;
   dueDate: string;
+  invoiceDate?: string;
   status: string;
   totalAmount: number;
   notes?: string;
   supplier: Supplier;
   invoiceLines: InvoiceLine[];
   updatedAt: string;
+  currency?: string;
 }
 
 export interface InvoiceFormData {
   invoiceNumber: string;
   reference: string;
   dueDate: string;
+  invoiceDate?: string;
   status: string;
   supplierId: string;
   notes: string;
   invoiceLines: InvoiceLine[];
+  currency?: string;
 }
