@@ -13,6 +13,24 @@ const InvoiceHeaderView = ({ formData }: InvoiceHeaderViewProps) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
+  // Calculate registered totals from invoice lines
+  const calculateRegisteredTotals = () => {
+    const totalRegisteredCost = formData.invoiceLines.reduce((sum, line) => {
+      return sum + (line.actualCost || 0);
+    }, 0);
+    
+    const totalRegisteredVat = formData.invoiceLines.reduce((sum, line) => {
+      if (line.actualCost && line.actualVat) {
+        return sum + (line.actualCost * line.actualVat) / 100;
+      }
+      return sum;
+    }, 0);
+
+    return { totalRegisteredCost, totalRegisteredVat };
+  };
+
+  const { totalRegisteredCost, totalRegisteredVat } = calculateRegisteredTotals();
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Invoice Details</h3>
@@ -70,6 +88,20 @@ const InvoiceHeaderView = ({ formData }: InvoiceHeaderViewProps) => {
           <div className="flex flex-col">
             <span className="text-sm text-gray-500">Total VAT</span>
             <span className="font-medium">{formatCurrency(formData.totalVat || 0, formData.currency)}</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">Registered Total Actual Cost</span>
+            <span className="font-medium">{formatCurrency(totalRegisteredCost, formData.currency)}</span>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">Registered Total Actual VAT</span>
+            <span className="font-medium">{formatCurrency(totalRegisteredVat, formData.currency)}</span>
           </div>
         </div>
 
