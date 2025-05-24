@@ -46,9 +46,9 @@ const SelectedLinesSummary = ({
                 <span className="text-gray-600">Total Actual VAT:</span>
                 <span className="font-medium">{formatCurrency(totalActualVat, undefined)}</span>
               </div>
-              <div className="flex items-center gap-4 pt-2 border-t border-blue-200">
-                <span className="text-gray-900 font-medium">Invoiced:</span>
-                <span className="font-bold">{formatCurrency(totalInvoicedAmount, undefined)}</span>
+              <div className="flex items-center gap-4">
+                <span className="text-gray-600">Invoiced:</span>
+                <span className="font-medium">{formatCurrency(totalInvoicedAmount, undefined)}</span>
               </div>
             </div>
           </div>
