@@ -26,29 +26,29 @@ const SelectedLinesSummary = ({
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <span className="font-medium block">{count} lines selected</span>
-          <div className="text-sm grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-1">
+          <div className="text-sm space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="flex items-center gap-4">
                 <span className="text-gray-600">Total Estimated Cost:</span>
                 <span className="font-medium">{formatCurrency(totalEstimatedCost, undefined)}</span>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-gray-600">Total Estimated VAT:</span>
-                <span className="font-medium">{formatCurrency(totalEstimatedVat, undefined)}</span>
-              </div>
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-4">
                 <span className="text-gray-600">Total Actual Cost:</span>
                 <span className="font-medium">{formatCurrency(totalActualCost, undefined)}</span>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-gray-600">Total Actual VAT:</span>
-                <span className="font-medium">{formatCurrency(totalActualVat, undefined)}</span>
-              </div>
-              <div className="flex items-center gap-4">
                 <span className="text-gray-600">Invoiced:</span>
                 <span className="font-medium">{formatCurrency(totalInvoicedAmount, undefined)}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="flex items-center gap-4">
+                <span className="text-gray-600">Total Estimated VAT:</span>
+                <span className="font-medium">{formatCurrency(totalEstimatedVat, undefined)}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-gray-600">Total Actual VAT:</span>
+                <span className="font-medium">{formatCurrency(totalActualVat, undefined)}</span>
               </div>
             </div>
           </div>
