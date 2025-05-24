@@ -177,7 +177,7 @@ const SearchResultRow = ({
             title="Click to edit actual VAT"
           >
             {line.actualVat && line.actualCost 
-              ? formatCurrency((line.actualCost * line.actualVat) / 100, undefined) 
+              ? calculateVatAmount(line.actualCost, line.actualVat)
               : "Click to edit"}
           </div>
         )}

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { InvoiceLine } from "@/types/invoice";
@@ -147,14 +148,18 @@ const InvoiceLineSearchResults = ({ invoiceLines, onRegister }: InvoiceLineSearc
       toast.success("Actual cost saved successfully");
     } else if (editingLine?.includes('-vat')) {
       if (!editingVat) return;
-      const actualVat = parseFloat(editingVat);
+      // Save the VAT amount as entered, not as a percentage
+      const actualVatAmount = parseFloat(editingVat);
       
       setLines(currentLines => 
-        currentLines.map(line => 
-          line.id === lineId 
-            ? { ...line, actualVat } 
-            : line
-        )
+        currentLines.map(line => {
+          if (line.id === lineId) {
+            // Calculate the VAT rate from the entered amount and actual cost
+            const vatRate = line.actualCost ? (actualVatAmount / line.actualCost) * 100 : 0;
+            return { ...line, actualVat: vatRate };
+          }
+          return line;
+        })
       );
       
       toast.success("Actual VAT saved successfully");
