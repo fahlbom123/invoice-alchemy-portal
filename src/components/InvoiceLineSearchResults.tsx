@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/formatters";
@@ -64,6 +65,27 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
     
     setSelectedLines(checked ? [...lines] : []);
   };
+
+  // Calculate totals for selected lines
+  const calculateSelectedTotals = () => {
+    const selectedLinesData = lines.filter(line => line.selected);
+    
+    const totalEstimatedCost = selectedLinesData.reduce((sum, line) => sum + line.estimatedCost, 0);
+    const totalEstimatedVat = selectedLinesData.reduce((sum, line) => {
+      if (line.estimatedVat) {
+        return sum + (line.estimatedCost * line.estimatedVat) / 100;
+      }
+      return sum;
+    }, 0);
+
+    return {
+      totalEstimatedCost,
+      totalEstimatedVat,
+      count: selectedLinesData.length
+    };
+  };
+
+  const { totalEstimatedCost, totalEstimatedVat, count } = calculateSelectedTotals();
 
   // Function to render payment status badge
   const renderPaymentStatusBadge = (status?: string) => {
@@ -235,13 +257,25 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
       )}
 
       {hasSelectedLines && (
-        <div className="mb-4 p-4 bg-blue-50 rounded-md border border-blue-200 flex items-center justify-between">
-          <div>
-            <span className="font-medium">{selectedLines.length} lines selected</span>
+        <div className="mb-4 p-4 bg-blue-50 rounded-md border border-blue-200">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <span className="font-medium block">{count} lines selected</span>
+              <div className="text-sm space-y-1">
+                <div className="flex items-center gap-4">
+                  <span className="text-gray-600">Total Estimated Cost:</span>
+                  <span className="font-medium">{formatCurrency(totalEstimatedCost, undefined)}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-gray-600">Total Estimated VAT:</span>
+                  <span className="font-medium">{formatCurrency(totalEstimatedVat, undefined)}</span>
+                </div>
+              </div>
+            </div>
+            <Button onClick={handleRegisterMultipleInvoices}>
+              Register Supplier Invoice
+            </Button>
           </div>
-          <Button onClick={handleRegisterMultipleInvoices}>
-            Register Supplier Invoice
-          </Button>
         </div>
       )}
 
