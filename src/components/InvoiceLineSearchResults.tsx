@@ -270,6 +270,7 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
               <TableHead>Actions</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Fully Paid</TableHead>
+              <TableHead className="text-right">View</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -323,7 +324,7 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
                   )}
                 </TableCell>
                 <TableCell>{calculateCostDifference(line.estimatedCost, line.actualCost)}</TableCell>
-                <TableCell className="text-right">
+                <TableCell>
                   <div className="flex justify-end gap-2">
                     {editingLine === line.id ? (
                       <Button
@@ -344,15 +345,6 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
                         Edit
                       </Button>
                     )}
-                    {line.invoiceId && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate(`/invoices/${line.invoiceId}?from=search`)}
-                      >
-                        View Invoice
-                      </Button>
-                    )}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -363,6 +355,17 @@ const InvoiceLineSearchResults = ({ invoiceLines }: InvoiceLineSearchResultsProp
                     checked={line.paymentStatus === "paid"}
                     onCheckedChange={(checked) => handleToggleFullyPaid(line.id, checked)}
                   />
+                </TableCell>
+                <TableCell className="text-right">
+                  {line.invoiceId && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/invoices/${line.invoiceId}?from=search`)}
+                    >
+                      View Invoice
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

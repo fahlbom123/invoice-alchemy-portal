@@ -36,7 +36,7 @@ const Dashboard = () => {
               onClick={() => navigate('/invoices/new')}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              Create New Invoice
+              Create New Supplier Invoice
             </Button>
           </div>
         </div>

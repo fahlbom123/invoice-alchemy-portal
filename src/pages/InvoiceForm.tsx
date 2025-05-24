@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,11 @@ const InvoiceForm = () => {
     invoiceDate: new Date().toISOString().split('T')[0],
     currency: "USD",
   });
+
+  // Get the selected supplier details
+  const selectedSupplier = formData.supplierId 
+    ? suppliers.find(s => s.id === formData.supplierId) 
+    : null;
 
   useEffect(() => {
     if (invoice && isEditing) {
@@ -164,10 +170,48 @@ const InvoiceForm = () => {
         <form onSubmit={handleSubmit}>
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>{isEditing ? "Edit Invoice" : "Create New Invoice"}</CardTitle>
+              <CardTitle>{isEditing ? "Edit Supplier Invoice" : "Create New Supplier Invoice"}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="supplierId">Supplier</Label>
+                  <Select
+                    value={formData.supplierId}
+                    onValueChange={(value) => handleSelectChange('supplierId', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select supplier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {suppliers.map(supplier => (
+                        <SelectItem key={supplier.id} value={supplier.id}>
+                          {supplier.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedSupplier && (
+                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200 md:col-span-2">
+                    <h3 className="font-medium mb-2">Supplier Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p><span className="font-medium">Email:</span> {selectedSupplier.email}</p>
+                        <p><span className="font-medium">Phone:</span> {selectedSupplier.phone}</p>
+                      </div>
+                      <div>
+                        <p><span className="font-medium">Address:</span> {selectedSupplier.address}</p>
+                        <p>
+                          <span className="font-medium">City/Zip:</span> {selectedSupplier.city}, {selectedSupplier.zipCode}
+                        </p>
+                        <p><span className="font-medium">Country:</span> {selectedSupplier.country}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="invoiceNumber">Invoice Number</Label>
                   <Input
@@ -228,25 +272,6 @@ const InvoiceForm = () => {
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="paid">Paid</SelectItem>
                       <SelectItem value="overdue">Overdue</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="supplierId">Supplier</Label>
-                  <Select
-                    value={formData.supplierId}
-                    onValueChange={(value) => handleSelectChange('supplierId', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select supplier" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {suppliers.map(supplier => (
-                        <SelectItem key={supplier.id} value={supplier.id}>
-                          {supplier.name}
-                        </SelectItem>
-                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -346,7 +371,7 @@ const InvoiceForm = () => {
               Cancel
             </Button>
             <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Saving..." : isEditing ? "Update Invoice" : "Create Invoice"}
+              {isSaving ? "Saving..." : isEditing ? "Update Supplier Invoice" : "Create Supplier Invoice"}
             </Button>
           </div>
         </form>
