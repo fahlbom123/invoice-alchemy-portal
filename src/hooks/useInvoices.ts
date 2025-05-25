@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Invoice, InvoiceLine, InvoiceLineWithReference } from "@/types/invoice";
 import { mockInvoices } from "@/data/mockData";
@@ -6,28 +7,45 @@ export function useInvoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const loadInvoices = () => {
+    setIsLoading(true);
+    
+    try {
+      // Load invoices from localStorage or use mock data
+      const savedInvoices = localStorage.getItem('invoices');
+      const data = savedInvoices ? JSON.parse(savedInvoices) : mockInvoices;
+      setInvoices(data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      setInvoices(mockInvoices);
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // In a real app, this would be an API call
-    const fetchInvoices = () => {
-      setIsLoading(true);
-      
-      try {
-        // Simulate API delay
-        setTimeout(() => {
-          // Load invoices from localStorage or use mock data
-          const savedInvoices = localStorage.getItem('invoices');
-          const data = savedInvoices ? JSON.parse(savedInvoices) : mockInvoices;
-          setInvoices(data);
-          setIsLoading(false);
-        }, 500);
-      } catch (error) {
-        console.error('Error fetching invoices:', error);
-        setInvoices(mockInvoices);
-        setIsLoading(false);
+    // Initial load
+    loadInvoices();
+
+    // Listen for storage changes (when other tabs/components update localStorage)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'invoices') {
+        loadInvoices();
       }
     };
 
-    fetchInvoices();
+    // Listen for custom events (when same tab updates localStorage)
+    const handleInvoiceUpdate = () => {
+      loadInvoices();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('invoicesUpdated', handleInvoiceUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('invoicesUpdated', handleInvoiceUpdate);
+    };
   }, []);
 
   return { invoices, isLoading };

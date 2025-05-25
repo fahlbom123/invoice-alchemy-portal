@@ -110,6 +110,9 @@ const SearchResultRow = ({
       // Save back to localStorage
       localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
       
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
+      
       // Call the parent component's handler to update the UI
       onToggleFullyPaid(line.id, isPaid);
       
