@@ -55,6 +55,14 @@ const InvoiceLineSearch = () => {
     }))
   );
 
+  // Auto-refresh search results when invoices data changes (including payment status updates)
+  useEffect(() => {
+    if (hasSearched) {
+      console.log("Invoices updated, refreshing search results");
+      performSearch();
+    }
+  }, [invoices]);
+
   // Calculate total invoice amount from search results
   const calculateTotalInvoiceAmount = (results: ExtendedInvoiceLine[]) => {
     const uniqueInvoices = new Map();
