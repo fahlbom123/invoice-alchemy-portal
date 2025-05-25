@@ -47,6 +47,19 @@ const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProp
   // Calculate the difference between total amount and registered actual cost
   const diffAmount = (formData.totalAmount || 0) - totalRegisteredCost;
 
+  // Calculate status based on diff and accept difference checkbox
+  const calculateStatus = () => {
+    if (diffAmount === 0 || acceptDiff) {
+      return "paid";
+    } else if (diffAmount === (formData.totalAmount || 0)) {
+      return "unpaid";
+    } else {
+      return "partial";
+    }
+  };
+
+  const calculatedStatus = calculateStatus();
+
   // Handle checkbox state change
   const handleAcceptDiffChange = (checked: boolean | "indeterminate") => {
     setAcceptDiff(checked === true);
@@ -87,7 +100,7 @@ const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProp
         <div className="space-y-2">
           <div className="flex flex-col">
             <span className="text-sm text-gray-500">Status</span>
-            <span className="font-medium">{capitalizeStatus(formData.status)}</span>
+            <span className="font-medium">{capitalizeStatus(calculatedStatus)}</span>
           </div>
         </div>
 
