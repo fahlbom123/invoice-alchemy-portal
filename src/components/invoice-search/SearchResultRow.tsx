@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -73,11 +72,18 @@ const SearchResultRow = ({
   // Check if line is paid and should be disabled for editing
   const isPaid = line.paymentStatus === "paid";
 
-  // Generate random booking number if not provided (max 8 figures)
+  // Generate consistent booking number if not provided (max 8 figures)
   const getBookingNumber = () => {
     if (line.bookingNumber) return line.bookingNumber;
-    // Generate a random 8-digit booking number
-    return Math.floor(10000000 + Math.random() * 90000000).toString();
+    
+    // Generate a consistent 8-digit booking number based on line ID
+    const seed = line.id.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    const number = Math.abs(seed) % 90000000;
+    return (10000000 + number).toString();
   };
 
   // Function to handle immediate payment status change and persistence
