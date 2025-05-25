@@ -28,7 +28,7 @@ interface InvoiceLineSearchResultsProps {
   invoiceLines: SearchResultLine[];
   invoiceTotalAmount: number;
   allSupplierInvoiceLines?: SupplierInvoiceLine[];
-  onRegister?: (selectedLines: SearchResultLine[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[]) => void;
+  onRegister?: (selectedLines: SearchResultLine[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[], allLinesPaid?: boolean) => void;
 }
 
 const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplierInvoiceLines = [], onRegister }: InvoiceLineSearchResultsProps) => {
@@ -56,6 +56,13 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
   const [editingVat, setEditingVat] = useState<string>("");
 
   const handleSelectLine = (id: string, checked: boolean) => {
+    // Don't allow selection of paid lines
+    const line = lines.find(l => l.id === id);
+    if (line?.paymentStatus === "paid" && checked) {
+      toast.error("Cannot select paid invoice lines");
+      return;
+    }
+
     setLines(currentLines => 
       currentLines.map(line => {
         if (line.id === id) {
@@ -83,24 +90,38 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
   };
 
   const handleSelectAll = (checked: boolean) => {
-    setLines(currentLines => 
-      currentLines.map(line => {
-        const updatedLine = { ...line, selected: checked };
-        
-        // When checking all lines, set actual cost and VAT to estimated values only if actual cost has no value
-        if (checked) {
-          if (!updatedLine.actualCost || updatedLine.actualCost === 0) {
-            updatedLine.actualCost = line.estimatedCost;
-            // Set actualVat as amount (estimated VAT is already an amount)
-            updatedLine.actualVat = line.estimatedVat || 0;
+    if (checked) {
+      // Filter out paid lines when selecting all
+      const unpaidLines = lines.filter(line => line.paymentStatus !== "paid");
+      
+      setLines(currentLines => 
+        currentLines.map(line => {
+          if (line.paymentStatus === "paid") {
+            return line; // Keep paid lines unselected
           }
-        }
-        
-        return updatedLine;
-      })
-    );
-    
-    setSelectedLines(checked ? [...lines] : []);
+          
+          const updatedLine = { ...line, selected: checked };
+          
+          // When checking all lines, set actual cost and VAT to estimated values only if actual cost has no value
+          if (checked) {
+            if (!updatedLine.actualCost || updatedLine.actualCost === 0) {
+              updatedLine.actualCost = line.estimatedCost;
+              // Set actualVat as amount (estimated VAT is already an amount)
+              updatedLine.actualVat = line.estimatedVat || 0;
+            }
+          }
+          
+          return updatedLine;
+        })
+      );
+      
+      setSelectedLines(unpaidLines);
+    } else {
+      setLines(currentLines => 
+        currentLines.map(line => ({ ...line, selected: false }))
+      );
+      setSelectedLines([]);
+    }
   };
 
   // Calculate totals for selected lines
@@ -259,9 +280,14 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
     
     console.log("Created supplier invoice lines:", supplierInvoiceLines);
     
-    // Call the onRegister callback with selected lines, totals, and supplier invoice lines
+    // Check if all lines are fully paid after registration
+    const allLinesPaid = lines.every(line => 
+      line.paymentStatus === "paid" || line.selected
+    );
+    
+    // Call the onRegister callback with selected lines, totals, supplier invoice lines, and paid status
     if (onRegister) {
-      onRegister(selectedLines, { totalActualCost, totalActualVat }, supplierInvoiceLines);
+      onRegister(selectedLines, { totalActualCost, totalActualVat }, supplierInvoiceLines, allLinesPaid);
     }
     
     toast.success(`Registered ${selectedLines.length} invoice lines`);

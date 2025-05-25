@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -99,6 +98,7 @@ const SearchResultRow = ({
             <Checkbox 
               checked={line.selected} 
               onCheckedChange={(checked) => onSelectLine(line.id, !!checked)} 
+              disabled={isPaid}
             />
             <div>
               <div className="font-medium text-sm">{line.invoiceNumber}</div>
@@ -273,6 +273,7 @@ const SearchResultRow = ({
         <Checkbox 
           checked={line.selected} 
           onCheckedChange={(checked) => onSelectLine(line.id, !!checked)} 
+          disabled={isPaid}
         />
       </TableCell>
       <TableCell>{line.invoiceNumber}</TableCell>

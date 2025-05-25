@@ -154,7 +154,7 @@ const InvoiceView = () => {
   };
 
   // Add function to handle registration
-  const handleRegistration = async (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[]) => {
+  const handleRegistration = async (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[], allLinesPaid?: boolean) => {
     if (!invoice) return;
 
     try {
@@ -166,16 +166,23 @@ const InvoiceView = () => {
         actualVat: line.actualVat
       })));
 
-      // Update the invoice with supplier invoice lines and change status to paid
+      // Determine new status based on whether all lines are paid
+      const newStatus = allLinesPaid ? "paid" : invoice.status;
+
+      // Update the invoice with supplier invoice lines and potentially change status to paid
       const updatedInvoice = {
         ...invoice,
-        status: "paid",
+        status: newStatus,
         supplierInvoiceLines: [...(invoice.supplierInvoiceLines || []), ...supplierInvoiceLines],
         updatedAt: new Date().toISOString(),
       };
 
       await saveInvoice(updatedInvoice);
       setRegisteredTotals(totals);
+      
+      if (allLinesPaid) {
+        toast.success("All lines are now fully paid. Invoice status updated to 'paid'.");
+      }
       
       // Refresh the page or update the local state
       window.location.reload();
