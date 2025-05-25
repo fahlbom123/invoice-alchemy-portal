@@ -254,6 +254,7 @@ const InvoiceView = () => {
                         <TableRow>
                           <TableHead>Description</TableHead>
                           <TableHead>Supplier</TableHead>
+                          <TableHead>User</TableHead>
                           <TableHead>Register Datetime</TableHead>
                           <TableHead>Actual Cost</TableHead>
                           <TableHead>Actual VAT</TableHead>
@@ -264,6 +265,7 @@ const InvoiceView = () => {
                           <TableRow key={line.id}>
                             <TableCell>{line.description}</TableCell>
                             <TableCell>{line.supplierName}</TableCell>
+                            <TableCell>{line.createdBy || "Unknown"}</TableCell>
                             <TableCell>
                               {new Date(line.createdAt).toLocaleString()}
                             </TableCell>

@@ -300,6 +300,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
           actualVat: line.actualVat || 0,
           currency: line.currency || "USD",
           createdAt: new Date().toISOString(),
+          createdBy: "Current User", // For now, we'll use a placeholder. In a real app, this would come from authentication
           description: line.description,
           supplierName: line.supplierName,
         };

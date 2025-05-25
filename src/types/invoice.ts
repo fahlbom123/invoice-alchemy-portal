@@ -49,6 +49,7 @@ export interface SupplierInvoiceLine {
   actualVat: number;
   currency: string;
   createdAt: string;
+  createdBy?: string;
   description: string;
   supplierName: string;
 }
