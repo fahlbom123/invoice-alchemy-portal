@@ -323,7 +323,7 @@ const InvoiceView = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="partial" id="partial" />
-                    <Label htmlFor="partial">Not Fully Paid</Label>
+                    <Label htmlFor="partial">Partial Paid</Label>
                   </div>
                 </RadioGroup>
               </div>
