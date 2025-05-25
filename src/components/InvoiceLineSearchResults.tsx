@@ -52,11 +52,32 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
     return {
       ...line,
       registeredActualCost,
-      registeredActualVat
+      registeredActualVat,
+      // Ensure actualVat is always a number, never undefined
+      actualVat: line.actualVat || 0
     };
   });
 
   const [lines, setLines] = useState<SearchResultLine[]>(linesWithRegistered);
+  
+  // Update lines when invoiceLines prop changes (for search updates)
+  useState(() => {
+    const updatedLines = invoiceLines.map(line => {
+      const registeredLines = allSupplierInvoiceLines.filter(sil => sil.invoiceLineId === line.id);
+      const registeredActualCost = registeredLines.reduce((sum, sil) => sum + sil.actualCost, 0);
+      const registeredActualVat = registeredLines.reduce((sum, sil) => sum + sil.actualVat, 0);
+      
+      return {
+        ...line,
+        registeredActualCost,
+        registeredActualVat,
+        // Ensure actualVat is always a number, never undefined
+        actualVat: line.actualVat || 0
+      };
+    });
+    setLines(updatedLines);
+  });
+
   const [selectedLines, setSelectedLines] = useState<SearchResultLine[]>([]);
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
   const [registerCostValue, setRegisterCostValue] = useState<string>("");
@@ -84,8 +105,12 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
           if (checked) {
             if (!updatedLine.actualCost || updatedLine.actualCost === 0) {
               updatedLine.actualCost = line.estimatedCost;
-              // Set actualVat as amount (estimated VAT is already an amount)
+              // Ensure actualVat is always a number
               updatedLine.actualVat = line.estimatedVat || 0;
+            }
+            // Ensure actualVat is never undefined
+            if (updatedLine.actualVat === undefined) {
+              updatedLine.actualVat = 0;
             }
           }
           
@@ -118,8 +143,12 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
           if (checked) {
             if (!updatedLine.actualCost || updatedLine.actualCost === 0) {
               updatedLine.actualCost = line.estimatedCost;
-              // Set actualVat as amount (estimated VAT is already an amount)
+              // Ensure actualVat is always a number
               updatedLine.actualVat = line.estimatedVat || 0;
+            }
+            // Ensure actualVat is never undefined
+            if (updatedLine.actualVat === undefined) {
+              updatedLine.actualVat = 0;
             }
           }
           
@@ -306,16 +335,19 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
     const supplierInvoiceLines: SupplierInvoiceLine[] = lines
       .filter(line => line.selected)
       .map(line => {
+        // Ensure actualVat is always a valid number
+        const actualVat = typeof line.actualVat === 'number' ? line.actualVat : 0;
+        
         console.log(`Creating supplier invoice line for ${line.id}:`, {
           actualCost: line.actualCost,
-          actualVat: line.actualVat
+          actualVat: actualVat
         });
         
         return {
           id: `sil-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           invoiceLineId: line.id,
           actualCost: line.actualCost || 0,
-          actualVat: line.actualVat || 0,
+          actualVat: actualVat,
           currency: line.currency || "USD",
           createdAt: new Date().toISOString(),
           createdBy: "Current User", // For now, we'll use a placeholder. In a real app, this would come from authentication

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,7 +40,7 @@ const InvoiceLineSearch = () => {
   const [searchResults, setSearchResults] = useState<ExtendedInvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Extract all invoice lines from all invoices - now include invoice total amount
+  // Extract all invoice lines from all invoices - recalculate when invoices change
   const allInvoiceLines: ExtendedInvoiceLine[] = invoices.flatMap(invoice => 
     invoice.invoiceLines.map(line => ({
       ...line,
@@ -52,6 +53,14 @@ const InvoiceLineSearch = () => {
       invoiceTotalAmount: invoice.totalAmount || 0
     }))
   );
+
+  // Re-run search when invoice data changes and we have previous search criteria
+  useEffect(() => {
+    if (hasSearched && !isLoading) {
+      console.log("Re-running search due to invoice data change");
+      handleSearch();
+    }
+  }, [invoices, hasSearched, isLoading]);
 
   // Calculate total invoice amount from search results
   const calculateTotalInvoiceAmount = (results: ExtendedInvoiceLine[]) => {
@@ -92,6 +101,9 @@ const InvoiceLineSearch = () => {
       // Save all updated invoices to localStorage
       localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
       
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
+      
       toast.success("Invoice line payment status has been updated and saved.");
       
     } catch (error) {
@@ -101,6 +113,16 @@ const InvoiceLineSearch = () => {
   };
 
   const handleSearch = () => {
+    console.log("Executing search with criteria:", {
+      supplierId,
+      description,
+      bookingNumber,
+      confirmationNumber,
+      departureDateStart,
+      departureDateEnd,
+      paymentStatus
+    });
+    
     // Filter invoice lines based on search criteria
     const filtered = allInvoiceLines.filter(line => {
       const matchesSupplier = supplierId === "all" || line.supplierId === supplierId;
@@ -136,6 +158,7 @@ const InvoiceLineSearch = () => {
              matchesPaymentStatus;
     });
     
+    console.log("Search results:", filtered.length, "lines found");
     setSearchResults(filtered);
     setHasSearched(true);
   };
@@ -294,6 +317,7 @@ const InvoiceLineSearch = () => {
             <CardContent>
               {searchResults.length > 0 ? (
                 <InvoiceLineSearchResults 
+                  key={`search-results-${Date.now()}`}
                   invoiceLines={searchResults} 
                   invoiceTotalAmount={calculateTotalInvoiceAmount(searchResults)}
                   onLineStatusUpdate={handleLineStatusUpdate}
