@@ -7,19 +7,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useInvoiceById, useInvoices } from "@/hooks/useInvoices";
+import { useInvoiceById, useInvoices, useSaveInvoice } from "@/hooks/useInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { InvoiceFormData, InvoiceLine } from "@/types/invoice";
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
 import { ArrowLeft, Edit } from "lucide-react";
+import { toast } from "sonner";
 
 const InvoiceView = () => {
   const { id } = useParams<{ id: string }>();
   const { invoice, isLoading } = useInvoiceById(id || "");
   const { invoices, isLoading: isLoadingInvoices } = useInvoices();
   const { suppliers } = useSuppliers();
+  const { saveInvoice } = useSaveInvoice();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<InvoiceFormData>({
@@ -145,8 +147,56 @@ const InvoiceView = () => {
   };
 
   // Add function to handle registration
-  const handleRegistration = (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }) => {
-    setRegisteredTotals(totals);
+  const handleRegistration = async (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }) => {
+    if (!invoice) return;
+
+    try {
+      // Create supplier invoice lines from selected lines
+      const supplierInvoiceLines = selectedLines.map(line => ({
+        id: `${invoice.id}-${line.id}-${Date.now()}`, // Unique ID for supplier invoice line
+        originalInvoiceLineId: line.id,
+        originalInvoiceId: line.invoiceId,
+        originalInvoiceNumber: line.invoiceNumber,
+        description: line.description,
+        actualCost: line.actualCost || 0,
+        actualVat: line.actualVat || 0,
+        currency: line.currency || invoice.currency || "USD",
+        registeredAt: new Date().toISOString(),
+      }));
+
+      // Update the current invoice with registered lines and status
+      const updatedInvoice = {
+        ...invoice,
+        status: "paid",
+        supplierInvoiceLines: [
+          ...(invoice.supplierInvoiceLines || []),
+          ...supplierInvoiceLines
+        ],
+        registeredTotalActualCost: totals.totalActualCost,
+        registeredTotalActualVat: totals.totalActualVat,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Save the updated invoice
+      await saveInvoice(updatedInvoice);
+
+      // Update local state
+      setFormData(prev => ({
+        ...prev,
+        status: "paid"
+      }));
+
+      setRegisteredTotals(totals);
+
+      toast.success(`Successfully registered ${selectedLines.length} invoice lines and updated status to paid`);
+      
+      // Optionally refresh the page or navigate
+      // navigate(0); // This would refresh the current page
+      
+    } catch (error) {
+      console.error('Error registering supplier invoice:', error);
+      toast.error('Failed to register supplier invoice');
+    }
   };
 
   if (isLoading || isLoadingInvoices) {
