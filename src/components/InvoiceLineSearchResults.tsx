@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
@@ -40,9 +39,10 @@ interface InvoiceLineSearchResultsProps {
   invoiceTotalAmount: number;
   allSupplierInvoiceLines?: SupplierInvoiceLine[];
   onRegister?: (selectedLines: SearchResultLine[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[], allLinesPaid?: boolean) => void;
+  onLineStatusUpdate?: (lineUpdates: { lineId: string; paymentStatus: "paid" | "unpaid" | "partial" }[]) => void;
 }
 
-const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplierInvoiceLines = [], onRegister }: InvoiceLineSearchResultsProps) => {
+const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplierInvoiceLines = [], onRegister, onLineStatusUpdate }: InvoiceLineSearchResultsProps) => {
   // Calculate registered amounts for each line
   const linesWithRegistered = invoiceLines.map(line => {
     const registeredLines = allSupplierInvoiceLines.filter(sil => sil.invoiceLineId === line.id);
@@ -276,18 +276,30 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
       actualVat: line.actualVat
     })));
     
+    // Collect line updates for status changes
+    const lineUpdates: { lineId: string; paymentStatus: "paid" | "unpaid" | "partial" }[] = [];
+    
     // Update the selected lines status to "paid" if user confirmed all lines are paid
     if (allLinesPaid) {
       setLines(currentLines => 
-        currentLines.map(line => 
-          line.selected ? { ...line, paymentStatus: "paid" as const } : line
-        )
+        currentLines.map(line => {
+          if (line.selected) {
+            lineUpdates.push({ lineId: line.id, paymentStatus: "paid" });
+            return { ...line, paymentStatus: "paid" as const };
+          }
+          return line;
+        })
       );
       
       // Also update the selectedLines to reflect the status change
       setSelectedLines(currentSelectedLines => 
         currentSelectedLines.map(line => ({ ...line, paymentStatus: "paid" as const }))
       );
+    }
+    
+    // Notify parent component about line status updates so they can be persisted
+    if (lineUpdates.length > 0 && onLineStatusUpdate) {
+      onLineStatusUpdate(lineUpdates);
     }
     
     // Create supplier invoice lines from selected lines - get actual values from the current lines state
@@ -329,13 +341,20 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
   };
 
   const handleToggleFullyPaid = (lineId: string, isPaid: boolean) => {
+    const newStatus = isPaid ? "paid" : "unpaid";
+    
     setLines(currentLines => 
       currentLines.map(line => 
         line.id === lineId 
-          ? { ...line, paymentStatus: isPaid ? "paid" : "unpaid" } 
+          ? { ...line, paymentStatus: newStatus } 
           : line
       )
     );
+    
+    // Notify parent component about line status update so it can be persisted
+    if (onLineStatusUpdate) {
+      onLineStatusUpdate([{ lineId, paymentStatus: newStatus }]);
+    }
     
     toast.success(`Payment status ${isPaid ? 'marked as paid' : 'marked as unpaid'}`);
   };

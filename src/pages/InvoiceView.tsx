@@ -152,6 +152,49 @@ const InvoiceView = () => {
     setHasSearched(false);
   };
 
+  // Add function to handle line status updates
+  const handleLineStatusUpdate = async (lineUpdates: { lineId: string; paymentStatus: "paid" | "unpaid" | "partial" }[]) => {
+    try {
+      // Update all invoices that contain the updated lines
+      const updatedInvoices = invoices.map(inv => {
+        const hasUpdatedLines = inv.invoiceLines.some(line => 
+          lineUpdates.find(update => update.lineId === line.id)
+        );
+        
+        if (hasUpdatedLines) {
+          const updatedInvoiceLines = inv.invoiceLines.map(line => {
+            const update = lineUpdates.find(u => u.lineId === line.id);
+            return update ? { ...line, paymentStatus: update.paymentStatus } : line;
+          });
+          
+          return {
+            ...inv,
+            invoiceLines: updatedInvoiceLines,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        
+        return inv;
+      });
+      
+      // Save all updated invoices to localStorage
+      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+      
+      toast({
+        title: "Status Updated",
+        description: "Invoice line payment status has been updated and saved.",
+      });
+      
+    } catch (error) {
+      console.error("Error updating line status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update line status.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Add function to handle registration
   const handleRegistration = async (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[], allLinesPaid?: boolean) => {
     if (!invoice) return;
@@ -422,6 +465,7 @@ const InvoiceView = () => {
                 <InvoiceLineSearchResults 
                   invoiceLines={searchResults} 
                   onRegister={handleRegistration}
+                  onLineStatusUpdate={handleLineStatusUpdate}
                   invoiceTotalAmount={invoice.totalAmount || 0}
                   allSupplierInvoiceLines={allSupplierInvoiceLines}
                 />

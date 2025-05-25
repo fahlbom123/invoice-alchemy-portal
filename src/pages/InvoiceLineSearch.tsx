@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +11,7 @@ import { useInvoices } from "@/hooks/useInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
 import { formatCurrency } from "@/lib/formatters";
+import { toast } from "sonner";
 
 // Extended type for invoice lines with additional properties
 interface ExtendedInvoiceLine extends InvoiceLine {
@@ -62,6 +62,42 @@ const InvoiceLineSearch = () => {
       }
     });
     return Array.from(uniqueInvoices.values()).reduce((sum, amount) => sum + amount, 0);
+  };
+
+  // Add function to handle line status updates
+  const handleLineStatusUpdate = async (lineUpdates: { lineId: string; paymentStatus: "paid" | "unpaid" | "partial" }[]) => {
+    try {
+      // Update all invoices that contain the updated lines
+      const updatedInvoices = invoices.map(inv => {
+        const hasUpdatedLines = inv.invoiceLines.some(line => 
+          lineUpdates.find(update => update.lineId === line.id)
+        );
+        
+        if (hasUpdatedLines) {
+          const updatedInvoiceLines = inv.invoiceLines.map(line => {
+            const update = lineUpdates.find(u => u.lineId === line.id);
+            return update ? { ...line, paymentStatus: update.paymentStatus } : line;
+          });
+          
+          return {
+            ...inv,
+            invoiceLines: updatedInvoiceLines,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        
+        return inv;
+      });
+      
+      // Save all updated invoices to localStorage
+      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+      
+      toast.success("Invoice line payment status has been updated and saved.");
+      
+    } catch (error) {
+      console.error("Error updating line status:", error);
+      toast.error("Failed to update line status.");
+    }
   };
 
   const handleSearch = () => {
@@ -260,6 +296,7 @@ const InvoiceLineSearch = () => {
                 <InvoiceLineSearchResults 
                   invoiceLines={searchResults} 
                   invoiceTotalAmount={calculateTotalInvoiceAmount(searchResults)}
+                  onLineStatusUpdate={handleLineStatusUpdate}
                 />
               ) : (
                 <div className="text-center py-8 text-gray-500">
