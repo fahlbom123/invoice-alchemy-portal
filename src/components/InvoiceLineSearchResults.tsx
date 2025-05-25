@@ -4,6 +4,16 @@ import { InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
 import SearchResultsTable from "./invoice-search/SearchResultsTable";
 import SelectedLinesSummary from "./invoice-search/SelectedLinesSummary";
 import CostRegistrationModal from "./invoice-search/CostRegistrationModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Extend InvoiceLine to include invoice reference
 interface SearchResultLine extends InvoiceLine {
@@ -54,6 +64,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
   const [editingLine, setEditingLine] = useState<string | null>(null);
   const [editingCost, setEditingCost] = useState<string>("");
   const [editingVat, setEditingVat] = useState<string>("");
+  const [showPaymentConfirmation, setShowPaymentConfirmation] = useState<boolean>(false);
 
   const handleSelectLine = (id: string, checked: boolean) => {
     // Don't allow selection of paid lines
@@ -250,6 +261,13 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
       return;
     }
     
+    // Show confirmation dialog instead of immediately registering
+    setShowPaymentConfirmation(true);
+  };
+
+  const handleConfirmRegistration = (allLinesPaid: boolean) => {
+    setShowPaymentConfirmation(false);
+    
     console.log("Selected lines for registration:", selectedLines.map(line => ({
       id: line.id,
       description: line.description,
@@ -257,8 +275,17 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
       actualVat: line.actualVat
     })));
     
+    // If user confirmed all lines are paid, update the selected lines status
+    let updatedLines = lines;
+    if (allLinesPaid) {
+      updatedLines = lines.map(line => 
+        line.selected ? { ...line, paymentStatus: "paid" as const } : line
+      );
+      setLines(updatedLines);
+    }
+    
     // Create supplier invoice lines from selected lines - get actual values from the current lines state
-    const supplierInvoiceLines: SupplierInvoiceLine[] = lines
+    const supplierInvoiceLines: SupplierInvoiceLine[] = updatedLines
       .filter(line => line.selected)
       .map(line => {
         console.log(`Creating supplier invoice line for ${line.id}:`, {
@@ -281,13 +308,14 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
     console.log("Created supplier invoice lines:", supplierInvoiceLines);
     
     // Check if all lines are fully paid after registration
-    const allLinesPaid = lines.every(line => 
+    const allInvoiceLinesPaid = updatedLines.every(line => 
       line.paymentStatus === "paid" || line.selected
     );
     
     // Call the onRegister callback with selected lines, totals, supplier invoice lines, and paid status
     if (onRegister) {
-      onRegister(selectedLines, { totalActualCost, totalActualVat }, supplierInvoiceLines, allLinesPaid);
+      const { totalActualCost, totalActualVat } = calculateSelectedTotals();
+      onRegister(selectedLines, { totalActualCost, totalActualVat }, supplierInvoiceLines, allInvoiceLinesPaid);
     }
     
     toast.success(`Registered ${selectedLines.length} invoice lines`);
@@ -323,6 +351,25 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
         setRegisterCostValue={setRegisterCostValue}
         setRegisterVatValue={setRegisterVatValue}
       />
+
+      <AlertDialog open={showPaymentConfirmation} onOpenChange={setShowPaymentConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Payment Status Confirmation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are all selected invoice lines fully paid? This will mark all selected lines as "fully paid" and may update the invoice status.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => handleConfirmRegistration(false)}>
+              No, not all paid
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleConfirmRegistration(true)}>
+              Yes, all fully paid
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {hasSelectedLines && (
         <SelectedLinesSummary
