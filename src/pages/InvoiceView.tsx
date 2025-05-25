@@ -24,6 +24,22 @@ const InvoiceView = () => {
   const { saveInvoice } = useSaveInvoice();
   const navigate = useNavigate();
 
+  // Add the missing formData state
+  const [formData, setFormData] = useState<InvoiceFormData>({
+    invoiceNumber: "",
+    reference: "",
+    status: "",
+    dueDate: "",
+    invoiceDate: "",
+    supplierId: "",
+    notes: "",
+    invoiceLines: [],
+    currency: "USD",
+    totalAmount: 0,
+    totalVat: 0,
+    ocr: "",
+  });
+
   // Add state for registered totals
   const [registeredTotals, setRegisteredTotals] = useState<{
     totalActualCost: number;
