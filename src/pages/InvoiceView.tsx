@@ -78,10 +78,17 @@ const InvoiceView = () => {
     invoice.supplierInvoiceLines || []
   );
 
-  // Generate random booking number for supplier invoice lines that don't have one
-  const getBookingNumberForSupplierLine = (lineId: string) => {
-    // Use lineId as seed to ensure consistent random number for the same line
-    const seed = lineId.split('').reduce((a, b) => {
+  // Function to get booking number for supplier invoice line by matching with original invoice line
+  const getBookingNumberForSupplierLine = (supplierLine: SupplierInvoiceLine) => {
+    // Find the original invoice line that this supplier line references
+    const originalLine = allInvoiceLines.find(line => line.id === supplierLine.invoiceLineId);
+    
+    if (originalLine?.bookingNumber) {
+      return originalLine.bookingNumber;
+    }
+    
+    // Fallback: generate consistent random number if no booking number exists
+    const seed = supplierLine.id.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
     }, 0);
@@ -328,7 +335,7 @@ const InvoiceView = () => {
                             <TableCell>{index + 1}</TableCell>
                             <TableCell>{line.description}</TableCell>
                             <TableCell>{line.supplierName}</TableCell>
-                            <TableCell>{getBookingNumberForSupplierLine(line.id)}</TableCell>
+                            <TableCell>{getBookingNumberForSupplierLine(line)}</TableCell>
                             <TableCell>{line.createdBy || "Unknown"}</TableCell>
                             <TableCell>
                               {new Date(line.createdAt).toLocaleString()}
