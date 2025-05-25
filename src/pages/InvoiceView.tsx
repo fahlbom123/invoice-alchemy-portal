@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useInvoiceById, useInvoices, useSaveInvoice } from "@/hooks/useInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
@@ -226,30 +227,34 @@ const InvoiceView = () => {
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Supplier Invoice Lines</h3>
                   <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                    <div className="space-y-3">
-                      {invoice.supplierInvoiceLines.map((line) => (
-                        <div key={line.id} className="bg-white p-3 rounded border">
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium">Description:</span>
-                              <p>{line.description}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Supplier:</span>
-                              <p>{line.supplierName}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Actual Cost:</span>
-                              <p>{formatCurrency(line.actualCost, line.currency)}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Actual VAT:</span>
-                              <p>{formatCurrency(line.actualVat, line.currency)}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Description</TableHead>
+                          <TableHead>Supplier</TableHead>
+                          <TableHead>Register Datetime</TableHead>
+                          <TableHead>Actual Cost</TableHead>
+                          <TableHead>Actual VAT</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {invoice.supplierInvoiceLines.map((line) => (
+                          <TableRow key={line.id}>
+                            <TableCell>{line.description}</TableCell>
+                            <TableCell>{line.supplierName}</TableCell>
+                            <TableCell>
+                              {new Date(line.createdAt).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              {formatCurrency(line.actualCost, line.currency)}
+                            </TableCell>
+                            <TableCell>
+                              {formatCurrency(line.actualVat, line.currency)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
               )}
