@@ -113,7 +113,7 @@ const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProp
         
         <div className="space-y-2">
           <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Total Amount incl VAT</span>
+            <span className="text-sm text-gray-500">Supplier Invoice Total incl VAT</span>
             <span className="font-medium">{formatCurrency(formData.totalAmount || 0, formData.currency)}</span>
           </div>
         </div>
