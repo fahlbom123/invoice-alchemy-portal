@@ -43,17 +43,32 @@ interface InvoiceLineSearchResultsProps {
 }
 
 const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplierInvoiceLines = [], onRegister, onLineStatusUpdate }: InvoiceLineSearchResultsProps) => {
-  // Calculate registered amounts for each line
+  // Calculate registered amounts for each line and determine status
   const calculateLinesWithRegistered = (lines: SearchResultLine[]) => {
     return lines.map(line => {
       const registeredLines = allSupplierInvoiceLines.filter(sil => sil.invoiceLineId === line.id);
       const registeredActualCost = registeredLines.reduce((sum, sil) => sum + sil.actualCost, 0);
       const registeredActualVat = registeredLines.reduce((sum, sil) => sum + sil.actualVat, 0);
       
+      // Calculate status based on registered cost vs estimated cost
+      let calculatedStatus = line.paymentStatus || "unpaid";
+      
+      // Only update status if not already marked as fully paid
+      if (line.paymentStatus !== "paid") {
+        if (registeredActualCost > 0 && registeredActualCost < line.estimatedCost) {
+          calculatedStatus = "partial";
+        } else if (registeredActualCost >= line.estimatedCost) {
+          calculatedStatus = "paid";
+        } else if (registeredActualCost === 0) {
+          calculatedStatus = "unpaid";
+        }
+      }
+      
       return {
         ...line,
         registeredActualCost,
         registeredActualVat,
+        paymentStatus: calculatedStatus,
         // Ensure actualVat is always a number, never undefined
         actualVat: line.actualVat || 0
       };
