@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -182,7 +183,10 @@ const InvoiceView = () => {
       setRegisteredTotals(totals);
       
       if (allLinesPaid) {
-        toast.success("All lines are now fully paid. Invoice status updated to 'paid'.");
+        toast({
+          title: "Invoice Status Updated",
+          description: "All lines are now fully paid. Invoice status updated to 'paid'.",
+        });
       }
       
       // Refresh the page or update the local state
