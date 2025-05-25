@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
@@ -21,16 +20,32 @@ interface SearchResultLine extends InvoiceLine {
   };
   selected?: boolean;
   invoiceTotalAmount?: number;
+  registeredActualCost?: number;
+  registeredActualVat?: number;
 }
 
 interface InvoiceLineSearchResultsProps {
   invoiceLines: SearchResultLine[];
   invoiceTotalAmount: number;
+  allSupplierInvoiceLines?: SupplierInvoiceLine[];
   onRegister?: (selectedLines: SearchResultLine[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[]) => void;
 }
 
-const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister }: InvoiceLineSearchResultsProps) => {
-  const [lines, setLines] = useState<SearchResultLine[]>(invoiceLines);
+const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplierInvoiceLines = [], onRegister }: InvoiceLineSearchResultsProps) => {
+  // Calculate registered amounts for each line
+  const linesWithRegistered = invoiceLines.map(line => {
+    const registeredLines = allSupplierInvoiceLines.filter(sil => sil.invoiceLineId === line.id);
+    const registeredActualCost = registeredLines.reduce((sum, sil) => sum + sil.actualCost, 0);
+    const registeredActualVat = registeredLines.reduce((sum, sil) => sum + sil.actualVat, 0);
+    
+    return {
+      ...line,
+      registeredActualCost,
+      registeredActualVat
+    };
+  });
+
+  const [lines, setLines] = useState<SearchResultLine[]>(linesWithRegistered);
   const [selectedLines, setSelectedLines] = useState<SearchResultLine[]>([]);
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
   const [registerCostValue, setRegisterCostValue] = useState<string>("");

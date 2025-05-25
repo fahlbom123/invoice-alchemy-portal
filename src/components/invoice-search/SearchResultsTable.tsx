@@ -28,6 +28,8 @@ interface SearchResultLine {
   currency?: string;
   estimatedVat?: number;
   actualVat?: number;
+  registeredActualCost?: number;
+  registeredActualVat?: number;
 }
 
 interface SearchResultsTableProps {
@@ -83,6 +85,8 @@ const SearchResultsTable = ({
               <TableHead>Est. VAT</TableHead>
               <TableHead>Actual Cost</TableHead>
               <TableHead>Actual VAT</TableHead>
+              <TableHead>Registered Cost</TableHead>
+              <TableHead>Registered VAT</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Fully Paid</TableHead>
             </TableRow>

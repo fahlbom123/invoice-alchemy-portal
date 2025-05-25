@@ -74,6 +74,11 @@ const InvoiceView = () => {
     }))
   );
 
+  // Get all supplier invoice lines from all invoices
+  const allSupplierInvoiceLines = invoices.flatMap(invoice => 
+    invoice.supplierInvoiceLines || []
+  );
+
   useEffect(() => {
     if (invoice) {
       setFormData({
@@ -425,6 +430,7 @@ const InvoiceView = () => {
                   invoiceLines={searchResults} 
                   onRegister={handleRegistration}
                   invoiceTotalAmount={invoice.totalAmount || 0}
+                  allSupplierInvoiceLines={allSupplierInvoiceLines}
                 />
               ) : (
                 <div className="text-center py-8 text-gray-500">
