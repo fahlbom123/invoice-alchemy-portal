@@ -16,6 +16,7 @@ import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
 import { ArrowLeft, Edit } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
+import { toast } from "@/hooks/use-toast";
 
 const InvoiceView = () => {
   const { id } = useParams<{ id: string }>();
