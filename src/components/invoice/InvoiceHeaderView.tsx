@@ -47,6 +47,11 @@ const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProp
   // Calculate the difference between total amount and registered actual cost
   const diffAmount = (formData.totalAmount || 0) - totalRegisteredCost;
 
+  // Handle checkbox state change
+  const handleAcceptDiffChange = (checked: boolean | "indeterminate") => {
+    setAcceptDiff(checked === true);
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Invoice Details</h3>
@@ -135,7 +140,7 @@ const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProp
               <Checkbox
                 id="accept-diff"
                 checked={acceptDiff}
-                onCheckedChange={setAcceptDiff}
+                onCheckedChange={handleAcceptDiffChange}
               />
               <label
                 htmlFor="accept-diff"
