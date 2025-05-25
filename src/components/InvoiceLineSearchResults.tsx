@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
@@ -275,17 +276,22 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
       actualVat: line.actualVat
     })));
     
-    // If user confirmed all lines are paid, update the selected lines status
-    let updatedLines = lines;
+    // Update the selected lines status to "paid" if user confirmed all lines are paid
     if (allLinesPaid) {
-      updatedLines = lines.map(line => 
-        line.selected ? { ...line, paymentStatus: "paid" as const } : line
+      setLines(currentLines => 
+        currentLines.map(line => 
+          line.selected ? { ...line, paymentStatus: "paid" as const } : line
+        )
       );
-      setLines(updatedLines);
+      
+      // Also update the selectedLines to reflect the status change
+      setSelectedLines(currentSelectedLines => 
+        currentSelectedLines.map(line => ({ ...line, paymentStatus: "paid" as const }))
+      );
     }
     
     // Create supplier invoice lines from selected lines - get actual values from the current lines state
-    const supplierInvoiceLines: SupplierInvoiceLine[] = updatedLines
+    const supplierInvoiceLines: SupplierInvoiceLine[] = lines
       .filter(line => line.selected)
       .map(line => {
         console.log(`Creating supplier invoice line for ${line.id}:`, {
@@ -309,7 +315,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
     console.log("Created supplier invoice lines:", supplierInvoiceLines);
     
     // Check if all lines are fully paid after registration
-    const allInvoiceLinesPaid = updatedLines.every(line => 
+    const allInvoiceLinesPaid = lines.every(line => 
       line.paymentStatus === "paid" || line.selected
     );
     
