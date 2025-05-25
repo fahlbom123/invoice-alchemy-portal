@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
@@ -222,17 +223,24 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister
       return;
     }
     
-    // Create supplier invoice lines from selected lines
-    const supplierInvoiceLines: SupplierInvoiceLine[] = selectedLines.map(line => ({
-      id: `sil-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      invoiceLineId: line.id,
-      actualCost: line.actualCost || 0,
-      actualVat: line.actualVat || 0,
-      currency: line.currency || "USD",
-      createdAt: new Date().toISOString(),
-      description: line.description,
-      supplierName: line.supplierName,
-    }));
+    // Create supplier invoice lines from selected lines with correct VAT calculation
+    const supplierInvoiceLines: SupplierInvoiceLine[] = selectedLines.map(line => {
+      // Calculate actual VAT amount from the percentage rate
+      const actualVatAmount = line.actualCost && line.actualVat 
+        ? (line.actualCost * line.actualVat) / 100 
+        : 0;
+
+      return {
+        id: `sil-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        invoiceLineId: line.id,
+        actualCost: line.actualCost || 0,
+        actualVat: actualVatAmount, // Store as amount, not percentage
+        currency: line.currency || "USD",
+        createdAt: new Date().toISOString(),
+        description: line.description,
+        supplierName: line.supplierName,
+      };
+    });
     
     // Call the onRegister callback with selected lines, totals, and supplier invoice lines
     if (onRegister) {
