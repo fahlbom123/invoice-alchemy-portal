@@ -48,15 +48,27 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
   // Calculate the difference between total amount and registered actual cost
   const diffAmount = (formData.totalAmount || 0) - totalRegisteredCost;
 
-  // Calculate status based on diff and accept difference checkbox
+  // Calculate status based on the new requirements
   const calculateStatus = () => {
-    if (diffAmount === 0 || acceptDiff) {
+    const supplierInvoiceTotal = formData.totalAmount || 0;
+    
+    // If accept diff is ticked or supplier invoice total equals registered total actual cost, then status is paid
+    if (acceptDiff || supplierInvoiceTotal === totalRegisteredCost) {
       return "paid";
-    } else if (diffAmount === (formData.totalAmount || 0)) {
-      return "pending";
-    } else {
+    }
+    
+    // If registered total actual cost = 0, then unpaid
+    if (totalRegisteredCost === 0) {
+      return "unpaid";
+    }
+    
+    // If registered total actual cost > 0 and < Supplier Invoice Total, then partial paid
+    if (totalRegisteredCost > 0 && totalRegisteredCost < supplierInvoiceTotal) {
       return "partial";
     }
+    
+    // Default fallback
+    return "unpaid";
   };
 
   const calculatedStatus = calculateStatus();
