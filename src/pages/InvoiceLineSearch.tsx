@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,7 +39,7 @@ const InvoiceLineSearch = () => {
   const [paymentStatus, setPaymentStatus] = useState<string>("all");
   const [searchResults, setSearchResults] = useState<ExtendedInvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
-  const [searchKey, setSearchKey] = useState(0); // Add this to force re-render
+  const [searchKey, setSearchKey] = useState(0);
 
   // Extract all invoice lines from all invoices - recalculate when invoices change
   const allInvoiceLines: ExtendedInvoiceLine[] = invoices.flatMap(invoice => 
@@ -55,13 +55,66 @@ const InvoiceLineSearch = () => {
     }))
   );
 
+  // Memoized search function
+  const performSearch = useCallback(() => {
+    console.log("Executing search with criteria:", {
+      supplierId,
+      description,
+      bookingNumber,
+      confirmationNumber,
+      departureDateStart,
+      departureDateEnd,
+      paymentStatus
+    });
+    
+    // Filter invoice lines based on search criteria
+    const filtered = allInvoiceLines.filter(line => {
+      const matchesSupplier = supplierId === "all" || line.supplierId === supplierId;
+      const matchesDescription = !description || 
+        line.description.toLowerCase().includes(description.toLowerCase());
+      
+      // New search parameters
+      const matchesBookingNumber = !bookingNumber || 
+        (line.bookingNumber && line.bookingNumber.toLowerCase().includes(bookingNumber.toLowerCase()));
+      
+      const matchesConfirmationNumber = !confirmationNumber || 
+        (line.confirmationNumber && line.confirmationNumber.toLowerCase().includes(confirmationNumber.toLowerCase()));
+      
+      // Date range check
+      let matchesDepartureDate = true;
+      if (line.departureDate) {
+        if (departureDateStart && new Date(line.departureDate) < new Date(departureDateStart)) {
+          matchesDepartureDate = false;
+        }
+        if (departureDateEnd && new Date(line.departureDate) > new Date(departureDateEnd)) {
+          matchesDepartureDate = false;
+        }
+      } else if (departureDateStart || departureDateEnd) {
+        // If we're filtering by date but the line has no date, don't include it
+        matchesDepartureDate = false;
+      }
+
+      // Payment status check
+      const matchesPaymentStatus = paymentStatus === "all" || line.paymentStatus === paymentStatus;
+      
+      return matchesSupplier && matchesDescription && 
+             matchesBookingNumber && matchesConfirmationNumber && matchesDepartureDate && 
+             matchesPaymentStatus;
+    });
+    
+    console.log("Search results:", filtered.length, "lines found");
+    setSearchResults(filtered);
+    setHasSearched(true);
+    setSearchKey(prev => prev + 1);
+  }, [allInvoiceLines, supplierId, description, bookingNumber, confirmationNumber, departureDateStart, departureDateEnd, paymentStatus]);
+
   // Auto-refresh search results when invoices data changes (including payment status updates)
   useEffect(() => {
     if (hasSearched) {
       console.log("Invoices updated, refreshing search results");
       performSearch();
     }
-  }, [invoices]);
+  }, [performSearch, hasSearched]);
 
   // Calculate total invoice amount from search results
   const calculateTotalInvoiceAmount = (results: ExtendedInvoiceLine[]) => {
@@ -113,58 +166,6 @@ const InvoiceLineSearch = () => {
     }
   };
 
-  const performSearch = () => {
-    console.log("Executing search with criteria:", {
-      supplierId,
-      description,
-      bookingNumber,
-      confirmationNumber,
-      departureDateStart,
-      departureDateEnd,
-      paymentStatus
-    });
-    
-    // Filter invoice lines based on search criteria
-    const filtered = allInvoiceLines.filter(line => {
-      const matchesSupplier = supplierId === "all" || line.supplierId === supplierId;
-      const matchesDescription = !description || 
-        line.description.toLowerCase().includes(description.toLowerCase());
-      
-      // New search parameters
-      const matchesBookingNumber = !bookingNumber || 
-        (line.bookingNumber && line.bookingNumber.toLowerCase().includes(bookingNumber.toLowerCase()));
-      
-      const matchesConfirmationNumber = !confirmationNumber || 
-        (line.confirmationNumber && line.confirmationNumber.toLowerCase().includes(confirmationNumber.toLowerCase()));
-      
-      // Date range check
-      let matchesDepartureDate = true;
-      if (line.departureDate) {
-        if (departureDateStart && new Date(line.departureDate) < new Date(departureDateStart)) {
-          matchesDepartureDate = false;
-        }
-        if (departureDateEnd && new Date(line.departureDate) > new Date(departureDateEnd)) {
-          matchesDepartureDate = false;
-        }
-      } else if (departureDateStart || departureDateEnd) {
-        // If we're filtering by date but the line has no date, don't include it
-        matchesDepartureDate = false;
-      }
-
-      // Payment status check
-      const matchesPaymentStatus = paymentStatus === "all" || line.paymentStatus === paymentStatus;
-      
-      return matchesSupplier && matchesDescription && 
-             matchesBookingNumber && matchesConfirmationNumber && matchesDepartureDate && 
-             matchesPaymentStatus;
-    });
-    
-    console.log("Search results:", filtered.length, "lines found");
-    setSearchResults(filtered);
-    setHasSearched(true);
-    setSearchKey(prev => prev + 1); // Force re-render with new key
-  };
-
   const handleSearch = () => {
     performSearch();
   };
@@ -179,7 +180,7 @@ const InvoiceLineSearch = () => {
     setPaymentStatus("all");
     setSearchResults([]);
     setHasSearched(false);
-    setSearchKey(prev => prev + 1); // Force re-render
+    setSearchKey(prev => prev + 1);
   };
 
   if (isLoading) {
