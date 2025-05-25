@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -68,9 +69,17 @@ const SearchResultRow = ({
   isMobile = false,
 }: SearchResultRowProps) => {
   const navigate = useNavigate();
+  
+  // Local state to track the toggle state for immediate UI feedback
+  const [localPaymentStatus, setLocalPaymentStatus] = useState(line.paymentStatus);
+  
+  // Update local state when line prop changes
+  useEffect(() => {
+    setLocalPaymentStatus(line.paymentStatus);
+  }, [line.paymentStatus]);
 
   // Check if line is paid and should be disabled for editing
-  const isPaid = line.paymentStatus === "paid";
+  const isPaid = localPaymentStatus === "paid";
 
   // Generate consistent booking number if not provided (max 8 figures)
   const getBookingNumber = () => {
@@ -90,11 +99,16 @@ const SearchResultRow = ({
   const handlePaymentStatusChange = async (isPaid: boolean) => {
     const newStatus = isPaid ? "paid" : "unpaid";
     
+    // Update local state immediately for instant UI feedback
+    setLocalPaymentStatus(newStatus);
+    
     try {
       // Get current invoices from localStorage
       const storedInvoices = localStorage.getItem('invoices');
       if (!storedInvoices) {
         toast.error("No invoices found in storage");
+        // Revert local state on error
+        setLocalPaymentStatus(line.paymentStatus);
         return;
       }
       
@@ -135,6 +149,8 @@ const SearchResultRow = ({
     } catch (error) {
       console.error("Error updating payment status:", error);
       toast.error("Failed to save payment status change");
+      // Revert local state on error
+      setLocalPaymentStatus(line.paymentStatus);
     }
   };
 
@@ -173,9 +189,9 @@ const SearchResultRow = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {renderPaymentStatusBadge(line.paymentStatus)}
+            {renderPaymentStatusBadge(localPaymentStatus)}
             <Switch 
-              checked={line.paymentStatus === "paid"}
+              checked={localPaymentStatus === "paid"}
               onCheckedChange={handlePaymentStatusChange}
             />
           </div>
@@ -448,11 +464,11 @@ const SearchResultRow = ({
         {line.registeredActualVat ? formatCurrency(line.registeredActualVat, undefined) : "-"}
       </TableCell>
       <TableCell>
-        {renderPaymentStatusBadge(line.paymentStatus)}
+        {renderPaymentStatusBadge(localPaymentStatus)}
       </TableCell>
       <TableCell>
         <Switch 
-          checked={line.paymentStatus === "paid"}
+          checked={localPaymentStatus === "paid"}
           onCheckedChange={handlePaymentStatusChange}
         />
       </TableCell>
