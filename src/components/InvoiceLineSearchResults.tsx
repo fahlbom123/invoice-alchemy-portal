@@ -61,17 +61,39 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
   };
 
   const [lines, setLines] = useState<SearchResultLine[]>(() => calculateLinesWithRegistered(invoiceLines));
+  const [selectedLines, setSelectedLines] = useState<SearchResultLine[]>([]);
   
-  // Update lines when invoiceLines prop changes (for search updates)
+  // Update lines when invoiceLines prop changes, but preserve selections and local edits
   useEffect(() => {
     console.log("InvoiceLineSearchResults: invoiceLines prop changed, updating internal state");
     const updatedLines = calculateLinesWithRegistered(invoiceLines);
-    setLines(updatedLines);
-    // Clear selections when new search results come in
-    setSelectedLines([]);
+    
+    // Preserve existing selections and local edits by merging with current state
+    setLines(currentLines => {
+      return updatedLines.map(newLine => {
+        const existingLine = currentLines.find(line => line.id === newLine.id);
+        if (existingLine) {
+          // Preserve selection state and any local edits, but update payment status and other props from the new data
+          return {
+            ...newLine,
+            selected: existingLine.selected,
+            actualCost: existingLine.actualCost || newLine.actualCost,
+            actualVat: existingLine.actualVat || newLine.actualVat
+          };
+        }
+        return newLine;
+      });
+    });
+    
+    // Update selected lines to match the current selections
+    setSelectedLines(currentSelected => {
+      return currentSelected.map(selectedLine => {
+        const updatedLine = updatedLines.find(line => line.id === selectedLine.id);
+        return updatedLine ? { ...updatedLine, selected: true } : selectedLine;
+      }).filter(line => updatedLines.some(ul => ul.id === line.id));
+    });
   }, [invoiceLines, allSupplierInvoiceLines]);
 
-  const [selectedLines, setSelectedLines] = useState<SearchResultLine[]>([]);
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
   const [registerCostValue, setRegisterCostValue] = useState<string>("");
   const [registerVatValue, setRegisterVatValue] = useState<string>("");
@@ -368,8 +390,18 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
   const handleToggleFullyPaid = (lineId: string, isPaid: boolean) => {
     const newStatus = isPaid ? "paid" : "unpaid";
     
+    // Update local state immediately
     setLines(currentLines => 
       currentLines.map(line => 
+        line.id === lineId 
+          ? { ...line, paymentStatus: newStatus } 
+          : line
+      )
+    );
+    
+    // Also update selectedLines if the line is selected
+    setSelectedLines(currentSelected => 
+      currentSelected.map(line => 
         line.id === lineId 
           ? { ...line, paymentStatus: newStatus } 
           : line
