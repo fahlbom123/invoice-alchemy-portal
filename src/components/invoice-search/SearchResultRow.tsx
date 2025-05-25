@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Save, X } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
+import { toast } from "sonner";
 
 interface SearchResultLine {
   id: string;
@@ -71,6 +72,55 @@ const SearchResultRow = ({
   // Check if line is paid and should be disabled for editing
   const isPaid = line.paymentStatus === "paid";
 
+  // Function to handle immediate payment status change and persistence
+  const handlePaymentStatusChange = async (isPaid: boolean) => {
+    const newStatus = isPaid ? "paid" : "unpaid";
+    
+    try {
+      // Get current invoices from localStorage
+      const storedInvoices = localStorage.getItem('invoices');
+      if (!storedInvoices) {
+        toast.error("No invoices found in storage");
+        return;
+      }
+      
+      const invoices = JSON.parse(storedInvoices);
+      
+      // Find and update the invoice line
+      const updatedInvoices = invoices.map((inv: any) => {
+        const hasUpdatedLine = inv.invoiceLines.some((invLine: any) => invLine.id === line.id);
+        
+        if (hasUpdatedLine) {
+          const updatedInvoiceLines = inv.invoiceLines.map((invLine: any) => {
+            return invLine.id === line.id 
+              ? { ...invLine, paymentStatus: newStatus }
+              : invLine;
+          });
+          
+          return {
+            ...inv,
+            invoiceLines: updatedInvoiceLines,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        
+        return inv;
+      });
+      
+      // Save back to localStorage
+      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+      
+      // Call the parent component's handler to update the UI
+      onToggleFullyPaid(line.id, isPaid);
+      
+      toast.success(`Payment status updated to ${isPaid ? 'paid' : 'unpaid'} and saved`);
+      
+    } catch (error) {
+      console.error("Error updating payment status:", error);
+      toast.error("Failed to save payment status change");
+    }
+  };
+
   // Function to render payment status badge
   const renderPaymentStatusBadge = (status?: string) => {
     switch (status) {
@@ -109,7 +159,7 @@ const SearchResultRow = ({
             {renderPaymentStatusBadge(line.paymentStatus)}
             <Switch 
               checked={line.paymentStatus === "paid"}
-              onCheckedChange={(checked) => onToggleFullyPaid(line.id, checked)}
+              onCheckedChange={handlePaymentStatusChange}
             />
           </div>
         </div>
@@ -388,7 +438,7 @@ const SearchResultRow = ({
       <TableCell>
         <Switch 
           checked={line.paymentStatus === "paid"}
-          onCheckedChange={(checked) => onToggleFullyPaid(line.id, checked)}
+          onCheckedChange={handlePaymentStatusChange}
         />
       </TableCell>
     </TableRow>
