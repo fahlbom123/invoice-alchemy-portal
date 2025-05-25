@@ -34,6 +34,8 @@ interface SearchResultLine {
   currency?: string;
   estimatedVat?: number;
   actualVat?: number;
+  registeredActualCost?: number;
+  registeredActualVat?: number;
 }
 
 interface SearchResultRowProps {
@@ -147,7 +149,7 @@ const SearchResultRow = ({
               <span className="text-gray-500 text-xs">Estimated Cost:</span>
               <div className="font-medium">{formatCurrency(line.estimatedCost, undefined)}</div>
               <span className="text-gray-500 text-xs">Estimated VAT:</span>
-              <div className="text-sm">{calculateVatAmount(line.estimatedCost, line.estimatedVat)}</div>
+              <div className="text-sm">{formatCurrency(line.estimatedVat || 0, undefined)}</div>
             </div>
             <div>
               <span className="text-gray-500 text-xs">Actual Cost:</span>
@@ -224,11 +226,25 @@ const SearchResultRow = ({
                   onClick={() => onEditActualCost(`${line.id}-vat`)}
                   title="Click to edit actual VAT"
                 >
-                  {line.actualVat && line.actualCost 
-                    ? calculateVatAmount(line.actualCost, line.actualVat)
-                    : "Click to edit"}
+                  {line.actualVat ? formatCurrency(line.actualVat, undefined) : "Click to edit"}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Registered amounts for mobile */}
+          <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+            <div>
+              <span className="text-gray-500 text-xs">Registered Cost:</span>
+              <div className="text-sm font-medium">
+                {line.registeredActualCost ? formatCurrency(line.registeredActualCost, undefined) : "-"}
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">Registered VAT:</span>
+              <div className="text-sm">
+                {line.registeredActualVat ? formatCurrency(line.registeredActualVat, undefined) : "-"}
+              </div>
             </div>
           </div>
         </div>
@@ -256,7 +272,7 @@ const SearchResultRow = ({
         {formatCurrency(line.estimatedCost, undefined)}
       </TableCell>
       <TableCell>
-        {calculateVatAmount(line.estimatedCost, line.estimatedVat)}
+        {formatCurrency(line.estimatedVat || 0, undefined)}
       </TableCell>
       <TableCell>
         {editingLine === `${line.id}-cost` ? (
@@ -328,11 +344,15 @@ const SearchResultRow = ({
             onClick={() => onEditActualCost(`${line.id}-vat`)}
             title="Click to edit actual VAT"
           >
-            {line.actualVat && line.actualCost 
-              ? calculateVatAmount(line.actualCost, line.actualVat)
-              : "Click to edit"}
+            {line.actualVat ? formatCurrency(line.actualVat, undefined) : "Click to edit"}
           </div>
         )}
+      </TableCell>
+      <TableCell>
+        {line.registeredActualCost ? formatCurrency(line.registeredActualCost, undefined) : "-"}
+      </TableCell>
+      <TableCell>
+        {line.registeredActualVat ? formatCurrency(line.registeredActualVat, undefined) : "-"}
       </TableCell>
       <TableCell>
         {renderPaymentStatusBadge(line.paymentStatus)}
