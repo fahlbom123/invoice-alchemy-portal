@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -20,6 +21,9 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
   const capitalizeStatus = (status: string) => {
     if (status === "partial") {
       return "Partial Paid";
+    }
+    if (status === "overpaid") {
+      return "Overpaid";
     }
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
@@ -57,6 +61,11 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
     // If accept diff is ticked or supplier invoice total equals registered total actual cost, then status is paid
     if (acceptDiff || supplierInvoiceTotal === totalRegisteredCost) {
       return "paid";
+    }
+    
+    // If registered total actual cost > supplier invoice total, then overpaid
+    if (totalRegisteredCost > supplierInvoiceTotal) {
+      return "overpaid";
     }
     
     // If registered total actual cost = 0, then unpaid
