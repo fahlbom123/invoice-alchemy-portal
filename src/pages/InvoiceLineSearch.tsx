@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -254,7 +253,7 @@ const InvoiceLineSearch = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="partial" id="partial" />
-                    <Label htmlFor="partial">Not Fully Paid</Label>
+                    <Label htmlFor="partial">Partial Paid</Label>
                   </div>
                 </RadioGroup>
               </div>

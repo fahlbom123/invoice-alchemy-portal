@@ -41,6 +41,18 @@ export interface InvoiceLineWithReference extends InvoiceLine {
   invoiceNumber: string;
 }
 
+// New type for supplier invoice lines
+export interface SupplierInvoiceLine {
+  id: string;
+  invoiceLineId: string;
+  actualCost: number;
+  actualVat: number;
+  currency: string;
+  createdAt: string;
+  description: string;
+  supplierName: string;
+}
+
 export interface Invoice {
   id: string;
   invoiceNumber: string;
@@ -53,6 +65,7 @@ export interface Invoice {
   notes?: string;
   supplier: Supplier;
   invoiceLines: InvoiceLine[];
+  supplierInvoiceLines?: SupplierInvoiceLine[];
   updatedAt: string;
   currency?: string;
   vat?: number;

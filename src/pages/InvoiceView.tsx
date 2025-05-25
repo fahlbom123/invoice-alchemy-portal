@@ -7,35 +7,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useInvoiceById, useInvoices } from "@/hooks/useInvoices";
+import { useInvoiceById, useInvoices, useSaveInvoice } from "@/hooks/useInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
-import { InvoiceFormData, InvoiceLine } from "@/types/invoice";
+import { InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
 import { ArrowLeft, Edit } from "lucide-react";
+import { formatCurrency } from "@/lib/formatters";
 
 const InvoiceView = () => {
   const { id } = useParams<{ id: string }>();
   const { invoice, isLoading } = useInvoiceById(id || "");
   const { invoices, isLoading: isLoadingInvoices } = useInvoices();
   const { suppliers } = useSuppliers();
+  const { saveInvoice } = useSaveInvoice();
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState<InvoiceFormData>({
-    invoiceNumber: "",
-    reference: "",
-    status: "pending",
-    dueDate: new Date().toISOString().split('T')[0],
-    supplierId: "",
-    notes: "",
-    invoiceLines: [],
-    invoiceDate: new Date().toISOString().split('T')[0],
-    currency: "USD",
-    totalAmount: 0,
-    totalVat: 0,
-    ocr: "",
-  });
 
   // Add state for registered totals
   const [registeredTotals, setRegisteredTotals] = useState<{
@@ -145,8 +132,26 @@ const InvoiceView = () => {
   };
 
   // Add function to handle registration
-  const handleRegistration = (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }) => {
-    setRegisteredTotals(totals);
+  const handleRegistration = async (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[]) => {
+    if (!invoice) return;
+
+    try {
+      // Update the invoice with supplier invoice lines and change status to paid
+      const updatedInvoice = {
+        ...invoice,
+        status: "paid",
+        supplierInvoiceLines: [...(invoice.supplierInvoiceLines || []), ...supplierInvoiceLines],
+        updatedAt: new Date().toISOString(),
+      };
+
+      await saveInvoice(updatedInvoice);
+      setRegisteredTotals(totals);
+      
+      // Refresh the page or update the local state
+      window.location.reload();
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+    }
   };
 
   if (isLoading || isLoadingInvoices) {
@@ -199,6 +204,39 @@ const InvoiceView = () => {
 
               {/* Invoice Header Information */}
               <InvoiceHeaderView formData={formData} registeredTotals={registeredTotals} />
+
+              {/* Supplier Invoice Lines */}
+              {invoice.supplierInvoiceLines && invoice.supplierInvoiceLines.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium">Supplier Invoice Lines</h3>
+                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+                    <div className="space-y-3">
+                      {invoice.supplierInvoiceLines.map((line) => (
+                        <div key={line.id} className="bg-white p-3 rounded border">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium">Description:</span>
+                              <p>{line.description}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium">Supplier:</span>
+                              <p>{line.supplierName}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium">Actual Cost:</span>
+                              <p>{formatCurrency(line.actualCost, line.currency)}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium">Actual VAT:</span>
+                              <p>{formatCurrency(line.actualVat, line.currency)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

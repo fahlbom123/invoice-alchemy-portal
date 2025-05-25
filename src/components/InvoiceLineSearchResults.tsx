@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { InvoiceLine } from "@/types/invoice";
+import { InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
 import SearchResultsTable from "./invoice-search/SearchResultsTable";
 import SelectedLinesSummary from "./invoice-search/SelectedLinesSummary";
 import CostRegistrationModal from "./invoice-search/CostRegistrationModal";
@@ -19,13 +19,13 @@ interface SearchResultLine extends InvoiceLine {
     currencyRate?: number;
   };
   selected?: boolean;
-  invoiceTotalAmount?: number; // Add this field
+  invoiceTotalAmount?: number;
 }
 
 interface InvoiceLineSearchResultsProps {
   invoiceLines: SearchResultLine[];
   invoiceTotalAmount: number;
-  onRegister?: (selectedLines: SearchResultLine[], totals: { totalActualCost: number; totalActualVat: number; }) => void;
+  onRegister?: (selectedLines: SearchResultLine[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[]) => void;
 }
 
 const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister }: InvoiceLineSearchResultsProps) => {
@@ -222,9 +222,21 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister
       return;
     }
     
-    // Call the onRegister callback with selected lines and totals
+    // Create supplier invoice lines from selected lines
+    const supplierInvoiceLines: SupplierInvoiceLine[] = selectedLines.map(line => ({
+      id: `sil-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      invoiceLineId: line.id,
+      actualCost: line.actualCost || 0,
+      actualVat: line.actualVat || 0,
+      currency: line.currency || "USD",
+      createdAt: new Date().toISOString(),
+      description: line.description,
+      supplierName: line.supplierName,
+    }));
+    
+    // Call the onRegister callback with selected lines, totals, and supplier invoice lines
     if (onRegister) {
-      onRegister(selectedLines, { totalActualCost, totalActualVat });
+      onRegister(selectedLines, { totalActualCost, totalActualVat }, supplierInvoiceLines);
     }
     
     toast.success(`Registered ${selectedLines.length} invoice lines`);
