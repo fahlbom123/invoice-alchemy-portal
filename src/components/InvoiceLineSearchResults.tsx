@@ -50,7 +50,8 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister
           if (checked) {
             if (!updatedLine.actualCost || updatedLine.actualCost === 0) {
               updatedLine.actualCost = line.estimatedCost;
-              updatedLine.actualVat = line.estimatedVat;
+              // Set actualVat as amount (estimated VAT is already an amount)
+              updatedLine.actualVat = line.estimatedVat || 0;
             }
           }
           
@@ -75,7 +76,8 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister
         if (checked) {
           if (!updatedLine.actualCost || updatedLine.actualCost === 0) {
             updatedLine.actualCost = line.estimatedCost;
-            updatedLine.actualVat = line.estimatedVat;
+            // Set actualVat as amount (estimated VAT is already an amount)
+            updatedLine.actualVat = line.estimatedVat || 0;
           }
         }
         
@@ -92,10 +94,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister
     
     const totalEstimatedCost = selectedLinesData.reduce((sum, line) => sum + line.estimatedCost, 0);
     const totalEstimatedVat = selectedLinesData.reduce((sum, line) => {
-      if (line.estimatedVat) {
-        return sum + (line.estimatedCost * line.estimatedVat) / 100;
-      }
-      return sum;
+      return sum + (line.estimatedVat || 0);
     }, 0);
 
     const totalActualCost = selectedLinesData.reduce((sum, line) => {
@@ -103,10 +102,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister
     }, 0);
     
     const totalActualVat = selectedLinesData.reduce((sum, line) => {
-      if (line.actualCost && line.actualVat) {
-        return sum + (line.actualCost * line.actualVat) / 100;
-      }
-      return sum;
+      return sum + (line.actualVat || 0);
     }, 0);
 
     // Calculate total invoiced amount from unique invoices - this should show the Total Amount incl VAT from supplier invoice details
@@ -143,11 +139,8 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister
       const line = lines.find(l => l.id === actualLineId);
       if (line) {
         setEditingLine(lineId);
-        // Display the actual VAT amount for editing, not the percentage
-        const currentVatAmount = line.actualVat && line.actualCost 
-          ? (line.actualCost * line.actualVat) / 100 
-          : 0;
-        setEditingVat(currentVatAmount.toString());
+        // Display the actual VAT amount for editing
+        setEditingVat((line.actualVat || 0).toString());
       }
     }
   };
@@ -168,15 +161,13 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister
       toast.success("Actual cost saved successfully");
     } else if (editingLine?.includes('-vat')) {
       if (!editingVat) return;
-      // Save the VAT amount directly, then calculate the rate for storage
+      // Save the VAT amount directly
       const actualVatAmount = parseFloat(editingVat);
       
       setLines(currentLines => 
         currentLines.map(line => {
           if (line.id === lineId) {
-            // Calculate and store the VAT rate based on the entered amount
-            const vatRate = line.actualCost ? (actualVatAmount / line.actualCost) * 100 : 0;
-            return { ...line, actualVat: vatRate };
+            return { ...line, actualVat: actualVatAmount };
           }
           return line;
         })
@@ -200,7 +191,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister
     if (!registerCostLineId || !registerCostValue) return;
 
     const actualCost = parseFloat(registerCostValue);
-    const actualVat = registerVatValue ? parseFloat(registerVatValue) : undefined;
+    const actualVat = registerVatValue ? parseFloat(registerVatValue) : 0;
 
     setLines(currentLines => 
       currentLines.map(line => 
@@ -223,18 +214,13 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister
       return;
     }
     
-    // Create supplier invoice lines from selected lines with correct VAT calculation
+    // Create supplier invoice lines from selected lines - VAT is already stored as amount
     const supplierInvoiceLines: SupplierInvoiceLine[] = selectedLines.map(line => {
-      // Calculate actual VAT amount from the percentage rate
-      const actualVatAmount = line.actualCost && line.actualVat 
-        ? (line.actualCost * line.actualVat) / 100 
-        : 0;
-
       return {
         id: `sil-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         invoiceLineId: line.id,
         actualCost: line.actualCost || 0,
-        actualVat: actualVatAmount, // Store as amount, not percentage
+        actualVat: line.actualVat || 0, // Store as amount
         currency: line.currency || "USD",
         createdAt: new Date().toISOString(),
         description: line.description,

@@ -33,10 +33,7 @@ const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProp
     }, 0);
     
     const totalRegisteredVat = formData.invoiceLines.reduce((sum, line) => {
-      if (line.actualCost && line.actualVat) {
-        return sum + (line.actualCost * line.actualVat) / 100;
-      }
-      return sum;
+      return sum + (line.actualVat || 0);
     }, 0);
 
     return { totalRegisteredCost, totalRegisteredVat };
