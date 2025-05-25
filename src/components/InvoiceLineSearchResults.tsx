@@ -214,19 +214,35 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, onRegister
       return;
     }
     
-    // Create supplier invoice lines from selected lines - VAT is already stored as amount
-    const supplierInvoiceLines: SupplierInvoiceLine[] = selectedLines.map(line => {
-      return {
-        id: `sil-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        invoiceLineId: line.id,
-        actualCost: line.actualCost || 0,
-        actualVat: line.actualVat || 0, // Store as amount
-        currency: line.currency || "USD",
-        createdAt: new Date().toISOString(),
-        description: line.description,
-        supplierName: line.supplierName,
-      };
-    });
+    console.log("Selected lines for registration:", selectedLines.map(line => ({
+      id: line.id,
+      description: line.description,
+      actualCost: line.actualCost,
+      actualVat: line.actualVat
+    })));
+    
+    // Create supplier invoice lines from selected lines - get actual values from the current lines state
+    const supplierInvoiceLines: SupplierInvoiceLine[] = lines
+      .filter(line => line.selected)
+      .map(line => {
+        console.log(`Creating supplier invoice line for ${line.id}:`, {
+          actualCost: line.actualCost,
+          actualVat: line.actualVat
+        });
+        
+        return {
+          id: `sil-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          invoiceLineId: line.id,
+          actualCost: line.actualCost || 0,
+          actualVat: line.actualVat || 0,
+          currency: line.currency || "USD",
+          createdAt: new Date().toISOString(),
+          description: line.description,
+          supplierName: line.supplierName,
+        };
+      });
+    
+    console.log("Created supplier invoice lines:", supplierInvoiceLines);
     
     // Call the onRegister callback with selected lines, totals, and supplier invoice lines
     if (onRegister) {

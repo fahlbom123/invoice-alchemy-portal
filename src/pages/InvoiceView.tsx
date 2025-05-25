@@ -153,6 +153,14 @@ const InvoiceView = () => {
     if (!invoice) return;
 
     try {
+      console.log("Registering supplier invoice lines:", supplierInvoiceLines);
+      console.log("Selected lines with actual values:", selectedLines.map(line => ({
+        id: line.id,
+        description: line.description,
+        actualCost: line.actualCost,
+        actualVat: line.actualVat
+      })));
+
       // Update the invoice with supplier invoice lines and change status to paid
       const updatedInvoice = {
         ...invoice,
