@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -141,10 +142,10 @@ const SearchResultRow = ({
       // Dispatch custom event to notify other components
       window.dispatchEvent(new CustomEvent('invoicesUpdated'));
       
-      // Call the parent component's handler to update the UI
+      // Call the parent component's handler immediately to update the UI
       onToggleFullyPaid(line.id, isPaid);
       
-      toast.success(`Payment status updated to ${isPaid ? 'paid' : 'unpaid'} and saved`);
+      toast.success(`Payment status updated to ${isPaid ? 'paid' : 'unpaid'}`);
       
     } catch (error) {
       console.error("Error updating payment status:", error);
