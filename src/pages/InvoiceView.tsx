@@ -312,6 +312,7 @@ const InvoiceView = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead>#</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead>Supplier</TableHead>
                           <TableHead>Booking Number</TableHead>
@@ -322,8 +323,9 @@ const InvoiceView = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {invoice.supplierInvoiceLines.map((line) => (
+                        {invoice.supplierInvoiceLines.map((line, index) => (
                           <TableRow key={line.id}>
+                            <TableCell>{index + 1}</TableCell>
                             <TableCell>{line.description}</TableCell>
                             <TableCell>{line.supplierName}</TableCell>
                             <TableCell>{getBookingNumberForSupplierLine(line.id)}</TableCell>
