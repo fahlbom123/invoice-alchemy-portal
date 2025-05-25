@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { InvoiceFormData } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface InvoiceHeaderViewProps {
   formData: InvoiceFormData;
@@ -11,6 +12,8 @@ interface InvoiceHeaderViewProps {
 }
 
 const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProps) => {
+  const [acceptDiff, setAcceptDiff] = useState(false);
+
   // Helper function to capitalize status
   const capitalizeStatus = (status: string) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
@@ -40,6 +43,9 @@ const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProp
   };
 
   const { totalRegisteredCost, totalRegisteredVat } = calculateRegisteredTotals();
+
+  // Calculate the difference between total amount and registered actual cost
+  const diffAmount = (formData.totalAmount || 0) - totalRegisteredCost;
 
   return (
     <div className="space-y-4">
@@ -112,6 +118,32 @@ const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProp
           <div className="flex flex-col">
             <span className="text-sm text-gray-500">Registered Total Actual VAT</span>
             <span className="font-medium">{formatCurrency(totalRegisteredVat, formData.currency)}</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">Diff</span>
+            <span className="font-medium">{formatCurrency(diffAmount, formData.currency)}</span>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">Accept diff</span>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="accept-diff"
+                checked={acceptDiff}
+                onCheckedChange={setAcceptDiff}
+              />
+              <label
+                htmlFor="accept-diff"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Accept difference
+              </label>
+            </div>
           </div>
         </div>
 
