@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,8 +30,6 @@ const InvoiceLineSearch = () => {
   const { suppliers } = useSuppliers();
   
   const [supplierId, setSupplierId] = useState<string>("all");
-  const [minCost, setMinCost] = useState<string>("");
-  const [maxCost, setMaxCost] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [bookingNumber, setBookingNumber] = useState<string>("");
   const [confirmationNumber, setConfirmationNumber] = useState<string>("");
@@ -69,8 +68,6 @@ const InvoiceLineSearch = () => {
     // Filter invoice lines based on search criteria
     const filtered = allInvoiceLines.filter(line => {
       const matchesSupplier = supplierId === "all" || line.supplierId === supplierId;
-      const matchesMinCost = !minCost || line.estimatedCost >= parseFloat(minCost);
-      const matchesMaxCost = !maxCost || line.estimatedCost <= parseFloat(maxCost);
       const matchesDescription = !description || 
         line.description.toLowerCase().includes(description.toLowerCase());
       
@@ -98,7 +95,7 @@ const InvoiceLineSearch = () => {
       // Payment status check
       const matchesPaymentStatus = paymentStatus === "all" || line.paymentStatus === paymentStatus;
       
-      return matchesSupplier && matchesMinCost && matchesMaxCost && matchesDescription && 
+      return matchesSupplier && matchesDescription && 
              matchesBookingNumber && matchesConfirmationNumber && matchesDepartureDate && 
              matchesPaymentStatus;
     });
@@ -109,8 +106,6 @@ const InvoiceLineSearch = () => {
 
   const handleClear = () => {
     setSupplierId("all");
-    setMinCost("");
-    setMaxCost("");
     setDescription("");
     setBookingNumber("");
     setConfirmationNumber("");
@@ -207,28 +202,6 @@ const InvoiceLineSearch = () => {
                   type="date"
                   value={departureDateEnd}
                   onChange={(e) => setDepartureDateEnd(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="minCost">Minimum Cost</Label>
-                <Input
-                  id="minCost"
-                  type="number"
-                  value={minCost}
-                  onChange={(e) => setMinCost(e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maxCost">Maximum Cost</Label>
-                <Input
-                  id="maxCost"
-                  type="number"
-                  value={maxCost}
-                  onChange={(e) => setMaxCost(e.target.value)}
-                  placeholder="0.00"
                 />
               </div>
 
