@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
 import SearchResultsTable from "./invoice-search/SearchResultsTable";
@@ -44,25 +44,8 @@ interface InvoiceLineSearchResultsProps {
 
 const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplierInvoiceLines = [], onRegister, onLineStatusUpdate }: InvoiceLineSearchResultsProps) => {
   // Calculate registered amounts for each line
-  const linesWithRegistered = invoiceLines.map(line => {
-    const registeredLines = allSupplierInvoiceLines.filter(sil => sil.invoiceLineId === line.id);
-    const registeredActualCost = registeredLines.reduce((sum, sil) => sum + sil.actualCost, 0);
-    const registeredActualVat = registeredLines.reduce((sum, sil) => sum + sil.actualVat, 0);
-    
-    return {
-      ...line,
-      registeredActualCost,
-      registeredActualVat,
-      // Ensure actualVat is always a number, never undefined
-      actualVat: line.actualVat || 0
-    };
-  });
-
-  const [lines, setLines] = useState<SearchResultLine[]>(linesWithRegistered);
-  
-  // Update lines when invoiceLines prop changes (for search updates)
-  useState(() => {
-    const updatedLines = invoiceLines.map(line => {
+  const calculateLinesWithRegistered = (lines: SearchResultLine[]) => {
+    return lines.map(line => {
       const registeredLines = allSupplierInvoiceLines.filter(sil => sil.invoiceLineId === line.id);
       const registeredActualCost = registeredLines.reduce((sum, sil) => sum + sil.actualCost, 0);
       const registeredActualVat = registeredLines.reduce((sum, sil) => sum + sil.actualVat, 0);
@@ -75,8 +58,18 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
         actualVat: line.actualVat || 0
       };
     });
+  };
+
+  const [lines, setLines] = useState<SearchResultLine[]>(() => calculateLinesWithRegistered(invoiceLines));
+  
+  // Update lines when invoiceLines prop changes (for search updates)
+  useEffect(() => {
+    console.log("InvoiceLineSearchResults: invoiceLines prop changed, updating internal state");
+    const updatedLines = calculateLinesWithRegistered(invoiceLines);
     setLines(updatedLines);
-  });
+    // Clear selections when new search results come in
+    setSelectedLines([]);
+  }, [invoiceLines, allSupplierInvoiceLines]);
 
   const [selectedLines, setSelectedLines] = useState<SearchResultLine[]>([]);
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
