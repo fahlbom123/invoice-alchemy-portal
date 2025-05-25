@@ -289,6 +289,7 @@ const InvoiceView = () => {
                 formData={formData} 
                 registeredTotals={registeredTotals}
                 supplierInvoiceLines={invoice.supplierInvoiceLines || []}
+                invoiceId={invoice.id}
               />
 
               {/* Supplier Invoice Lines */}

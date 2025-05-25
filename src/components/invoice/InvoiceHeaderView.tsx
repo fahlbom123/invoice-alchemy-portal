@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,9 +11,10 @@ interface InvoiceHeaderViewProps {
     totalActualVat: number;
   } | null;
   supplierInvoiceLines?: SupplierInvoiceLine[];
+  invoiceId?: string;
 }
 
-const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [] }: InvoiceHeaderViewProps) => {
+const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [], invoiceId }: InvoiceHeaderViewProps) => {
   const [acceptDiff, setAcceptDiff] = useState(false);
 
   // Helper function to capitalize status
@@ -51,13 +53,46 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
     if (diffAmount === 0 || acceptDiff) {
       return "paid";
     } else if (diffAmount === (formData.totalAmount || 0)) {
-      return "unpaid";
+      return "pending";
     } else {
       return "partial";
     }
   };
 
   const calculatedStatus = calculateStatus();
+
+  // Update the invoice status in localStorage when it changes
+  useEffect(() => {
+    if (!invoiceId) return;
+
+    const updateInvoiceStatus = () => {
+      try {
+        const savedInvoices = localStorage.getItem('invoices');
+        if (!savedInvoices) return;
+
+        const invoices = JSON.parse(savedInvoices);
+        const updatedInvoices = invoices.map((invoice: any) => {
+          if (invoice.id === invoiceId && invoice.status !== calculatedStatus) {
+            return {
+              ...invoice,
+              status: calculatedStatus,
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return invoice;
+        });
+
+        localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+        
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new CustomEvent('invoicesUpdated'));
+      } catch (error) {
+        console.error('Error updating invoice status:', error);
+      }
+    };
+
+    updateInvoiceStatus();
+  }, [calculatedStatus, invoiceId]);
 
   // Handle checkbox state change
   const handleAcceptDiffChange = (checked: boolean | "indeterminate") => {
