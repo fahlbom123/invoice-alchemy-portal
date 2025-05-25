@@ -41,19 +41,6 @@ export interface InvoiceLineWithReference extends InvoiceLine {
   invoiceNumber: string;
 }
 
-// Supplier invoice line that links to original invoice lines
-export interface SupplierInvoiceLine {
-  id: string;
-  originalInvoiceLineId: string;
-  originalInvoiceId: string;
-  originalInvoiceNumber: string;
-  description: string;
-  actualCost: number;
-  actualVat: number;
-  currency: string;
-  registeredAt: string;
-}
-
 export interface Invoice {
   id: string;
   invoiceNumber: string;
@@ -66,9 +53,6 @@ export interface Invoice {
   notes?: string;
   supplier: Supplier;
   invoiceLines: InvoiceLine[];
-  supplierInvoiceLines?: SupplierInvoiceLine[];
-  registeredTotalActualCost?: number;
-  registeredTotalActualVat?: number;
   updatedAt: string;
   currency?: string;
   vat?: number;
