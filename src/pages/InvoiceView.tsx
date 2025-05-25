@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -245,7 +244,11 @@ const InvoiceView = () => {
               <SupplierDetails supplier={invoice.supplier} />
 
               {/* Invoice Header Information */}
-              <InvoiceHeaderView formData={formData} registeredTotals={registeredTotals} />
+              <InvoiceHeaderView 
+                formData={formData} 
+                registeredTotals={registeredTotals}
+                supplierInvoiceLines={invoice.supplierInvoiceLines || []}
+              />
 
               {/* Supplier Invoice Lines */}
               {invoice.supplierInvoiceLines && invoice.supplierInvoiceLines.length > 0 && (

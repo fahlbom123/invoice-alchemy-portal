@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { InvoiceFormData } from "@/types/invoice";
+import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -9,9 +9,10 @@ interface InvoiceHeaderViewProps {
     totalActualCost: number;
     totalActualVat: number;
   } | null;
+  supplierInvoiceLines?: SupplierInvoiceLine[];
 }
 
-const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProps) => {
+const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [] }: InvoiceHeaderViewProps) => {
   const [acceptDiff, setAcceptDiff] = useState(false);
 
   // Helper function to capitalize status
@@ -19,7 +20,7 @@ const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProp
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
-  // Calculate registered totals from invoice lines or use passed totals
+  // Calculate registered totals from supplier invoice lines
   const calculateRegisteredTotals = () => {
     if (registeredTotals) {
       return {
@@ -28,11 +29,12 @@ const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProp
       };
     }
 
-    const totalRegisteredCost = formData.invoiceLines.reduce((sum, line) => {
+    // Calculate from supplier invoice lines instead of regular invoice lines
+    const totalRegisteredCost = supplierInvoiceLines.reduce((sum, line) => {
       return sum + (line.actualCost || 0);
     }, 0);
     
-    const totalRegisteredVat = formData.invoiceLines.reduce((sum, line) => {
+    const totalRegisteredVat = supplierInvoiceLines.reduce((sum, line) => {
       return sum + (line.actualVat || 0);
     }, 0);
 
