@@ -39,6 +39,7 @@ const InvoiceLineSearch = () => {
   const [paymentStatus, setPaymentStatus] = useState<string>("all");
   const [searchResults, setSearchResults] = useState<ExtendedInvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchKey, setSearchKey] = useState(0); // Add this to force re-render
 
   // Extract all invoice lines from all invoices - recalculate when invoices change
   const allInvoiceLines: ExtendedInvoiceLine[] = invoices.flatMap(invoice => 
@@ -53,14 +54,6 @@ const InvoiceLineSearch = () => {
       invoiceTotalAmount: invoice.totalAmount || 0
     }))
   );
-
-  // Re-run search when invoice data changes and we have previous search criteria
-  useEffect(() => {
-    if (hasSearched && !isLoading) {
-      console.log("Re-running search due to invoice data change");
-      handleSearch();
-    }
-  }, [invoices, hasSearched, isLoading]);
 
   // Calculate total invoice amount from search results
   const calculateTotalInvoiceAmount = (results: ExtendedInvoiceLine[]) => {
@@ -112,7 +105,7 @@ const InvoiceLineSearch = () => {
     }
   };
 
-  const handleSearch = () => {
+  const performSearch = () => {
     console.log("Executing search with criteria:", {
       supplierId,
       description,
@@ -161,6 +154,11 @@ const InvoiceLineSearch = () => {
     console.log("Search results:", filtered.length, "lines found");
     setSearchResults(filtered);
     setHasSearched(true);
+    setSearchKey(prev => prev + 1); // Force re-render with new key
+  };
+
+  const handleSearch = () => {
+    performSearch();
   };
 
   const handleClear = () => {
@@ -173,6 +171,7 @@ const InvoiceLineSearch = () => {
     setPaymentStatus("all");
     setSearchResults([]);
     setHasSearched(false);
+    setSearchKey(prev => prev + 1); // Force re-render
   };
 
   if (isLoading) {
@@ -317,7 +316,7 @@ const InvoiceLineSearch = () => {
             <CardContent>
               {searchResults.length > 0 ? (
                 <InvoiceLineSearchResults 
-                  key={`search-results-${Date.now()}`}
+                  key={`search-results-${searchKey}`}
                   invoiceLines={searchResults} 
                   invoiceTotalAmount={calculateTotalInvoiceAmount(searchResults)}
                   onLineStatusUpdate={handleLineStatusUpdate}
