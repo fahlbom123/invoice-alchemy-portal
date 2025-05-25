@@ -48,8 +48,8 @@ const InvoiceView = () => {
     totalActualVat: number;
   } | null>(null);
 
-  // Search state
-  const [supplierId, setSupplierId] = useState<string>("all");
+  // Search state - initialize supplierId with invoice supplier if available
+  const [supplierId, setSupplierId] = useState<string>(invoice?.supplier.id || "all");
   const [description, setDescription] = useState<string>("");
   const [bookingNumber, setBookingNumber] = useState<string>("");
   const [confirmationNumber, setConfirmationNumber] = useState<string>("");
@@ -98,6 +98,9 @@ const InvoiceView = () => {
         totalVat: invoice.totalVat || 0,
         ocr: invoice.ocr || "",
       });
+      
+      // Set the supplier search filter to match the current invoice's supplier
+      setSupplierId(invoice.supplier.id);
     }
   }, [invoice]);
 
@@ -137,7 +140,8 @@ const InvoiceView = () => {
   };
 
   const handleClear = () => {
-    setSupplierId("all");
+    // Reset to invoice supplier instead of "all"
+    setSupplierId(invoice?.supplier.id || "all");
     setDescription("");
     setBookingNumber("");
     setConfirmationNumber("");
