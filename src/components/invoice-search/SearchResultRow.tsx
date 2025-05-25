@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,13 @@ const SearchResultRow = ({
 
   // Check if line is paid and should be disabled for editing
   const isPaid = line.paymentStatus === "paid";
+
+  // Generate random booking number if not provided (max 8 figures)
+  const getBookingNumber = () => {
+    if (line.bookingNumber) return line.bookingNumber;
+    // Generate a random 8-digit booking number
+    return Math.floor(10000000 + Math.random() * 90000000).toString();
+  };
 
   // Function to handle immediate payment status change and persistence
   const handlePaymentStatusChange = async (isPaid: boolean) => {
@@ -179,12 +187,10 @@ const SearchResultRow = ({
             </div>
           </div>
 
-          {line.bookingNumber && (
-            <div>
-              <span className="text-gray-500">Booking:</span>
-              <div>{line.bookingNumber}</div>
-            </div>
-          )}
+          <div>
+            <span className="text-gray-500">Booking:</span>
+            <div>{getBookingNumber()}</div>
+          </div>
 
           {line.confirmationNumber && (
             <div>
@@ -332,7 +338,7 @@ const SearchResultRow = ({
       <TableCell>{line.invoiceNumber}</TableCell>
       <TableCell>{line.description}</TableCell>
       <TableCell>{line.supplierName}</TableCell>
-      <TableCell>{line.bookingNumber}</TableCell>
+      <TableCell>{getBookingNumber()}</TableCell>
       <TableCell>{line.confirmationNumber}</TableCell>
       <TableCell>{line.departureDate}</TableCell>
       <TableCell>{line.quantity}</TableCell>

@@ -78,6 +78,18 @@ const InvoiceView = () => {
     invoice.supplierInvoiceLines || []
   );
 
+  // Generate random booking number for supplier invoice lines that don't have one
+  const getBookingNumberForSupplierLine = (lineId: string) => {
+    // Use lineId as seed to ensure consistent random number for the same line
+    const seed = lineId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    const random = Math.abs(seed) % 90000000;
+    return (10000000 + random).toString();
+  };
+
   useEffect(() => {
     if (invoice) {
       setFormData({
@@ -302,6 +314,7 @@ const InvoiceView = () => {
                         <TableRow>
                           <TableHead>Description</TableHead>
                           <TableHead>Supplier</TableHead>
+                          <TableHead>Booking Number</TableHead>
                           <TableHead>User</TableHead>
                           <TableHead>Register Datetime</TableHead>
                           <TableHead>Actual Cost</TableHead>
@@ -313,6 +326,7 @@ const InvoiceView = () => {
                           <TableRow key={line.id}>
                             <TableCell>{line.description}</TableCell>
                             <TableCell>{line.supplierName}</TableCell>
+                            <TableCell>{getBookingNumberForSupplierLine(line.id)}</TableCell>
                             <TableCell>{line.createdBy || "Unknown"}</TableCell>
                             <TableCell>
                               {new Date(line.createdAt).toLocaleString()}
