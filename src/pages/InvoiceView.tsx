@@ -14,7 +14,7 @@ import { InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/types/invoi
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
-import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Save, X } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
 
@@ -47,6 +47,10 @@ const InvoiceView = () => {
     totalActualCost: number;
     totalActualVat: number;
   } | null>(null);
+
+  // Add state for editing supplier invoice lines
+  const [editingLineId, setEditingLineId] = useState<string | null>(null);
+  const [editingLine, setEditingLine] = useState<SupplierInvoiceLine | null>(null);
 
   // Search state - initialize supplierId with invoice supplier if available
   const [supplierId, setSupplierId] = useState<string>(invoice?.supplier.id || "all");
@@ -122,6 +126,56 @@ const InvoiceView = () => {
       setSupplierId(invoice.supplier.id);
     }
   }, [invoice]);
+
+  // Add function to start editing a supplier invoice line
+  const handleEditSupplierLine = (line: SupplierInvoiceLine) => {
+    setEditingLineId(line.id);
+    setEditingLine({ ...line });
+  };
+
+  // Add function to cancel editing
+  const handleCancelEdit = () => {
+    setEditingLineId(null);
+    setEditingLine(null);
+  };
+
+  // Add function to save edited supplier invoice line
+  const handleSaveSupplierLine = async () => {
+    if (!invoice || !editingLine) return;
+
+    try {
+      // Update the supplier invoice line in the invoice
+      const updatedSupplierInvoiceLines = (invoice.supplierInvoiceLines || []).map(line =>
+        line.id === editingLine.id ? editingLine : line
+      );
+
+      const updatedInvoice = {
+        ...invoice,
+        supplierInvoiceLines: updatedSupplierInvoiceLines,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await saveInvoice(updatedInvoice);
+      
+      toast({
+        title: "Line Updated",
+        description: "Supplier invoice line has been updated successfully.",
+      });
+      
+      setEditingLineId(null);
+      setEditingLine(null);
+      
+      // Refresh the page to show updated data
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating supplier invoice line:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update supplier invoice line.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Add function to delete supplier invoice line
   const handleDeleteSupplierLine = async (supplierLineId: string) => {
@@ -369,7 +423,16 @@ const InvoiceView = () => {
                         {invoice.supplierInvoiceLines.map((line, index) => (
                           <TableRow key={line.id}>
                             <TableCell>{index + 1}</TableCell>
-                            <TableCell>{line.description}</TableCell>
+                            <TableCell>
+                              {editingLineId === line.id ? (
+                                <Input
+                                  value={editingLine?.description || ""}
+                                  onChange={(e) => setEditingLine(prev => prev ? { ...prev, description: e.target.value } : null)}
+                                />
+                              ) : (
+                                line.description
+                              )}
+                            </TableCell>
                             <TableCell>{line.supplierName}</TableCell>
                             <TableCell>{getBookingNumberForSupplierLine(line)}</TableCell>
                             <TableCell>{line.createdBy || "Unknown"}</TableCell>
@@ -377,19 +440,67 @@ const InvoiceView = () => {
                               {new Date(line.createdAt).toLocaleString()}
                             </TableCell>
                             <TableCell>
-                              {formatCurrency(line.actualCost, line.currency)}
+                              {editingLineId === line.id ? (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={editingLine?.actualCost || 0}
+                                  onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualCost: parseFloat(e.target.value) || 0 } : null)}
+                                />
+                              ) : (
+                                formatCurrency(line.actualCost, line.currency)
+                              )}
                             </TableCell>
                             <TableCell>
-                              {formatCurrency(line.actualVat, line.currency)}
+                              {editingLineId === line.id ? (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={editingLine?.actualVat || 0}
+                                  onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualVat: parseFloat(e.target.value) || 0 } : null)}
+                                />
+                              ) : (
+                                formatCurrency(line.actualVat, line.currency)
+                              )}
                             </TableCell>
                             <TableCell>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDeleteSupplierLine(line.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <div className="flex gap-2">
+                                {editingLineId === line.id ? (
+                                  <>
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      onClick={handleSaveSupplierLine}
+                                    >
+                                      <Save className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={handleCancelEdit}
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleEditSupplierLine(line)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => handleDeleteSupplierLine(line.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
