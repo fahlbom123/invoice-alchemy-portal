@@ -23,7 +23,7 @@ const InvoiceForm = () => {
   const [formData, setFormData] = useState<InvoiceFormData>({
     invoiceNumber: "",
     reference: "",
-    status: "pending",
+    status: "unpaid",
     dueDate: new Date().toISOString().split('T')[0],
     supplierId: "",
     notes: "",
@@ -100,6 +100,8 @@ const InvoiceForm = () => {
 
     const completeFormData = {
       ...formData,
+      // Ensure status is "unpaid" for new invoices
+      status: isEditing ? formData.status : "unpaid",
       id: isEditing ? id : `invoice-${Date.now()}`,
       createdAt: isEditing ? invoice!.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
