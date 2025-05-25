@@ -50,8 +50,6 @@ const InvoiceView = () => {
 
   // Search state
   const [supplierId, setSupplierId] = useState<string>("all");
-  const [minCost, setMinCost] = useState<string>("");
-  const [maxCost, setMaxCost] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [bookingNumber, setBookingNumber] = useState<string>("");
   const [confirmationNumber, setConfirmationNumber] = useState<string>("");
@@ -106,8 +104,6 @@ const InvoiceView = () => {
   const handleSearch = () => {
     const filtered = allInvoiceLines.filter(line => {
       const matchesSupplier = supplierId === "all" || line.supplierId === supplierId;
-      const matchesMinCost = !minCost || line.estimatedCost >= parseFloat(minCost);
-      const matchesMaxCost = !maxCost || line.estimatedCost <= parseFloat(maxCost);
       const matchesDescription = !description || 
         line.description.toLowerCase().includes(description.toLowerCase());
       
@@ -131,7 +127,7 @@ const InvoiceView = () => {
 
       const matchesPaymentStatus = paymentStatus === "all" || line.paymentStatus === paymentStatus;
       
-      return matchesSupplier && matchesMinCost && matchesMaxCost && matchesDescription && 
+      return matchesSupplier && matchesDescription && 
              matchesBookingNumber && matchesConfirmationNumber && matchesDepartureDate && 
              matchesPaymentStatus;
     });
@@ -142,8 +138,6 @@ const InvoiceView = () => {
 
   const handleClear = () => {
     setSupplierId("all");
-    setMinCost("");
-    setMaxCost("");
     setDescription("");
     setBookingNumber("");
     setConfirmationNumber("");
@@ -364,28 +358,6 @@ const InvoiceView = () => {
                   type="date"
                   value={departureDateEnd}
                   onChange={(e) => setDepartureDateEnd(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="minCost">Minimum Cost</Label>
-                <Input
-                  id="minCost"
-                  type="number"
-                  value={minCost}
-                  onChange={(e) => setMinCost(e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maxCost">Maximum Cost</Label>
-                <Input
-                  id="maxCost"
-                  type="number"
-                  value={maxCost}
-                  onChange={(e) => setMaxCost(e.target.value)}
-                  placeholder="0.00"
                 />
               </div>
 
