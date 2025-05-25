@@ -69,6 +69,9 @@ const SearchResultRow = ({
 }: SearchResultRowProps) => {
   const navigate = useNavigate();
 
+  // Check if line is paid and should be disabled for editing
+  const isPaid = line.paymentStatus === "paid";
+
   // Function to render payment status badge
   const renderPaymentStatusBadge = (status?: string) => {
     switch (status) {
@@ -163,12 +166,14 @@ const SearchResultRow = ({
                     onChange={(e) => setEditingCost(e.target.value)}
                     className="w-20 h-8 text-xs"
                     placeholder="Cost"
+                    disabled={isPaid}
                   />
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => onSaveActualCost(line.id)}
                     className="h-8 w-8 p-0"
+                    disabled={isPaid}
                   >
                     <Save className="h-3 w-3" />
                   </Button>
@@ -183,11 +188,15 @@ const SearchResultRow = ({
                 </div>
               ) : (
                 <div 
-                  className="cursor-pointer hover:bg-blue-50 transition-colors p-1 rounded text-sm font-medium"
-                  onClick={() => onEditActualCost(`${line.id}-cost`)}
-                  title="Click to edit actual cost"
+                  className={`transition-colors p-1 rounded text-sm font-medium ${
+                    isPaid 
+                      ? "text-gray-500 cursor-not-allowed" 
+                      : "cursor-pointer hover:bg-blue-50"
+                  }`}
+                  onClick={() => !isPaid && onEditActualCost(`${line.id}-cost`)}
+                  title={isPaid ? "Cannot edit - invoice is paid" : "Click to edit actual cost"}
                 >
-                  {line.actualCost ? formatCurrency(line.actualCost, undefined) : "Click to edit"}
+                  {line.actualCost ? formatCurrency(line.actualCost, undefined) : (isPaid ? "Locked" : "Click to edit")}
                 </div>
               )}
               
@@ -202,12 +211,14 @@ const SearchResultRow = ({
                     onChange={(e) => setEditingVat(e.target.value)}
                     className="w-20 h-8 text-xs"
                     placeholder="VAT"
+                    disabled={isPaid}
                   />
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => onSaveActualCost(line.id)}
                     className="h-8 w-8 p-0"
+                    disabled={isPaid}
                   >
                     <Save className="h-3 w-3" />
                   </Button>
@@ -222,11 +233,15 @@ const SearchResultRow = ({
                 </div>
               ) : (
                 <div 
-                  className="cursor-pointer hover:bg-blue-50 transition-colors p-1 rounded text-sm"
-                  onClick={() => onEditActualCost(`${line.id}-vat`)}
-                  title="Click to edit actual VAT"
+                  className={`transition-colors p-1 rounded text-sm ${
+                    isPaid 
+                      ? "text-gray-500 cursor-not-allowed" 
+                      : "cursor-pointer hover:bg-blue-50"
+                  }`}
+                  onClick={() => !isPaid && onEditActualCost(`${line.id}-vat`)}
+                  title={isPaid ? "Cannot edit - invoice is paid" : "Click to edit actual VAT"}
                 >
-                  {line.actualVat ? formatCurrency(line.actualVat, undefined) : "Click to edit"}
+                  {line.actualVat ? formatCurrency(line.actualVat, undefined) : (isPaid ? "Locked" : "Click to edit")}
                 </div>
               )}
             </div>
@@ -285,11 +300,13 @@ const SearchResultRow = ({
               onChange={(e) => setEditingCost(e.target.value)}
               className="w-24"
               placeholder="Cost"
+              disabled={isPaid}
             />
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onSaveActualCost(line.id)}
+              disabled={isPaid}
             >
               <Save className="h-4 w-4" />
             </Button>
@@ -303,11 +320,15 @@ const SearchResultRow = ({
           </div>
         ) : (
           <div 
-            className="cursor-pointer hover:bg-blue-50 transition-colors p-1 rounded"
-            onClick={() => onEditActualCost(`${line.id}-cost`)}
-            title="Click to edit actual cost"
+            className={`transition-colors p-1 rounded ${
+              isPaid 
+                ? "text-gray-500 cursor-not-allowed" 
+                : "cursor-pointer hover:bg-blue-50"
+            }`}
+            onClick={() => !isPaid && onEditActualCost(`${line.id}-cost`)}
+            title={isPaid ? "Cannot edit - invoice is paid" : "Click to edit actual cost"}
           >
-            {line.actualCost ? formatCurrency(line.actualCost, undefined) : "Click to edit"}
+            {line.actualCost ? formatCurrency(line.actualCost, undefined) : (isPaid ? "Locked" : "Click to edit")}
           </div>
         )}
       </TableCell>
@@ -322,11 +343,13 @@ const SearchResultRow = ({
               onChange={(e) => setEditingVat(e.target.value)}
               className="w-24"
               placeholder="VAT"
+              disabled={isPaid}
             />
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onSaveActualCost(line.id)}
+              disabled={isPaid}
             >
               <Save className="h-4 w-4" />
             </Button>
@@ -340,11 +363,15 @@ const SearchResultRow = ({
           </div>
         ) : (
           <div 
-            className="cursor-pointer hover:bg-blue-50 transition-colors p-1 rounded"
-            onClick={() => onEditActualCost(`${line.id}-vat`)}
-            title="Click to edit actual VAT"
+            className={`transition-colors p-1 rounded ${
+              isPaid 
+                ? "text-gray-500 cursor-not-allowed" 
+                : "cursor-pointer hover:bg-blue-50"
+            }`}
+            onClick={() => !isPaid && onEditActualCost(`${line.id}-vat`)}
+            title={isPaid ? "Cannot edit - invoice is paid" : "Click to edit actual VAT"}
           >
-            {line.actualVat ? formatCurrency(line.actualVat, undefined) : "Click to edit"}
+            {line.actualVat ? formatCurrency(line.actualVat, undefined) : (isPaid ? "Locked" : "Click to edit")}
           </div>
         )}
       </TableCell>
