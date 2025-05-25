@@ -14,7 +14,7 @@ import { InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/types/invoi
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
-import { ArrowLeft, Edit } from "lucide-react";
+import { ArrowLeft, Edit, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
 
@@ -122,6 +122,41 @@ const InvoiceView = () => {
       setSupplierId(invoice.supplier.id);
     }
   }, [invoice]);
+
+  // Add function to delete supplier invoice line
+  const handleDeleteSupplierLine = async (supplierLineId: string) => {
+    if (!invoice) return;
+
+    try {
+      // Remove the supplier invoice line from the invoice
+      const updatedSupplierInvoiceLines = (invoice.supplierInvoiceLines || []).filter(
+        line => line.id !== supplierLineId
+      );
+
+      const updatedInvoice = {
+        ...invoice,
+        supplierInvoiceLines: updatedSupplierInvoiceLines,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await saveInvoice(updatedInvoice);
+      
+      toast({
+        title: "Line Deleted",
+        description: "Supplier invoice line has been deleted successfully.",
+      });
+      
+      // Refresh the page to show updated data
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting supplier invoice line:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete supplier invoice line.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSearch = () => {
     const filtered = allInvoiceLines.filter(line => {
@@ -327,6 +362,7 @@ const InvoiceView = () => {
                           <TableHead>Register Datetime</TableHead>
                           <TableHead>Actual Cost</TableHead>
                           <TableHead>Actual VAT</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -345,6 +381,15 @@ const InvoiceView = () => {
                             </TableCell>
                             <TableCell>
                               {formatCurrency(line.actualVat, line.currency)}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteSupplierLine(line.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </TableCell>
                           </TableRow>
                         ))}
