@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -51,10 +50,15 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
 
   const { totalRegisteredCost, totalRegisteredVat } = calculateRegisteredTotals();
 
+  // Calculate total estimated cost from form data invoice lines
+  const totalEstimatedCost = formData.invoiceLines.reduce((sum, line) => {
+    return sum + (line.estimatedCost || 0);
+  }, 0);
+
   // Calculate the difference between total amount and registered actual cost
   const diffAmount = (formData.totalAmount || 0) - totalRegisteredCost;
 
-  // Calculate status based on the new requirements
+  // Calculate status based on the updated requirements
   const calculateStatus = () => {
     const supplierInvoiceTotal = formData.totalAmount || 0;
     
@@ -71,6 +75,11 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
     // If registered total actual cost = 0, then unpaid
     if (totalRegisteredCost === 0) {
       return "unpaid";
+    }
+    
+    // If registered cost > 0 but < estimated cost, then partial
+    if (totalRegisteredCost > 0 && totalRegisteredCost < totalEstimatedCost) {
+      return "partial";
     }
     
     // If registered total actual cost > 0 and < Supplier Invoice Total, then partial paid
