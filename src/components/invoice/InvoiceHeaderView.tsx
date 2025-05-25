@@ -155,12 +155,6 @@ const InvoiceHeaderView = ({ formData, registeredTotals }: InvoiceHeaderViewProp
                 checked={acceptDiff}
                 onCheckedChange={handleAcceptDiffChange}
               />
-              <label
-                htmlFor="accept-diff"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Accept difference
-              </label>
             </div>
           </div>
         </div>
