@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -19,6 +18,9 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
 
   // Helper function to capitalize status
   const capitalizeStatus = (status: string) => {
+    if (status === "partial") {
+      return "Partial Paid";
+    }
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
