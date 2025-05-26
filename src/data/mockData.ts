@@ -39,6 +39,7 @@ export const mockInvoices: Invoice[] = [
     totalAmount: 2500.00,
     notes: "Payment received on time",
     supplier: mockSuppliers[0],
+    source: "Fortnox",
     invoiceLines: [
       {
         id: "line-1-1",
@@ -73,6 +74,7 @@ export const mockInvoices: Invoice[] = [
     totalAmount: 1200.50,
     notes: "",
     supplier: mockSuppliers[1],
+    source: "Manual",
     invoiceLines: [
       {
         id: "line-2-1",
@@ -107,6 +109,7 @@ export const mockInvoices: Invoice[] = [
     totalAmount: 4750.75,
     notes: "Second reminder sent",
     supplier: mockSuppliers[2],
+    source: "Fortnox",
     invoiceLines: [
       {
         id: "line-3-1",
@@ -141,6 +144,7 @@ export const mockInvoices: Invoice[] = [
     totalAmount: 3200.00,
     notes: "",
     supplier: mockSuppliers[3],
+    source: "Manual",
     invoiceLines: [
       {
         id: "line-4-1",
