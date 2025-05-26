@@ -1,4 +1,3 @@
-
 import { Invoice, Supplier } from "@/types/invoice";
 
 export const mockSuppliers: Supplier[] = [
@@ -74,7 +73,7 @@ export const mockInvoices: Invoice[] = [
     totalAmount: 1200.50,
     notes: "",
     supplier: mockSuppliers[1],
-    source: "Fortnox",
+    source: "Manual",
     invoiceLines: [
       {
         id: "line-2-1",
@@ -109,7 +108,7 @@ export const mockInvoices: Invoice[] = [
     totalAmount: 4750.75,
     notes: "Second reminder sent",
     supplier: mockSuppliers[2],
-    source: "Fortnox",
+    source: "Manual",
     invoiceLines: [
       {
         id: "line-3-1",
@@ -144,7 +143,7 @@ export const mockInvoices: Invoice[] = [
     totalAmount: 3200.00,
     notes: "",
     supplier: mockSuppliers[3],
-    source: "Fortnox",
+    source: "Manual",
     invoiceLines: [
       {
         id: "line-4-1",
