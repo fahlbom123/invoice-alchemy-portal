@@ -73,10 +73,10 @@ const SearchResultsTable = ({
                   onCheckedChange={(checked) => onSelectAll(!!checked)} 
                 />
               </TableHead>
-              <TableHead>Booking</TableHead>
               <TableHead>Invoice</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Supplier</TableHead>
+              <TableHead>Booking</TableHead>
               <TableHead>Confirmation</TableHead>
               <TableHead>Departure Date</TableHead>
               <TableHead>Qty</TableHead>
