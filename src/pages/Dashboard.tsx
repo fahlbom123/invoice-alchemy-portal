@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,20 +24,12 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Supplier Invoice Dashboard</h1>
-          <div className="flex gap-2">
-            <Button 
-              onClick={() => navigate('/invoice-lines/search')}
-              variant="outline"
-            >
-              Search Invoice Lines
-            </Button>
-            <Button 
-              onClick={() => navigate('/invoices/new')}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Create New Supplier Invoice
-            </Button>
-          </div>
+          <Button 
+            onClick={() => navigate('/invoices/new')}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Create New Supplier Invoice
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
