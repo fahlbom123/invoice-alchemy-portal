@@ -72,6 +72,7 @@ export interface Invoice {
   vat?: number;
   totalVat?: number;
   ocr?: string;
+  source?: string;
 }
 
 export interface InvoiceFormData {
@@ -88,4 +89,5 @@ export interface InvoiceFormData {
   totalAmount?: number;
   totalVat?: number;
   ocr?: string;
+  source?: string;
 }
