@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -200,21 +201,6 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
             <span className="font-medium">{formData.currency || "USD"}</span>
           </div>
         </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Source</span>
-            <Select value={source} onValueChange={handleSourceChange}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Manual">Manual</SelectItem>
-                <SelectItem value="Fortnox">Fortnox</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
         
         <div className="space-y-2">
           <div className="flex flex-col">
@@ -253,7 +239,7 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
         
         <div className="space-y-2">
           <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Accept diff</span>
+            <span className="text-sm text-gray-500">Accept diff and send to accounting</span>
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="accept-diff"
@@ -261,6 +247,21 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
                 onCheckedChange={handleAcceptDiffChange}
               />
             </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">Source</span>
+            <Select value={source} onValueChange={handleSourceChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Manual">Manual</SelectItem>
+                <SelectItem value="Fortnox">Fortnox</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
