@@ -74,7 +74,7 @@ export const mockInvoices: Invoice[] = [
     totalAmount: 1200.50,
     notes: "",
     supplier: mockSuppliers[1],
-    source: "Manual",
+    source: "Fortnox",
     invoiceLines: [
       {
         id: "line-2-1",
@@ -144,7 +144,7 @@ export const mockInvoices: Invoice[] = [
     totalAmount: 3200.00,
     notes: "",
     supplier: mockSuppliers[3],
-    source: "Manual",
+    source: "Fortnox",
     invoiceLines: [
       {
         id: "line-4-1",
