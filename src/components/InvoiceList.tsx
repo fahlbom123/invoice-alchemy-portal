@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +15,34 @@ interface InvoiceListProps {
 const InvoiceList = ({ invoices }: InvoiceListProps) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [localInvoices, setLocalInvoices] = useState<Invoice[]>(invoices);
   
-  const filteredInvoices = invoices.filter(invoice => 
+  // Listen for invoice updates
+  useEffect(() => {
+    const handleInvoiceUpdate = () => {
+      try {
+        const savedInvoices = localStorage.getItem('invoices');
+        if (savedInvoices) {
+          const updatedInvoices = JSON.parse(savedInvoices);
+          setLocalInvoices(updatedInvoices);
+        }
+      } catch (error) {
+        console.error('Error loading updated invoices:', error);
+      }
+    };
+
+    window.addEventListener('invoicesUpdated', handleInvoiceUpdate);
+    return () => {
+      window.removeEventListener('invoicesUpdated', handleInvoiceUpdate);
+    };
+  }, []);
+
+  // Update local invoices when prop changes
+  useEffect(() => {
+    setLocalInvoices(invoices);
+  }, [invoices]);
+  
+  const filteredInvoices = localInvoices.filter(invoice => 
     invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
     invoice.supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     invoice.reference.toLowerCase().includes(searchTerm.toLowerCase())
