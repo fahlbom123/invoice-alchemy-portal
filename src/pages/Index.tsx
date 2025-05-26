@@ -22,13 +22,6 @@ const Index = () => {
             >
               Go to Dashboard
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              onClick={() => navigate('/invoice-lines/search')}
-            >
-              Search Invoice Lines
-            </Button>
           </div>
         </div>
       </div>
