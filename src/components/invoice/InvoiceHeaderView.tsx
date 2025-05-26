@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface InvoiceHeaderViewProps {
   formData: InvoiceFormData;
@@ -16,6 +17,7 @@ interface InvoiceHeaderViewProps {
 
 const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [], invoiceId }: InvoiceHeaderViewProps) => {
   const [acceptDiff, setAcceptDiff] = useState(false);
+  const [source, setSource] = useState(formData.source || "Manual");
 
   // Helper function to capitalize status
   const capitalizeStatus = (status: string) => {
@@ -122,6 +124,38 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
     setAcceptDiff(checked === true);
   };
 
+  // Handle source change
+  const handleSourceChange = (newSource: string) => {
+    setSource(newSource);
+    
+    // Update invoice source in localStorage
+    if (!invoiceId) return;
+
+    try {
+      const savedInvoices = localStorage.getItem('invoices');
+      if (!savedInvoices) return;
+
+      const invoices = JSON.parse(savedInvoices);
+      const updatedInvoices = invoices.map((invoice: any) => {
+        if (invoice.id === invoiceId) {
+          return {
+            ...invoice,
+            source: newSource,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return invoice;
+      });
+
+      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
+    } catch (error) {
+      console.error('Error updating invoice source:', error);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Invoice Details</h3>
@@ -165,6 +199,21 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
           <div className="flex flex-col">
             <span className="text-sm text-gray-500">Currency</span>
             <span className="font-medium">{formData.currency || "USD"}</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">Source</span>
+            <Select value={source} onValueChange={handleSourceChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Manual">Manual</SelectItem>
+                <SelectItem value="Fortnox">Fortnox</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         
