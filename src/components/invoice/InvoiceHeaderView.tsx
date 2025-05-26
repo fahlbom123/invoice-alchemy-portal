@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -17,7 +16,7 @@ interface InvoiceHeaderViewProps {
 
 const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [], invoiceId }: InvoiceHeaderViewProps) => {
   const [acceptDiff, setAcceptDiff] = useState(false);
-  const [source, setSource] = useState(formData.source || "Manual");
+  const [source, setSource] = useState<"Fortnox" | "Manual">(formData.source || "Manual");
 
   // Helper function to capitalize status
   const capitalizeStatus = (status: string) => {
@@ -125,7 +124,7 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
   };
 
   // Handle source change
-  const handleSourceChange = (newSource: string) => {
+  const handleSourceChange = (newSource: "Fortnox" | "Manual") => {
     setSource(newSource);
     
     // Update invoice source in localStorage
