@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -55,6 +54,11 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
 
   // Calculate the difference between total amount and registered actual cost
   const diffAmount = (formData.totalAmount || 0) - totalRegisteredCost;
+
+  // Calculate total estimated cost from invoice lines
+  const totalEstimatedCost = formData.invoiceLines.reduce((sum, line) => {
+    return sum + (line.totalPrice || 0);
+  }, 0);
 
   // Calculate status based on the new requirements
   const calculateStatus = () => {
@@ -232,7 +236,14 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
 
         <div className="space-y-2">
           <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Diff</span>
+            <span className="text-sm text-gray-500">Total Estimated Cost</span>
+            <span className="font-medium">{formatCurrency(totalEstimatedCost, formData.currency)}</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">Remaining</span>
             <span className="font-medium">{formatCurrency(diffAmount, formData.currency)}</span>
           </div>
         </div>
