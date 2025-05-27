@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -55,9 +56,18 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
   // Calculate the difference between total amount and registered actual cost
   const diffAmount = (formData.totalAmount || 0) - totalRegisteredCost;
 
-  // Calculate total estimated cost from invoice lines
+  // Calculate total estimated cost from invoice lines that are linked to supplier invoice lines
   const totalEstimatedCost = formData.invoiceLines.reduce((sum, line) => {
-    return sum + (line.quantity * line.unitPrice);
+    // Only include lines that have corresponding supplier invoice lines
+    const hasSupplierInvoiceLine = supplierInvoiceLines.some(
+      supplierLine => supplierLine.invoiceLineId === line.id
+    );
+    
+    if (hasSupplierInvoiceLine) {
+      return sum + (line.quantity * line.unitPrice);
+    }
+    
+    return sum;
   }, 0);
 
   // Calculate status based on the new requirements
