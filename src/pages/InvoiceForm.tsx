@@ -34,6 +34,7 @@ const InvoiceForm = () => {
     totalAmount: 0,
     totalVat: 0,
     ocr: "",
+    account: "4010",
   });
 
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
@@ -61,6 +62,7 @@ const InvoiceForm = () => {
         totalAmount: invoice.totalAmount || 0,
         totalVat: invoice.totalVat || 0,
         ocr: invoice.ocr || "",
+        account: invoice.account || "4010",
       });
     }
   }, [invoice, isEditing]);
