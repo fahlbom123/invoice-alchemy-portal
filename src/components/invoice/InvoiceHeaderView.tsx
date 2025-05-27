@@ -57,7 +57,7 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
 
   // Calculate total estimated cost from invoice lines
   const totalEstimatedCost = formData.invoiceLines.reduce((sum, line) => {
-    return sum + (line.totalPrice || 0);
+    return sum + (line.quantity * line.unitPrice);
   }, 0);
 
   // Calculate status based on the new requirements
