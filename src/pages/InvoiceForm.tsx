@@ -1,12 +1,12 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useSuppliers } from "@/hooks/useSuppliers";
-import { useInvoiceById, useSaveInvoice } from "@/hooks/useInvoices";
+import { useInvoiceById, useSaveInvoice, useInvoices } from "@/hooks/useInvoices";
 import { InvoiceFormData } from "@/types/invoice";
 import SupplierSelector from "@/components/invoice/SupplierSelector";
 import SupplierDetails from "@/components/invoice/SupplierDetails";
@@ -16,6 +16,7 @@ const InvoiceForm = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
   const { invoice, isLoading: isLoadingInvoice } = useInvoiceById(id || "");
+  const { invoices } = useInvoices();
   const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers();
   const { saveInvoice, isLoading: isSaving } = useSaveInvoice();
   const navigate = useNavigate();
@@ -34,6 +35,9 @@ const InvoiceForm = () => {
     totalVat: 0,
     ocr: "",
   });
+
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [pendingSubmitData, setPendingSubmitData] = useState<any>(null);
 
   // Get the selected supplier details
   const selectedSupplier = formData.supplierId 
@@ -64,6 +68,15 @@ const InvoiceForm = () => {
   if ((isLoadingInvoice && isEditing) || isLoadingSuppliers) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
+
+  const checkForDuplicateInvoiceNumber = (invoiceNumber: string, supplierId: string) => {
+    if (!invoiceNumber || !supplierId || isEditing) return false;
+    
+    return invoices.some(invoice => 
+      invoice.invoiceNumber === invoiceNumber && 
+      invoice.supplier.id === supplierId
+    );
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -98,9 +111,43 @@ const InvoiceForm = () => {
       return;
     }
 
-    const completeFormData = {
+    // Check for duplicate invoice number only for new invoices
+    if (!isEditing && checkForDuplicateInvoiceNumber(formData.invoiceNumber, formData.supplierId)) {
+      const completeFormData = {
+        ...formData,
+        status: "unpaid",
+        id: `invoice-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        supplier: {
+          id: supplier.id,
+          name: supplier.name,
+          email: supplier.email,
+          phone: supplier.phone,
+          accountNumber: supplier.accountNumber,
+          defaultCurrency: supplier.defaultCurrency,
+          currencyRate: supplier.currencyRate,
+          address: supplier.address,
+          zipCode: supplier.zipCode,
+          city: supplier.city,
+          country: supplier.country
+        }
+      };
+      
+      setPendingSubmitData(completeFormData);
+      setShowDuplicateWarning(true);
+      return;
+    }
+
+    // Proceed with normal submission
+    await proceedWithSubmission();
+  };
+
+  const proceedWithSubmission = async (forceSave = false) => {
+    const supplier = suppliers.find(s => s.id === formData.supplierId)!;
+    
+    const completeFormData = pendingSubmitData || {
       ...formData,
-      // Ensure status is "unpaid" for new invoices
       status: isEditing ? formData.status : "unpaid",
       id: isEditing ? id : `invoice-${Date.now()}`,
       createdAt: isEditing ? invoice!.createdAt : new Date().toISOString(),
@@ -131,6 +178,9 @@ const InvoiceForm = () => {
       }
     } catch (error) {
       toast.error("Failed to save invoice. Please try again.");
+    } finally {
+      setPendingSubmitData(null);
+      setShowDuplicateWarning(false);
     }
   };
 
@@ -140,6 +190,15 @@ const InvoiceForm = () => {
     } else {
       navigate('/dashboard');
     }
+  };
+
+  const handleDuplicateWarningCancel = () => {
+    setShowDuplicateWarning(false);
+    setPendingSubmitData(null);
+  };
+
+  const handleDuplicateWarningContinue = () => {
+    proceedWithSubmission(true);
   };
 
   return (
@@ -187,6 +246,26 @@ const InvoiceForm = () => {
             </Button>
           </div>
         </form>
+
+        <AlertDialog open={showDuplicateWarning} onOpenChange={setShowDuplicateWarning}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Duplicate Invoice Number</AlertDialogTitle>
+              <AlertDialogDescription>
+                An invoice with the number "{formData.invoiceNumber}" already exists for this supplier. 
+                Do you want to continue with this duplicate invoice number or cancel to change it?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleDuplicateWarningCancel}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={handleDuplicateWarningContinue}>
+                Continue Anyway
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
