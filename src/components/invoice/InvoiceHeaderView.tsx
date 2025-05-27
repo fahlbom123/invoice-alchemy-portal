@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -69,6 +68,9 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
     
     return sum;
   }, 0);
+
+  // Calculate supplier invoice total minus total estimated cost
+  const supplierInvoiceTotalMinusEstimated = (formData.totalAmount || 0) - totalEstimatedCost;
 
   // Calculate status based on the new requirements
   const calculateStatus = () => {
@@ -248,6 +250,13 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
           <div className="flex flex-col">
             <span className="text-sm text-gray-500">Total Estimated Cost</span>
             <span className="font-medium">{formatCurrency(totalEstimatedCost, formData.currency)}</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">Supplier invoice total incl vat - Total Estimated Cost</span>
+            <span className="font-medium">{formatCurrency(supplierInvoiceTotalMinusEstimated, formData.currency)}</span>
           </div>
         </div>
 
