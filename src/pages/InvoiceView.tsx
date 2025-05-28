@@ -30,6 +30,9 @@ const InvoiceView = () => {
   // Add cost type state
   const [costType, setCostType] = useState<"Project" | "Booking">("Booking");
 
+  // Add selected project state
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+
   // Add the missing formData state
   const [formData, setFormData] = useState<InvoiceFormData>({
     invoiceNumber: "",
@@ -348,6 +351,12 @@ const InvoiceView = () => {
     }
   };
 
+  // Add handler for project selection
+  const handleProjectSelect = (project: any) => {
+    setSelectedProject(project);
+    console.log("Selected project:", project);
+  };
+
   if (isLoading || isLoadingInvoices) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
@@ -661,7 +670,7 @@ const InvoiceView = () => {
         )}
 
         {costType === "Project" && (
-          <ProjectSearchForm />
+          <ProjectSearchForm onProjectSelect={handleProjectSelect} />
         )}
 
         {/* Search Results - only show for Booking type when searched */}

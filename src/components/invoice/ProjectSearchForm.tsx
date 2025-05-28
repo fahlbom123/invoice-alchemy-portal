@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,11 +14,16 @@ interface Project {
   endDate: string;
 }
 
-const ProjectSearchForm = () => {
+interface ProjectSearchFormProps {
+  onProjectSelect?: (project: Project) => void;
+}
+
+const ProjectSearchForm = ({ onProjectSelect }: ProjectSearchFormProps) => {
   const [projectDescription, setProjectDescription] = useState<string>("");
   const [projectNumber, setProjectNumber] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Project[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   // Example project data
   const exampleProjects: Project[] = [
@@ -87,6 +91,14 @@ const ProjectSearchForm = () => {
     setProjectNumber("");
     setSearchResults([]);
     setHasSearched(false);
+    setSelectedProject(null);
+  };
+
+  const handleSelectProject = (project: Project) => {
+    setSelectedProject(project);
+    if (onProjectSelect) {
+      onProjectSelect(project);
+    }
   };
 
   return (
@@ -129,6 +141,40 @@ const ProjectSearchForm = () => {
         </CardContent>
       </Card>
 
+      {selectedProject && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Selected Project</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-medium text-lg">{selectedProject.projectNumber}</p>
+                  <p className="text-gray-600">{selectedProject.description}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Status: <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      selectedProject.status === 'Active' ? 'bg-green-100 text-green-800' :
+                      selectedProject.status === 'Planning' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedProject.status}
+                    </span>
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setSelectedProject(null)}
+                >
+                  Remove
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {hasSearched && (
         <Card>
           <CardHeader>
@@ -151,6 +197,7 @@ const ProjectSearchForm = () => {
                     <TableHead>Status</TableHead>
                     <TableHead>Start Date</TableHead>
                     <TableHead>End Date</TableHead>
+                    <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -169,6 +216,16 @@ const ProjectSearchForm = () => {
                       </TableCell>
                       <TableCell>{new Date(project.startDate).toLocaleDateString()}</TableCell>
                       <TableCell>{new Date(project.endDate).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant={selectedProject?.id === project.id ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleSelectProject(project)}
+                          disabled={selectedProject?.id === project.id}
+                        >
+                          {selectedProject?.id === project.id ? "Selected" : "Select"}
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
