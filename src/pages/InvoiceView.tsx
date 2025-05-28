@@ -411,6 +411,7 @@ const InvoiceView = () => {
                 registeredTotals={registeredTotals}
                 supplierInvoiceLines={invoice.supplierInvoiceLines || []}
                 invoiceId={invoice.id}
+                selectedProject={selectedProject}
               />
 
               {/* Supplier Invoice Lines */}

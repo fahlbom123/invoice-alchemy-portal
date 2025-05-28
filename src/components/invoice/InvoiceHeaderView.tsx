@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -13,9 +12,17 @@ interface InvoiceHeaderViewProps {
   } | null;
   supplierInvoiceLines?: SupplierInvoiceLine[];
   invoiceId?: string;
+  selectedProject?: {
+    id: string;
+    projectNumber: string;
+    description: string;
+    status: string;
+    startDate: string;
+    endDate: string;
+  } | null;
 }
 
-const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [], invoiceId }: InvoiceHeaderViewProps) => {
+const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [], invoiceId, selectedProject }: InvoiceHeaderViewProps) => {
   const [acceptDiff, setAcceptDiff] = useState(false);
   const [source, setSource] = useState<"Fortnox" | "Manual">(formData.source || "Manual");
 
@@ -225,6 +232,46 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
             <span className="font-medium">{formData.account || "4010"}</span>
           </div>
         </div>
+
+        {selectedProject && (
+          <>
+            <div className="space-y-2">
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-500">Project Number</span>
+                <span className="font-medium">{selectedProject.projectNumber}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-500">Project Description</span>
+                <span className="font-medium">{selectedProject.description}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-500">Project Status</span>
+                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                  selectedProject.status === 'Active' ? 'bg-green-100 text-green-800' :
+                  selectedProject.status === 'Planning' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {selectedProject.status}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-500">Project Period</span>
+                <span className="font-medium">
+                  {new Date(selectedProject.startDate).toLocaleDateString()} - {new Date(selectedProject.endDate).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </>
+        )}
         
         <div className="space-y-2">
           <div className="flex flex-col">
