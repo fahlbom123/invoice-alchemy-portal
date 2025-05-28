@@ -14,6 +14,7 @@ import { InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/types/invoi
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
+import ProjectSearchForm from "@/components/invoice/ProjectSearchForm";
 import { ArrowLeft, Edit, Trash2, Save, X } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
@@ -25,6 +26,9 @@ const InvoiceView = () => {
   const { suppliers } = useSuppliers();
   const { saveInvoice } = useSaveInvoice();
   const navigate = useNavigate();
+
+  // Add cost type state
+  const [costType, setCostType] = useState<"Project" | "Booking">("Booking");
 
   // Add the missing formData state
   const [formData, setFormData] = useState<InvoiceFormData>({
@@ -513,122 +517,155 @@ const InvoiceView = () => {
           </CardContent>
         </Card>
 
-        {/* Search Invoice Lines Section */}
+        {/* Cost Type Selection */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Search Invoice Lines</CardTitle>
+            <CardTitle>Cost Type</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="space-y-2">
-                <Label htmlFor="supplier">Supplier</Label>
-                <Select
-                  value={supplierId}
-                  onValueChange={setSupplierId}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Suppliers" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Suppliers</SelectItem>
-                    {suppliers.map(supplier => (
-                      <SelectItem key={supplier.id} value={supplier.id}>
-                        {supplier.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Search by description..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bookingNumber">Booking Number</Label>
-                <Input
-                  id="bookingNumber"
-                  value={bookingNumber}
-                  onChange={(e) => setBookingNumber(e.target.value)}
-                  placeholder="Search by booking number..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmationNumber">Confirmation Number</Label>
-                <Input
-                  id="confirmationNumber"
-                  value={confirmationNumber}
-                  onChange={(e) => setConfirmationNumber(e.target.value)}
-                  placeholder="Search by confirmation number..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="departureDateStart">Departure Date (From)</Label>
-                <Input
-                  id="departureDateStart"
-                  type="date"
-                  value={departureDateStart}
-                  onChange={(e) => setDepartureDateStart(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="departureDateEnd">Departure Date (To)</Label>
-                <Input
-                  id="departureDateEnd"
-                  type="date"
-                  value={departureDateEnd}
-                  onChange={(e) => setDepartureDateEnd(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-3 col-span-2">
-                <Label>Payment Status</Label>
-                <RadioGroup 
-                  className="flex space-x-4"
-                  value={paymentStatus}
-                  onValueChange={setPaymentStatus}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="all" id="all" />
-                    <Label htmlFor="all">All</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="paid" id="paid" />
-                    <Label htmlFor="paid">Paid</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="unpaid" id="unpaid" />
-                    <Label htmlFor="unpaid">Unpaid</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="partial" id="partial" />
-                    <Label htmlFor="partial">Partial Paid</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-            </div>
-            
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={handleClear}>
-                Clear
-              </Button>
-              <Button onClick={handleSearch}>
-                Search
-              </Button>
+            <div className="space-y-3">
+              <Label>Select Cost Type</Label>
+              <RadioGroup 
+                className="flex space-x-4"
+                value={costType}
+                onValueChange={(value: "Project" | "Booking") => setCostType(value)}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Project" id="project" />
+                  <Label htmlFor="project">Project</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Booking" id="booking" />
+                  <Label htmlFor="booking">Booking</Label>
+                </div>
+              </RadioGroup>
             </div>
           </CardContent>
         </Card>
 
-        {hasSearched && (
+        {/* Conditional Search Forms */}
+        {costType === "Booking" && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Search Invoice Lines</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-2">
+                  <Label htmlFor="supplier">Supplier</Label>
+                  <Select
+                    value={supplierId}
+                    onValueChange={setSupplierId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Suppliers" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Suppliers</SelectItem>
+                      {suppliers.map(supplier => (
+                        <SelectItem key={supplier.id} value={supplier.id}>
+                          {supplier.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Input
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Search by description..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bookingNumber">Booking Number</Label>
+                  <Input
+                    id="bookingNumber"
+                    value={bookingNumber}
+                    onChange={(e) => setBookingNumber(e.target.value)}
+                    placeholder="Search by booking number..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmationNumber">Confirmation Number</Label>
+                  <Input
+                    id="confirmationNumber"
+                    value={confirmationNumber}
+                    onChange={(e) => setConfirmationNumber(e.target.value)}
+                    placeholder="Search by confirmation number..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="departureDateStart">Departure Date (From)</Label>
+                  <Input
+                    id="departureDateStart"
+                    type="date"
+                    value={departureDateStart}
+                    onChange={(e) => setDepartureDateStart(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="departureDateEnd">Departure Date (To)</Label>
+                  <Input
+                    id="departureDateEnd"
+                    type="date"
+                    value={departureDateEnd}
+                    onChange={(e) => setDepartureDateEnd(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-3 col-span-2">
+                  <Label>Payment Status</Label>
+                  <RadioGroup 
+                    className="flex space-x-4"
+                    value={paymentStatus}
+                    onValueChange={setPaymentStatus}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="all" id="all" />
+                      <Label htmlFor="all">All</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="paid" id="paid" />
+                      <Label htmlFor="paid">Paid</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="unpaid" id="unpaid" />
+                      <Label htmlFor="unpaid">Unpaid</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="partial" id="partial" />
+                      <Label htmlFor="partial">Partial Paid</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={handleClear}>
+                  Clear
+                </Button>
+                <Button onClick={handleSearch}>
+                  Search
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {costType === "Project" && (
+          <ProjectSearchForm />
+        )}
+
+        {/* Search Results - only show for Booking type when searched */}
+        {costType === "Booking" && hasSearched && (
           <Card>
             <CardHeader>
               <CardTitle>
