@@ -4,19 +4,81 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+interface Project {
+  id: string;
+  projectNumber: string;
+  description: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+}
 
 const ProjectSearchForm = () => {
   const [projectDescription, setProjectDescription] = useState<string>("");
   const [projectNumber, setProjectNumber] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Project[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
+  // Example project data
+  const exampleProjects: Project[] = [
+    {
+      id: "proj-001",
+      projectNumber: "PRJ-2024-001",
+      description: "Office Building Construction",
+      status: "Active",
+      startDate: "2024-01-15",
+      endDate: "2024-12-31"
+    },
+    {
+      id: "proj-002",
+      projectNumber: "PRJ-2024-002", 
+      description: "Road Infrastructure Upgrade",
+      status: "Planning",
+      startDate: "2024-03-01",
+      endDate: "2024-08-30"
+    },
+    {
+      id: "proj-003",
+      projectNumber: "PRJ-2024-003",
+      description: "Hospital Renovation Project",
+      status: "Active",
+      startDate: "2024-02-10",
+      endDate: "2024-11-15"
+    },
+    {
+      id: "proj-004",
+      projectNumber: "PRJ-2023-015",
+      description: "Shopping Mall Development",
+      status: "Completed",
+      startDate: "2023-06-01",
+      endDate: "2024-01-20"
+    },
+    {
+      id: "proj-005",
+      projectNumber: "PRJ-2024-004",
+      description: "School Campus Expansion",
+      status: "Active",
+      startDate: "2024-04-01",
+      endDate: "2025-02-28"
+    }
+  ];
+
   const handleSearch = () => {
-    // TODO: Implement project search logic here
     console.log("Searching projects with:", { projectDescription, projectNumber });
     
-    // For now, set empty results as placeholder
-    setSearchResults([]);
+    // Filter projects based on search criteria
+    const filtered = exampleProjects.filter(project => {
+      const matchesDescription = !projectDescription || 
+        project.description.toLowerCase().includes(projectDescription.toLowerCase());
+      const matchesNumber = !projectNumber || 
+        project.projectNumber.toLowerCase().includes(projectNumber.toLowerCase());
+      
+      return matchesDescription && matchesNumber;
+    });
+    
+    setSearchResults(filtered);
     setHasSearched(true);
   };
 
@@ -81,9 +143,36 @@ const ProjectSearchForm = () => {
           </CardHeader>
           <CardContent>
             {searchResults.length > 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                Project results will be displayed here.
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Project Number</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>End Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {searchResults.map((project) => (
+                    <TableRow key={project.id}>
+                      <TableCell className="font-medium">{project.projectNumber}</TableCell>
+                      <TableCell>{project.description}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          project.status === 'Active' ? 'bg-green-100 text-green-800' :
+                          project.status === 'Planning' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {project.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>{new Date(project.startDate).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(project.endDate).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 No projects found matching your criteria.
