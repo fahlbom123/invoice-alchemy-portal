@@ -244,26 +244,6 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
 
             <div className="space-y-2">
               <div className="flex flex-col">
-                <span className="text-sm text-gray-500">Project Description</span>
-                <span className="font-medium">{selectedProject.description}</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex flex-col">
-                <span className="text-sm text-gray-500">Project Status</span>
-                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                  selectedProject.status === 'Active' ? 'bg-green-100 text-green-800' :
-                  selectedProject.status === 'Planning' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {selectedProject.status}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex flex-col">
                 <span className="text-sm text-gray-500">Project Period</span>
                 <span className="font-medium">
                   {new Date(selectedProject.startDate).toLocaleDateString()} - {new Date(selectedProject.endDate).toLocaleDateString()}
