@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useInvoiceById, useInvoices, useSaveInvoice } from "@/hooks/useInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
@@ -28,7 +29,7 @@ const InvoiceView = () => {
   const navigate = useNavigate();
 
   // Add cost type state with new option
-  const [costType, setCostType] = useState<"Project" | "Booking" | "Booking Supplier">("Booking");
+  const [costType, setCostType] = useState<"Project" | "Invoice lines" | "Booking Supplier">("Invoice lines");
 
   // Add selected project state
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -69,6 +70,14 @@ const InvoiceView = () => {
   const [paymentStatus, setPaymentStatus] = useState<string>("all");
   const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Add state for booking supplier summary
+  const [selectedSummaryLines, setSelectedSummaryLines] = useState<Set<string>>(new Set());
+  const [editingSummaryLine, setEditingSummaryLine] = useState<string | null>(null);
+  const [editingActualCost, setEditingActualCost] = useState<string>("");
+  const [editingActualVat, setEditingActualVat] = useState<string>("");
+  const [summaryActualCosts, setSummaryActualCosts] = useState<Map<string, number>>(new Map());
+  const [summaryActualVats, setSummaryActualVats] = useState<Map<string, number>>(new Map());
 
   // Extract all invoice lines from all invoices - now include invoice total amount
   const allInvoiceLines = invoices.flatMap(invoice => 
@@ -252,6 +261,10 @@ const InvoiceView = () => {
     
     setSearchResults(filtered);
     setHasSearched(true);
+    // Reset selections when new search is performed
+    setSelectedSummaryLines(new Set());
+    setSummaryActualCosts(new Map());
+    setSummaryActualVats(new Map());
   };
 
   // Function to group and summarize search results for Booking Supplier
@@ -270,6 +283,7 @@ const InvoiceView = () => {
           confirmationNumbers: new Set(),
           departureDates: new Set(),
           totalEstimatedCost: 0,
+          totalEstimatedVat: 0,
           paymentStatuses: new Set(),
           currency: line.currency || "USD",
           lines: []
@@ -281,6 +295,7 @@ const InvoiceView = () => {
       if (line.confirmationNumber) group.confirmationNumbers.add(line.confirmationNumber);
       if (line.departureDate) group.departureDates.add(line.departureDate);
       group.totalEstimatedCost += line.estimatedCost;
+      group.totalEstimatedVat += (line.estimatedVat || 0);
       group.paymentStatuses.add(line.paymentStatus);
       group.lines.push(line);
     });
@@ -308,6 +323,54 @@ const InvoiceView = () => {
     setPaymentStatus("all");
     setSearchResults([]);
     setHasSearched(false);
+    setSelectedSummaryLines(new Set());
+    setSummaryActualCosts(new Map());
+    setSummaryActualVats(new Map());
+  };
+
+  // Handle summary line selection
+  const handleSummaryLineSelect = (lineId: string, checked: boolean) => {
+    const newSelected = new Set(selectedSummaryLines);
+    if (checked) {
+      newSelected.add(lineId);
+    } else {
+      newSelected.delete(lineId);
+    }
+    setSelectedSummaryLines(newSelected);
+  };
+
+  // Handle editing actual cost/vat for summary lines
+  const handleEditSummaryActual = (lineId: string, type: 'cost' | 'vat') => {
+    setEditingSummaryLine(`${lineId}-${type}`);
+    if (type === 'cost') {
+      const currentCost = summaryActualCosts.get(lineId) || 0;
+      setEditingActualCost(currentCost.toString());
+    } else {
+      const currentVat = summaryActualVats.get(lineId) || 0;
+      setEditingActualVat(currentVat.toString());
+    }
+  };
+
+  // Save edited actual cost/vat for summary lines
+  const handleSaveSummaryActual = (lineId: string) => {
+    if (editingSummaryLine?.includes('-cost')) {
+      const newCost = parseFloat(editingActualCost) || 0;
+      setSummaryActualCosts(prev => new Map(prev.set(lineId, newCost)));
+      toast({
+        title: "Actual Cost Updated",
+        description: "The actual cost has been updated successfully.",
+      });
+    } else if (editingSummaryLine?.includes('-vat')) {
+      const newVat = parseFloat(editingActualVat) || 0;
+      setSummaryActualVats(prev => new Map(prev.set(lineId, newVat)));
+      toast({
+        title: "Actual VAT Updated",
+        description: "The actual VAT has been updated successfully.",
+      });
+    }
+    setEditingSummaryLine(null);
+    setEditingActualCost("");
+    setEditingActualVat("");
   };
 
   // Add function to handle line status updates
@@ -618,15 +681,15 @@ const InvoiceView = () => {
               <RadioGroup 
                 className="flex space-x-4"
                 value={costType}
-                onValueChange={(value: "Project" | "Booking" | "Booking Supplier") => setCostType(value)}
+                onValueChange={(value: "Project" | "Invoice lines" | "Booking Supplier") => setCostType(value)}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="Project" id="project" />
                   <Label htmlFor="project">Project</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Booking" id="booking" />
-                  <Label htmlFor="booking">Booking</Label>
+                  <RadioGroupItem value="Invoice lines" id="invoice-lines" />
+                  <Label htmlFor="invoice-lines">Invoice lines</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="Booking Supplier" id="booking-supplier" />
@@ -638,7 +701,7 @@ const InvoiceView = () => {
         </Card>
 
         {/* Conditional Search Forms */}
-        {(costType === "Booking" || costType === "Booking Supplier") && (
+        {(costType === "Invoice lines" || costType === "Booking Supplier") && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Search Invoice Lines</CardTitle>
@@ -759,7 +822,7 @@ const InvoiceView = () => {
         )}
 
         {/* Search Results */}
-        {costType === "Booking" && hasSearched && (
+        {costType === "Invoice lines" && hasSearched && (
           <Card>
             <CardHeader>
               <CardTitle>
@@ -794,7 +857,7 @@ const InvoiceView = () => {
           <Card>
             <CardHeader>
               <CardTitle>
-                Booking Supplier Summary
+                Search Results
                 {searchResults.length > 0 && (
                   <span className="text-sm font-normal ml-2 text-gray-500">
                     ({getBookingSupplierSummary().length} groups found from {searchResults.length} items)
@@ -808,24 +871,98 @@ const InvoiceView = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-12">
+                          <Checkbox 
+                            onCheckedChange={(checked) => {
+                              const summary = getBookingSupplierSummary();
+                              if (checked) {
+                                setSelectedSummaryLines(new Set(summary.map(s => s.id)));
+                              } else {
+                                setSelectedSummaryLines(new Set());
+                              }
+                            }}
+                          />
+                        </TableHead>
                         <TableHead>Description</TableHead>
                         <TableHead>Supplier</TableHead>
                         <TableHead>Booking Numbers</TableHead>
                         <TableHead>Confirmation Numbers</TableHead>
                         <TableHead>Departure Dates</TableHead>
                         <TableHead>Total Est. Cost</TableHead>
+                        <TableHead>Total Est. VAT</TableHead>
+                        <TableHead>Actual Cost</TableHead>
+                        <TableHead>Actual VAT</TableHead>
                         <TableHead>Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {getBookingSupplierSummary().map((summary) => (
                         <TableRow key={summary.id}>
+                          <TableCell>
+                            <Checkbox 
+                              checked={selectedSummaryLines.has(summary.id)}
+                              onCheckedChange={(checked) => handleSummaryLineSelect(summary.id, !!checked)}
+                            />
+                          </TableCell>
                           <TableCell className="font-medium">{summary.description}</TableCell>
                           <TableCell>{summary.supplierName}</TableCell>
                           <TableCell>{summary.bookingNumbers || "N/A"}</TableCell>
                           <TableCell>{summary.confirmationNumbers || "N/A"}</TableCell>
                           <TableCell>{summary.departureDates || "N/A"}</TableCell>
                           <TableCell>{formatCurrency(summary.totalEstimatedCost, summary.currency)}</TableCell>
+                          <TableCell>{formatCurrency(summary.totalEstimatedVat, summary.currency)}</TableCell>
+                          <TableCell>
+                            {editingSummaryLine === `${summary.id}-cost` ? (
+                              <div className="flex gap-1">
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={editingActualCost}
+                                  onChange={(e) => setEditingActualCost(e.target.value)}
+                                  className="w-24"
+                                />
+                                <Button size="sm" onClick={() => handleSaveSummaryActual(summary.id)}>
+                                  <Save className="h-3 w-3" />
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={handleCancelSummaryEdit}>
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div 
+                                className="cursor-pointer hover:bg-gray-100 p-1 rounded"
+                                onClick={() => handleEditSummaryActual(summary.id, 'cost')}
+                              >
+                                {formatCurrency(summaryActualCosts.get(summary.id) || 0, summary.currency)}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {editingSummaryLine === `${summary.id}-vat` ? (
+                              <div className="flex gap-1">
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={editingActualVat}
+                                  onChange={(e) => setEditingActualVat(e.target.value)}
+                                  className="w-24"
+                                />
+                                <Button size="sm" onClick={() => handleSaveSummaryActual(summary.id)}>
+                                  <Save className="h-3 w-3" />
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={handleCancelSummaryEdit}>
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div 
+                                className="cursor-pointer hover:bg-gray-100 p-1 rounded"
+                                onClick={() => handleEditSummaryActual(summary.id, 'vat')}
+                              >
+                                {formatCurrency(summaryActualVats.get(summary.id) || 0, summary.currency)}
+                              </div>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
                               summary.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
@@ -840,6 +977,25 @@ const InvoiceView = () => {
                       ))}
                     </TableBody>
                   </Table>
+                  
+                  {selectedSummaryLines.size > 0 && (
+                    <div className="p-4 bg-blue-50 border-t">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">
+                          {selectedSummaryLines.size} groups selected
+                        </span>
+                        <Button onClick={() => {
+                          toast({
+                            title: "Lines Linked",
+                            description: `${selectedSummaryLines.size} groups have been linked to the supplier invoice.`,
+                          });
+                          setSelectedSummaryLines(new Set());
+                        }}>
+                          Link to Supplier Invoice
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
