@@ -460,10 +460,42 @@ const InvoiceView = () => {
       await saveInvoice(updatedInvoice);
       setRegisteredTotals(totals);
       
+      // Update the invoices in localStorage to mark selected lines as registered
+      const savedInvoices = localStorage.getItem('invoices');
+      let allInvoices = savedInvoices ? JSON.parse(savedInvoices) : [];
+      
+      // Mark the selected invoice lines as registered by updating their fullyInvoiced status
+      const selectedLineIds = selectedLines.map(line => line.id);
+      allInvoices = allInvoices.map((inv: Invoice) => {
+        if (inv.invoiceLines.some(line => selectedLineIds.includes(line.id))) {
+          return {
+            ...inv,
+            invoiceLines: inv.invoiceLines.map(line => 
+              selectedLineIds.includes(line.id) 
+                ? { ...line, fullyInvoiced: true }
+                : line
+            ),
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return inv;
+      });
+      
+      // Save updated invoices back to localStorage
+      localStorage.setItem('invoices', JSON.stringify(allInvoices));
+      
+      // Dispatch custom event to notify other components of the update
+      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
+      
       if (allLinesPaid) {
         toast({
           title: "Invoice Status Updated",
           description: "All lines are now fully paid. Invoice status updated to 'paid'.",
+        });
+      } else {
+        toast({
+          title: "Booking Supplier Lines Registered",
+          description: "Selected booking supplier lines have been successfully registered to this supplier invoice.",
         });
       }
       
@@ -471,6 +503,11 @@ const InvoiceView = () => {
       window.location.reload();
     } catch (error) {
       console.error("Error saving invoice:", error);
+      toast({
+        title: "Error",
+        description: "Failed to register booking supplier lines.",
+        variant: "destructive",
+      });
     }
   };
 
