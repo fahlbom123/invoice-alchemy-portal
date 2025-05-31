@@ -828,182 +828,48 @@ const InvoiceView = () => {
           <ProjectSearchForm onProjectSelect={handleProjectSelect} />
         )}
 
-        {/* Search Results */}
-        {costType === "Invoice lines" && hasSearched && (
+        {/* Search Results for both Invoice lines and Booking Supplier */}
+        {(costType === "Invoice lines" || costType === "Booking Supplier") && hasSearched && (
           <Card>
             <CardHeader>
               <CardTitle>
                 Search Results
                 {searchResults.length > 0 && (
                   <span className="text-sm font-normal ml-2 text-gray-500">
-                    ({searchResults.length} items found)
+                    ({costType === "Booking Supplier" ? getBookingSupplierSummary().length + " groups found from " : ""}{searchResults.length} items found)
                   </span>
                 )}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {searchResults.length > 0 ? (
-                <InvoiceLineSearchResults 
-                  invoiceLines={searchResults} 
-                  onRegister={handleRegistration}
-                  onLineStatusUpdate={handleLineStatusUpdate}
-                  invoiceTotalAmount={invoice.totalAmount || 0}
-                  allSupplierInvoiceLines={allSupplierInvoiceLines}
-                />
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  No invoice lines found matching your criteria.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Booking Supplier Results */}
-        {costType === "Booking Supplier" && hasSearched && (
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                Search Results
-                {searchResults.length > 0 && (
-                  <span className="text-sm font-normal ml-2 text-gray-500">
-                    ({getBookingSupplierSummary().length} groups found from {searchResults.length} items)
-                  </span>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {searchResults.length > 0 ? (
-                <div className="border rounded-md overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">
-                          <Checkbox 
-                            onCheckedChange={(checked) => {
-                              const summary = getBookingSupplierSummary();
-                              if (checked) {
-                                setSelectedSummaryLines(new Set(summary.map(s => s.id)));
-                              } else {
-                                setSelectedSummaryLines(new Set());
-                              }
-                            }}
-                          />
-                        </TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Supplier</TableHead>
-                        <TableHead>Booking Numbers</TableHead>
-                        <TableHead>Confirmation Numbers</TableHead>
-                        <TableHead>Departure Dates</TableHead>
-                        <TableHead>Total Est. Cost</TableHead>
-                        <TableHead>Total Est. VAT</TableHead>
-                        <TableHead>Actual Cost</TableHead>
-                        <TableHead>Actual VAT</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getBookingSupplierSummary().map((summary) => (
-                        <TableRow key={summary.id}>
-                          <TableCell>
-                            <Checkbox 
-                              checked={selectedSummaryLines.has(summary.id)}
-                              onCheckedChange={(checked) => handleSummaryLineSelect(summary.id, !!checked)}
-                            />
-                          </TableCell>
-                          <TableCell className="font-medium">{summary.description}</TableCell>
-                          <TableCell>{summary.supplierName}</TableCell>
-                          <TableCell>{summary.bookingNumbers || "N/A"}</TableCell>
-                          <TableCell>{summary.confirmationNumbers || "N/A"}</TableCell>
-                          <TableCell>{summary.departureDates || "N/A"}</TableCell>
-                          <TableCell>{formatCurrency(summary.totalEstimatedCost, summary.currency)}</TableCell>
-                          <TableCell>{formatCurrency(summary.totalEstimatedVat, summary.currency)}</TableCell>
-                          <TableCell>
-                            {editingSummaryLine === `${summary.id}-cost` ? (
-                              <div className="flex gap-1">
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  value={editingActualCost}
-                                  onChange={(e) => setEditingActualCost(e.target.value)}
-                                  className="w-24"
-                                />
-                                <Button size="sm" onClick={() => handleSaveSummaryActual(summary.id)}>
-                                  <Save className="h-3 w-3" />
-                                </Button>
-                                <Button size="sm" variant="outline" onClick={handleCancelSummaryEdit}>
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div 
-                                className="cursor-pointer hover:bg-gray-100 p-1 rounded"
-                                onClick={() => handleEditSummaryActual(summary.id, 'cost')}
-                              >
-                                {formatCurrency(summaryActualCosts.get(summary.id) || 0, summary.currency)}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {editingSummaryLine === `${summary.id}-vat` ? (
-                              <div className="flex gap-1">
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  value={editingActualVat}
-                                  onChange={(e) => setEditingActualVat(e.target.value)}
-                                  className="w-24"
-                                />
-                                <Button size="sm" onClick={() => handleSaveSummaryActual(summary.id)}>
-                                  <Save className="h-3 w-3" />
-                                </Button>
-                                <Button size="sm" variant="outline" onClick={handleCancelSummaryEdit}>
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div 
-                                className="cursor-pointer hover:bg-gray-100 p-1 rounded"
-                                onClick={() => handleEditSummaryActual(summary.id, 'vat')}
-                              >
-                                {formatCurrency(summaryActualVats.get(summary.id) || 0, summary.currency)}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                              summary.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
-                              summary.paymentStatus === 'partial' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              {summary.paymentStatus === 'partial' ? 'Partial Paid' : 
-                               summary.paymentStatus.charAt(0).toUpperCase() + summary.paymentStatus.slice(1)}
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  
-                  {selectedSummaryLines.size > 0 && (
-                    <div className="p-4 bg-blue-50 border-t">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">
-                          {selectedSummaryLines.size} groups selected
-                        </span>
-                        <Button onClick={() => {
-                          toast({
-                            title: "Lines Linked",
-                            description: `${selectedSummaryLines.size} groups have been linked to the supplier invoice.`,
-                          });
-                          setSelectedSummaryLines(new Set());
-                        }}>
-                          Link to Supplier Invoice
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                costType === "Invoice lines" ? (
+                  <InvoiceLineSearchResults 
+                    invoiceLines={searchResults} 
+                    onRegister={handleRegistration}
+                    onLineStatusUpdate={handleLineStatusUpdate}
+                    invoiceTotalAmount={invoice.totalAmount || 0}
+                    allSupplierInvoiceLines={allSupplierInvoiceLines}
+                  />
+                ) : (
+                  // For Booking Supplier, we'll transform the summary back to invoice lines format
+                  <InvoiceLineSearchResults 
+                    invoiceLines={getBookingSupplierSummary().flatMap(summary => 
+                      summary.lines.map(line => ({
+                        ...line,
+                        // Override with summary actual values if they exist
+                        actualCost: summaryActualCosts.get(summary.id) || line.estimatedCost,
+                        actualVat: summaryActualVats.get(summary.id) || (line.estimatedVat || 0),
+                        // Mark as selected if in summary selection
+                        selected: selectedSummaryLines.has(summary.id)
+                      }))
+                    )}
+                    onRegister={handleRegistration}
+                    onLineStatusUpdate={handleLineStatusUpdate}
+                    invoiceTotalAmount={invoice.totalAmount || 0}
+                    allSupplierInvoiceLines={allSupplierInvoiceLines}
+                  />
+                )
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   No invoice lines found matching your criteria.
