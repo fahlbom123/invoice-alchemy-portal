@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,8 +27,8 @@ const InvoiceView = () => {
   const { saveInvoice } = useSaveInvoice();
   const navigate = useNavigate();
 
-  // Add cost type state
-  const [costType, setCostType] = useState<"Project" | "Booking">("Booking");
+  // Add cost type state with new option
+  const [costType, setCostType] = useState<"Project" | "Booking" | "Booking Supplier">("Booking");
 
   // Add selected project state
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -253,6 +252,49 @@ const InvoiceView = () => {
     
     setSearchResults(filtered);
     setHasSearched(true);
+  };
+
+  // Function to group and summarize search results for Booking Supplier
+  const getBookingSupplierSummary = () => {
+    const grouped = new Map();
+    
+    searchResults.forEach(line => {
+      const key = `${line.supplierId}-${line.description}`;
+      
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          id: `summary-${key}`,
+          description: line.description,
+          supplierName: line.supplierName,
+          bookingNumbers: new Set(),
+          confirmationNumbers: new Set(),
+          departureDates: new Set(),
+          totalEstimatedCost: 0,
+          paymentStatuses: new Set(),
+          currency: line.currency || "USD",
+          lines: []
+        });
+      }
+      
+      const group = grouped.get(key);
+      if (line.bookingNumber) group.bookingNumbers.add(line.bookingNumber);
+      if (line.confirmationNumber) group.confirmationNumbers.add(line.confirmationNumber);
+      if (line.departureDate) group.departureDates.add(line.departureDate);
+      group.totalEstimatedCost += line.estimatedCost;
+      group.paymentStatuses.add(line.paymentStatus);
+      group.lines.push(line);
+    });
+    
+    return Array.from(grouped.values()).map(group => ({
+      ...group,
+      bookingNumbers: Array.from(group.bookingNumbers).join(", "),
+      confirmationNumbers: Array.from(group.confirmationNumbers).join(", "),
+      departureDates: Array.from(group.departureDates).map(date => 
+        new Date(date as string).toLocaleDateString()
+      ).join(", "),
+      paymentStatus: group.paymentStatuses.has("paid") ? "paid" : 
+                   group.paymentStatuses.has("partial") ? "partial" : "unpaid"
+    }));
   };
 
   const handleClear = () => {
@@ -576,7 +618,7 @@ const InvoiceView = () => {
               <RadioGroup 
                 className="flex space-x-4"
                 value={costType}
-                onValueChange={(value: "Project" | "Booking") => setCostType(value)}
+                onValueChange={(value: "Project" | "Booking" | "Booking Supplier") => setCostType(value)}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="Project" id="project" />
@@ -586,13 +628,17 @@ const InvoiceView = () => {
                   <RadioGroupItem value="Booking" id="booking" />
                   <Label htmlFor="booking">Booking</Label>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Booking Supplier" id="booking-supplier" />
+                  <Label htmlFor="booking-supplier">Booking Supplier</Label>
+                </div>
               </RadioGroup>
             </div>
           </CardContent>
         </Card>
 
         {/* Conditional Search Forms */}
-        {costType === "Booking" && (
+        {(costType === "Booking" || costType === "Booking Supplier") && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Search Invoice Lines</CardTitle>
@@ -712,7 +758,7 @@ const InvoiceView = () => {
           <ProjectSearchForm onProjectSelect={handleProjectSelect} />
         )}
 
-        {/* Search Results - only show for Booking type when searched */}
+        {/* Search Results */}
         {costType === "Booking" && hasSearched && (
           <Card>
             <CardHeader>
@@ -734,6 +780,67 @@ const InvoiceView = () => {
                   invoiceTotalAmount={invoice.totalAmount || 0}
                   allSupplierInvoiceLines={allSupplierInvoiceLines}
                 />
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No invoice lines found matching your criteria.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Booking Supplier Results */}
+        {costType === "Booking Supplier" && hasSearched && (
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Booking Supplier Summary
+                {searchResults.length > 0 && (
+                  <span className="text-sm font-normal ml-2 text-gray-500">
+                    ({getBookingSupplierSummary().length} groups found from {searchResults.length} items)
+                  </span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {searchResults.length > 0 ? (
+                <div className="border rounded-md overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Supplier</TableHead>
+                        <TableHead>Booking Numbers</TableHead>
+                        <TableHead>Confirmation Numbers</TableHead>
+                        <TableHead>Departure Dates</TableHead>
+                        <TableHead>Total Est. Cost</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getBookingSupplierSummary().map((summary) => (
+                        <TableRow key={summary.id}>
+                          <TableCell className="font-medium">{summary.description}</TableCell>
+                          <TableCell>{summary.supplierName}</TableCell>
+                          <TableCell>{summary.bookingNumbers || "N/A"}</TableCell>
+                          <TableCell>{summary.confirmationNumbers || "N/A"}</TableCell>
+                          <TableCell>{summary.departureDates || "N/A"}</TableCell>
+                          <TableCell>{formatCurrency(summary.totalEstimatedCost, summary.currency)}</TableCell>
+                          <TableCell>
+                            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                              summary.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                              summary.paymentStatus === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {summary.paymentStatus === 'partial' ? 'Partial Paid' : 
+                               summary.paymentStatus.charAt(0).toUpperCase() + summary.paymentStatus.slice(1)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   No invoice lines found matching your criteria.
