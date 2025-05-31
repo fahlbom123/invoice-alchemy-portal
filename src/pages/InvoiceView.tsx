@@ -272,12 +272,11 @@ const InvoiceView = () => {
     const grouped = new Map();
     
     searchResults.forEach(line => {
-      const key = `${line.supplierId}-${line.description}`;
+      const key = `${line.supplierId}-${line.currency || 'USD'}`;
       
       if (!grouped.has(key)) {
         grouped.set(key, {
           id: `summary-${key}`,
-          description: line.description,
           supplierName: line.supplierName,
           bookingNumbers: new Set(),
           confirmationNumbers: new Set(),
@@ -286,7 +285,8 @@ const InvoiceView = () => {
           totalEstimatedVat: 0,
           paymentStatuses: new Set(),
           currency: line.currency || "USD",
-          lines: []
+          lines: [],
+          supplierId: line.supplierId
         });
       }
       
@@ -300,16 +300,33 @@ const InvoiceView = () => {
       group.lines.push(line);
     });
     
-    return Array.from(grouped.values()).map(group => ({
-      ...group,
-      bookingNumbers: Array.from(group.bookingNumbers).join(", "),
-      confirmationNumbers: Array.from(group.confirmationNumbers).join(", "),
-      departureDates: Array.from(group.departureDates).map(date => 
-        new Date(date as string).toLocaleDateString()
-      ).join(", "),
-      paymentStatus: group.paymentStatuses.has("paid") ? "paid" : 
-                   group.paymentStatuses.has("partial") ? "partial" : "unpaid"
-    }));
+    return Array.from(grouped.values()).map(group => {
+      // Calculate registered amounts from supplier invoice lines
+      const registeredLines = allSupplierInvoiceLines.filter(sil => 
+        group.lines.some(line => line.id === sil.invoiceLineId)
+      );
+      const registeredActualCost = registeredLines.reduce((sum, sil) => sum + sil.actualCost, 0);
+      const registeredActualVat = registeredLines.reduce((sum, sil) => sum + sil.actualVat, 0);
+
+      return {
+        ...group,
+        bookingNumbers: Array.from(group.bookingNumbers).join(", "),
+        confirmationNumbers: Array.from(group.confirmationNumbers).join(", "),
+        departureDates: Array.from(group.departureDates).map(date => 
+          new Date(date as string).toLocaleDateString()
+        ).join(", "),
+        paymentStatus: group.paymentStatuses.has("paid") ? "paid" : 
+                     group.paymentStatuses.has("partial") ? "partial" : "unpaid",
+        // Set actual values from summary state or default to estimated
+        actualCost: summaryActualCosts.get(group.id) || group.totalEstimatedCost,
+        actualVat: summaryActualVats.get(group.id) || group.totalEstimatedVat,
+        estimatedCost: group.totalEstimatedCost,
+        estimatedVat: group.totalEstimatedVat,
+        registeredActualCost,
+        registeredActualVat,
+        selected: selectedSummaryLines.has(group.id)
+      };
+    });
   };
 
   const handleClear = () => {
@@ -852,23 +869,212 @@ const InvoiceView = () => {
                     allSupplierInvoiceLines={allSupplierInvoiceLines}
                   />
                 ) : (
-                  // For Booking Supplier, we'll transform the summary back to invoice lines format
-                  <InvoiceLineSearchResults 
-                    invoiceLines={getBookingSupplierSummary().flatMap(summary => 
-                      summary.lines.map(line => ({
-                        ...line,
-                        // Override with summary actual values if they exist
-                        actualCost: summaryActualCosts.get(summary.id) || line.estimatedCost,
-                        actualVat: summaryActualVats.get(summary.id) || (line.estimatedVat || 0),
-                        // Mark as selected if in summary selection
-                        selected: selectedSummaryLines.has(summary.id)
-                      }))
+                  // Custom table for Booking Supplier results
+                  <div className="space-y-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>
+                            <Checkbox 
+                              checked={selectedSummaryLines.size > 0 && selectedSummaryLines.size === getBookingSupplierSummary().length}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedSummaryLines(new Set(getBookingSupplierSummary().map(s => s.id)));
+                                } else {
+                                  setSelectedSummaryLines(new Set());
+                                }
+                              }}
+                            />
+                          </TableHead>
+                          <TableHead>Supplier</TableHead>
+                          <TableHead>Booking</TableHead>
+                          <TableHead>Confirmation</TableHead>
+                          <TableHead>Departure Date</TableHead>
+                          <TableHead>Currency</TableHead>
+                          <TableHead>Est. Cost</TableHead>
+                          <TableHead>Est. VAT</TableHead>
+                          <TableHead>Actual Cost</TableHead>
+                          <TableHead>Actual VAT</TableHead>
+                          <TableHead>Registered Cost</TableHead>
+                          <TableHead>Registered VAT</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Fully Paid</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {getBookingSupplierSummary().map((summary) => (
+                          <TableRow key={summary.id}>
+                            <TableCell>
+                              <Checkbox 
+                                checked={selectedSummaryLines.has(summary.id)}
+                                onCheckedChange={(checked) => handleSummaryLineSelect(summary.id, checked as boolean)}
+                              />
+                            </TableCell>
+                            <TableCell>{summary.supplierName}</TableCell>
+                            <TableCell>{summary.bookingNumbers}</TableCell>
+                            <TableCell>{summary.confirmationNumbers}</TableCell>
+                            <TableCell>{summary.departureDates}</TableCell>
+                            <TableCell>{summary.currency}</TableCell>
+                            <TableCell>{formatCurrency(summary.totalEstimatedCost, summary.currency)}</TableCell>
+                            <TableCell>{formatCurrency(summary.totalEstimatedVat, summary.currency)}</TableCell>
+                            <TableCell>
+                              {editingSummaryLine === `${summary.id}-cost` ? (
+                                <div className="flex gap-2">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={editingActualCost}
+                                    onChange={(e) => setEditingActualCost(e.target.value)}
+                                    className="w-24"
+                                  />
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => handleSaveSummaryActual(summary.id)}
+                                  >
+                                    <Save className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleCancelSummaryEdit}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div 
+                                  className="cursor-pointer hover:bg-gray-100 p-1 rounded"
+                                  onClick={() => handleEditSummaryActual(summary.id, 'cost')}
+                                >
+                                  {formatCurrency(summary.actualCost, summary.currency)}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingSummaryLine === `${summary.id}-vat` ? (
+                                <div className="flex gap-2">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={editingActualVat}
+                                    onChange={(e) => setEditingActualVat(e.target.value)}
+                                    className="w-24"
+                                  />
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => handleSaveSummaryActual(summary.id)}
+                                  >
+                                    <Save className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleCancelSummaryEdit}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div 
+                                  className="cursor-pointer hover:bg-gray-100 p-1 rounded"
+                                  onClick={() => handleEditSummaryActual(summary.id, 'vat')}
+                                >
+                                  {formatCurrency(summary.actualVat, summary.currency)}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>{formatCurrency(summary.registeredActualCost, summary.currency)}</TableCell>
+                            <TableCell>{formatCurrency(summary.registeredActualVat, summary.currency)}</TableCell>
+                            <TableCell>
+                              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                                summary.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                                summary.paymentStatus === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {summary.paymentStatus}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Checkbox 
+                                checked={summary.paymentStatus === "paid"}
+                                onCheckedChange={(checked) => {
+                                  // Update all lines in this summary group
+                                  const lineUpdates = summary.lines.map(line => ({
+                                    lineId: line.id,
+                                    paymentStatus: (checked ? "paid" : "unpaid") as "paid" | "unpaid" | "partial"
+                                  }));
+                                  if (onLineStatusUpdate) {
+                                    onLineStatusUpdate(lineUpdates);
+                                  }
+                                }}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    
+                    {selectedSummaryLines.size > 0 && (
+                      <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">Selected: {selectedSummaryLines.size} groups</p>
+                            <p className="text-sm text-gray-600">
+                              Total Actual Cost: {formatCurrency(
+                                getBookingSupplierSummary()
+                                  .filter(s => selectedSummaryLines.has(s.id))
+                                  .reduce((sum, s) => sum + s.actualCost, 0),
+                                "USD"
+                              )}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Total Actual VAT: {formatCurrency(
+                                getBookingSupplierSummary()
+                                  .filter(s => selectedSummaryLines.has(s.id))
+                                  .reduce((sum, s) => sum + s.actualVat, 0),
+                                "USD"
+                              )}
+                            </p>
+                          </div>
+                          <Button 
+                            onClick={() => {
+                              const selectedSummaries = getBookingSupplierSummary().filter(s => selectedSummaryLines.has(s.id));
+                              const selectedLines = selectedSummaries.flatMap(s => s.lines.map(line => ({
+                                ...line,
+                                actualCost: s.actualCost / s.lines.length, // Distribute actual cost among lines
+                                actualVat: s.actualVat / s.lines.length // Distribute actual VAT among lines
+                              })));
+                              
+                              const supplierInvoiceLines: SupplierInvoiceLine[] = selectedLines.map(line => ({
+                                id: `sil-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                invoiceLineId: line.id,
+                                actualCost: line.actualCost || 0,
+                                actualVat: line.actualVat || 0,
+                                currency: line.currency || "USD",
+                                createdAt: new Date().toISOString(),
+                                createdBy: "Current User",
+                                description: line.description,
+                                supplierName: line.supplierName,
+                              }));
+                              
+                              const totals = {
+                                totalActualCost: selectedSummaries.reduce((sum, s) => sum + s.actualCost, 0),
+                                totalActualVat: selectedSummaries.reduce((sum, s) => sum + s.actualVat, 0)
+                              };
+                              
+                              if (handleRegistration) {
+                                handleRegistration(selectedLines, totals, supplierInvoiceLines);
+                              }
+                            }}
+                          >
+                            Register Selected Groups
+                          </Button>
+                        </div>
+                      </div>
                     )}
-                    onRegister={handleRegistration}
-                    onLineStatusUpdate={handleLineStatusUpdate}
-                    invoiceTotalAmount={invoice.totalAmount || 0}
-                    allSupplierInvoiceLines={allSupplierInvoiceLines}
-                  />
+                  </div>
                 )
               ) : (
                 <div className="text-center py-8 text-gray-500">
