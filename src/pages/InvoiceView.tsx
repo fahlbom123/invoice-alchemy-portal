@@ -1005,9 +1005,7 @@ const InvoiceView = () => {
                                     lineId: line.id,
                                     paymentStatus: (checked ? "paid" : "unpaid") as "paid" | "unpaid" | "partial"
                                   }));
-                                  if (onLineStatusUpdate) {
-                                    onLineStatusUpdate(lineUpdates);
-                                  }
+                                  handleLineStatusUpdate(lineUpdates);
                                 }}
                               />
                             </TableCell>
