@@ -463,6 +463,13 @@ const InvoiceView = () => {
     console.log("Selected project:", project);
   };
 
+  // Add function to cancel editing summary lines
+  const handleCancelSummaryEdit = () => {
+    setEditingSummaryLine(null);
+    setEditingActualCost("");
+    setEditingActualVat("");
+  };
+
   if (isLoading || isLoadingInvoices) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
