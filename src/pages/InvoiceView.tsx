@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,8 +28,16 @@ const InvoiceView = () => {
   const { saveInvoice } = useSaveInvoice();
   const navigate = useNavigate();
 
-  // Determine the locked cost type based on existing supplier invoice lines
+  // Add selected project state
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+
+  // Determine the locked cost type based on existing supplier invoice lines OR connected project
   const getLockedCostType = (): "Project" | "Invoice lines" | "Booking Supplier" | null => {
+    // If a project is selected, lock to "Project" cost type
+    if (selectedProject) {
+      return "Project";
+    }
+
     if (!invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0) {
       return null;
     }
@@ -65,7 +72,7 @@ const InvoiceView = () => {
     lockedCostType || "Invoice lines"
   );
 
-  // Update cost type when invoice changes
+  // Update cost type when invoice changes or project is selected/removed
   useEffect(() => {
     if (invoice) {
       const locked = getLockedCostType();
@@ -73,10 +80,7 @@ const InvoiceView = () => {
         setCostType(locked);
       }
     }
-  }, [invoice]);
-
-  // Add selected project state
-  const [selectedProject, setSelectedProject] = useState<any>(null);
+  }, [invoice, selectedProject]);
 
   // Add the missing formData state
   const [formData, setFormData] = useState<InvoiceFormData>({
@@ -477,9 +481,29 @@ const InvoiceView = () => {
     }
   };
 
-  // Add function to handle registration
+  // Add function to handle registration with project locking checks
   const handleRegistration = async (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[], allLinesPaid?: boolean) => {
     if (!invoice) return;
+
+    // If a project is connected and we're trying to register non-project lines, prevent it
+    if (selectedProject && costType !== "Project") {
+      toast({
+        title: "Cannot Register Lines",
+        description: "Remove the connected project before registering invoice lines or booking supplier groups.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // If we have existing lines and trying to register a project, prevent it
+    if (costType === "Project" && invoice.supplierInvoiceLines && invoice.supplierInvoiceLines.length > 0) {
+      toast({
+        title: "Cannot Connect Project",
+        description: "Remove all supplier invoice lines before connecting a project.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       console.log("Registering supplier invoice lines:", supplierInvoiceLines);
@@ -540,7 +564,8 @@ const InvoiceView = () => {
           description: "All lines are now fully paid. Invoice status updated to 'paid'.",
         });
       } else {
-        const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : "invoice lines";
+        const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : 
+                               costType === "Project" ? "project" : "invoice lines";
         toast({
           title: `${costType} Registered`,
           description: `Selected ${registrationType} have been successfully registered to this supplier invoice.`,
@@ -551,7 +576,8 @@ const InvoiceView = () => {
       window.location.reload();
     } catch (error) {
       console.error("Error saving invoice:", error);
-      const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : "invoice lines";
+      const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : 
+                             costType === "Project" ? "project" : "invoice lines";
       toast({
         title: "Error",
         description: `Failed to register ${registrationType}.`,
@@ -560,17 +586,27 @@ const InvoiceView = () => {
     }
   };
 
-  // Add handler for project selection
+  // Add handler for project selection with locking logic
   const handleProjectSelect = (project: any) => {
+    // If there are already supplier invoice lines and cost type is not "Project", prevent selection
+    if (invoice?.supplierInvoiceLines && invoice.supplierInvoiceLines.length > 0 && costType !== "Project") {
+      toast({
+        title: "Cannot Connect Project",
+        description: "Remove all supplier invoice lines before connecting a project.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setSelectedProject(project);
+    setCostType("Project");
     console.log("Selected project:", project);
   };
 
-  // Add function to cancel editing summary lines
-  const handleCancelSummaryEdit = () => {
-    setEditingSummaryLine(null);
-    setEditingActualCost("");
-    setEditingActualVat("");
+  // Add handler for project removal
+  const handleProjectRemove = () => {
+    setSelectedProject(null);
+    // Cost type will be unlocked automatically by the getLockedCostType function
   };
 
   if (isLoading || isLoadingInvoices) {
@@ -753,6 +789,7 @@ const InvoiceView = () => {
                           <TableHead>Status</TableHead>
                           <TableHead>Start Date</TableHead>
                           <TableHead>End Date</TableHead>
+                          <TableHead>Action</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -770,6 +807,15 @@ const InvoiceView = () => {
                           </TableCell>
                           <TableCell>{new Date(selectedProject.startDate).toLocaleDateString()}</TableCell>
                           <TableCell>{new Date(selectedProject.endDate).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleProjectRemove}
+                            >
+                              Remove
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
@@ -797,8 +843,11 @@ const InvoiceView = () => {
                 <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                   <p className="text-sm text-yellow-800">
                     <Lock className="inline h-4 w-4 mr-1" />
-                    Cost type is locked to "{lockedCostType}" because there are already registered lines. 
-                    To change the cost type, you must first delete all supplier invoice lines.
+                    {selectedProject ? (
+                      <>Cost type is locked to "Project" because a project is connected. Remove the project to change the cost type or register other lines.</>
+                    ) : (
+                      <>Cost type is locked to "{lockedCostType}" because there are already registered lines. To change the cost type, you must first delete all supplier invoice lines.</>
+                    )}
                   </p>
                 </div>
               )}

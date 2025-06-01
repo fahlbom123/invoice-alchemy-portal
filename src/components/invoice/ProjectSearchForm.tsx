@@ -101,6 +101,14 @@ const ProjectSearchForm = ({ onProjectSelect }: ProjectSearchFormProps) => {
     }
   };
 
+  const handleRemoveProject = () => {
+    setSelectedProject(null);
+    // Call onProjectSelect with null to notify parent component
+    if (onProjectSelect) {
+      onProjectSelect(null);
+    }
+  };
+
   return (
     <>
       <Card className="mb-6">
@@ -165,7 +173,7 @@ const ProjectSearchForm = ({ onProjectSelect }: ProjectSearchFormProps) => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => setSelectedProject(null)}
+                  onClick={handleRemoveProject}
                 >
                   Remove
                 </Button>
