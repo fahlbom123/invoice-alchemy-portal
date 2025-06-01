@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Lock } from "lucide-react";
 
 interface Project {
   id: string;
@@ -16,16 +17,18 @@ interface Project {
 
 interface ProjectSearchFormProps {
   onProjectSelect?: (project: Project) => void;
+  selectedProject?: Project | null;
 }
 
-const ProjectSearchForm = ({ onProjectSelect }: ProjectSearchFormProps) => {
+const ProjectSearchForm = ({ onProjectSelect, selectedProject }: ProjectSearchFormProps) => {
   const [projectDescription, setProjectDescription] = useState<string>("");
   const [projectNumber, setProjectNumber] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Project[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  // Example project data
+  // Check if project selection is locked (when a project is already connected)
+  const isProjectLocked = selectedProject !== null;
+
   const exampleProjects: Project[] = [
     {
       id: "proj-001",
@@ -70,9 +73,10 @@ const ProjectSearchForm = ({ onProjectSelect }: ProjectSearchFormProps) => {
   ];
 
   const handleSearch = () => {
+    if (isProjectLocked) return; // Prevent search when locked
+    
     console.log("Searching projects with:", { projectDescription, projectNumber });
     
-    // Filter projects based on search criteria
     const filtered = exampleProjects.filter(project => {
       const matchesDescription = !projectDescription || 
         project.description.toLowerCase().includes(projectDescription.toLowerCase());
@@ -87,25 +91,19 @@ const ProjectSearchForm = ({ onProjectSelect }: ProjectSearchFormProps) => {
   };
 
   const handleClear = () => {
+    if (isProjectLocked) return; // Prevent clear when locked
+    
     setProjectDescription("");
     setProjectNumber("");
     setSearchResults([]);
     setHasSearched(false);
-    setSelectedProject(null);
   };
 
   const handleSelectProject = (project: Project) => {
-    setSelectedProject(project);
+    if (isProjectLocked) return; // Prevent selection when locked
+    
     if (onProjectSelect) {
       onProjectSelect(project);
-    }
-  };
-
-  const handleRemoveProject = () => {
-    setSelectedProject(null);
-    // Call onProjectSelect with null to notify parent component
-    if (onProjectSelect) {
-      onProjectSelect(null);
     }
   };
 
@@ -113,9 +111,23 @@ const ProjectSearchForm = ({ onProjectSelect }: ProjectSearchFormProps) => {
     <>
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Search Projects</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Search Projects
+            {isProjectLocked && (
+              <Lock className="h-4 w-4 text-gray-500" />
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent>
+          {isProjectLocked && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-sm text-yellow-800">
+                <Lock className="inline h-4 w-4 mr-1" />
+                A project is already connected to this supplier invoice. Remove the current project before selecting a different one.
+              </p>
+            </div>
+          )}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="space-y-2">
               <Label htmlFor="projectDescription">Project Description</Label>
@@ -124,6 +136,7 @@ const ProjectSearchForm = ({ onProjectSelect }: ProjectSearchFormProps) => {
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
                 placeholder="Search by project description..."
+                disabled={isProjectLocked}
               />
             </div>
 
@@ -134,56 +147,30 @@ const ProjectSearchForm = ({ onProjectSelect }: ProjectSearchFormProps) => {
                 value={projectNumber}
                 onChange={(e) => setProjectNumber(e.target.value)}
                 placeholder="Search by project number..."
+                disabled={isProjectLocked}
               />
             </div>
           </div>
           
           <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={handleClear}>
+            <Button 
+              variant="outline" 
+              onClick={handleClear}
+              disabled={isProjectLocked}
+            >
               Clear
             </Button>
-            <Button onClick={handleSearch}>
+            <Button 
+              onClick={handleSearch}
+              disabled={isProjectLocked}
+            >
               Search
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {selectedProject && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Selected Project</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-medium text-lg">{selectedProject.projectNumber}</p>
-                  <p className="text-gray-600">{selectedProject.description}</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Status: <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      selectedProject.status === 'Active' ? 'bg-green-100 text-green-800' :
-                      selectedProject.status === 'Planning' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {selectedProject.status}
-                    </span>
-                  </p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleRemoveProject}
-                >
-                  Remove
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {hasSearched && (
+      {!isProjectLocked && hasSearched && (
         <Card>
           <CardHeader>
             <CardTitle>
@@ -226,12 +213,11 @@ const ProjectSearchForm = ({ onProjectSelect }: ProjectSearchFormProps) => {
                       <TableCell>{new Date(project.endDate).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <Button
-                          variant={selectedProject?.id === project.id ? "default" : "outline"}
+                          variant="outline"
                           size="sm"
                           onClick={() => handleSelectProject(project)}
-                          disabled={selectedProject?.id === project.id}
                         >
-                          {selectedProject?.id === project.id ? "Selected" : "Select"}
+                          Select
                         </Button>
                       </TableCell>
                     </TableRow>

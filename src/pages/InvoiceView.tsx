@@ -1100,7 +1100,10 @@ const InvoiceView = () => {
             )}
 
             {costType === "Project" && (
-              <ProjectSearchForm onProjectSelect={handleProjectSelect} />
+              <ProjectSearchForm 
+                onProjectSelect={handleProjectSelect} 
+                selectedProject={selectedProject}
+              />
             )}
 
             {/* Search Results for both Invoice lines and Booking Supplier */}
