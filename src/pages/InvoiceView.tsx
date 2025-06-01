@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -461,32 +460,35 @@ const InvoiceView = () => {
       await saveInvoice(updatedInvoice);
       setRegisteredTotals(totals);
       
-      // Update the invoices in localStorage to mark selected lines as registered
-      const savedInvoices = localStorage.getItem('invoices');
-      let allInvoices = savedInvoices ? JSON.parse(savedInvoices) : [];
-      
-      // Mark the selected invoice lines as registered by updating their fullyInvoiced status
-      const selectedLineIds = selectedLines.map(line => line.id);
-      allInvoices = allInvoices.map((inv: Invoice) => {
-        if (inv.invoiceLines.some(line => selectedLineIds.includes(line.id))) {
-          return {
-            ...inv,
-            invoiceLines: inv.invoiceLines.map(line => 
-              selectedLineIds.includes(line.id) 
-                ? { ...line, fullyInvoiced: true }
-                : line
-            ),
-            updatedAt: new Date().toISOString(),
-          };
-        }
-        return inv;
-      });
-      
-      // Save updated invoices back to localStorage
-      localStorage.setItem('invoices', JSON.stringify(allInvoices));
-      
-      // Dispatch custom event to notify other components of the update
-      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
+      // Only update invoices in localStorage for individual invoice lines, not booking supplier summaries
+      if (costType === "Invoice lines") {
+        // Update the invoices in localStorage to mark selected lines as registered
+        const savedInvoices = localStorage.getItem('invoices');
+        let allInvoices = savedInvoices ? JSON.parse(savedInvoices) : [];
+        
+        // Mark the selected invoice lines as registered by updating their fullyInvoiced status
+        const selectedLineIds = selectedLines.map(line => line.id);
+        allInvoices = allInvoices.map((inv: Invoice) => {
+          if (inv.invoiceLines.some(line => selectedLineIds.includes(line.id))) {
+            return {
+              ...inv,
+              invoiceLines: inv.invoiceLines.map(line => 
+                selectedLineIds.includes(line.id) 
+                  ? { ...line, fullyInvoiced: true }
+                  : line
+              ),
+              updatedAt: new Date().toISOString(),
+            };
+          }
+          return inv;
+        });
+        
+        // Save updated invoices back to localStorage
+        localStorage.setItem('invoices', JSON.stringify(allInvoices));
+        
+        // Dispatch custom event to notify other components of the update
+        window.dispatchEvent(new CustomEvent('invoicesUpdated'));
+      }
       
       if (allLinesPaid) {
         toast({
@@ -494,9 +496,10 @@ const InvoiceView = () => {
           description: "All lines are now fully paid. Invoice status updated to 'paid'.",
         });
       } else {
+        const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : "invoice lines";
         toast({
-          title: "Booking Supplier Lines Registered",
-          description: "Selected booking supplier lines have been successfully registered to this supplier invoice.",
+          title: `${costType} Registered`,
+          description: `Selected ${registrationType} have been successfully registered to this supplier invoice.`,
         });
       }
       
@@ -504,9 +507,10 @@ const InvoiceView = () => {
       window.location.reload();
     } catch (error) {
       console.error("Error saving invoice:", error);
+      const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : "invoice lines";
       toast({
         title: "Error",
-        description: "Failed to register booking supplier lines.",
+        description: `Failed to register ${registrationType}.`,
         variant: "destructive",
       });
     }
@@ -1077,22 +1081,18 @@ const InvoiceView = () => {
                           <Button 
                             onClick={() => {
                               const selectedSummaries = getBookingSupplierSummary().filter(s => selectedSummaryLines.has(s.id));
-                              const selectedLines = selectedSummaries.flatMap(s => s.lines.map(line => ({
-                                ...line,
-                                actualCost: s.actualCost / s.lines.length, // Distribute actual cost among lines
-                                actualVat: s.actualVat / s.lines.length // Distribute actual VAT among lines
-                              })));
                               
-                              const supplierInvoiceLines: SupplierInvoiceLine[] = selectedLines.map(line => ({
+                              // Create supplier invoice lines based on the summaries, not individual lines
+                              const supplierInvoiceLines: SupplierInvoiceLine[] = selectedSummaries.map(summary => ({
                                 id: `sil-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                                invoiceLineId: line.id,
-                                actualCost: line.actualCost || 0,
-                                actualVat: line.actualVat || 0,
-                                currency: line.currency || "USD",
+                                invoiceLineId: summary.id, // Use summary ID instead of individual line ID
+                                actualCost: summary.actualCost,
+                                actualVat: summary.actualVat,
+                                currency: summary.currency,
                                 createdAt: new Date().toISOString(),
                                 createdBy: "Current User",
-                                description: line.description,
-                                supplierName: line.supplierName,
+                                description: `Booking Supplier - ${summary.supplierName} (${summary.lines.length} items)`,
+                                supplierName: summary.supplierName,
                               }));
                               
                               const totals = {
@@ -1100,8 +1100,9 @@ const InvoiceView = () => {
                                 totalActualVat: selectedSummaries.reduce((sum, s) => sum + s.actualVat, 0)
                               };
                               
+                              // Pass the summaries as selected lines, not individual invoice lines
                               if (handleRegistration) {
-                                handleRegistration(selectedLines, totals, supplierInvoiceLines);
+                                handleRegistration(selectedSummaries, totals, supplierInvoiceLines);
                               }
                             }}
                           >
