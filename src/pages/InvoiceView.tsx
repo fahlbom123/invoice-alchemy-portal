@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
 import ProjectSearchForm from "@/components/invoice/ProjectSearchForm";
-import { ArrowLeft, Edit, Trash2, Save, X } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Save, X, Lock } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
 
@@ -28,8 +29,51 @@ const InvoiceView = () => {
   const { saveInvoice } = useSaveInvoice();
   const navigate = useNavigate();
 
-  // Add cost type state with new option
-  const [costType, setCostType] = useState<"Project" | "Invoice lines" | "Booking Supplier">("Invoice lines");
+  // Determine the locked cost type based on existing supplier invoice lines
+  const getLockedCostType = (): "Project" | "Invoice lines" | "Booking Supplier" | null => {
+    if (!invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0) {
+      return null;
+    }
+
+    // Check if any supplier invoice line has a summary ID (booking supplier)
+    const hasBookingSupplierLines = invoice.supplierInvoiceLines.some(line => 
+      line.invoiceLineId.startsWith('summary-')
+    );
+
+    if (hasBookingSupplierLines) {
+      return "Booking Supplier";
+    }
+
+    // Check if any supplier invoice line references individual invoice lines
+    const hasIndividualLines = invoice.supplierInvoiceLines.some(line => 
+      !line.invoiceLineId.startsWith('summary-')
+    );
+
+    if (hasIndividualLines) {
+      return "Invoice lines";
+    }
+
+    // Default fallback (shouldn't happen but just in case)
+    return "Invoice lines";
+  };
+
+  const lockedCostType = getLockedCostType();
+  const isCostTypeLocked = lockedCostType !== null;
+
+  // Add cost type state with new option - use locked type if available
+  const [costType, setCostType] = useState<"Project" | "Invoice lines" | "Booking Supplier">(
+    lockedCostType || "Invoice lines"
+  );
+
+  // Update cost type when invoice changes
+  useEffect(() => {
+    if (invoice) {
+      const locked = getLockedCostType();
+      if (locked) {
+        setCostType(locked);
+      }
+    }
+  }, [invoice]);
 
   // Add selected project state
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -739,27 +783,73 @@ const InvoiceView = () => {
         {/* Cost Type Selection */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Cost Type</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              Cost Type
+              {isCostTypeLocked && (
+                <Lock className="h-4 w-4 text-gray-500" />
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <Label>Select Cost Type</Label>
+              {isCostTypeLocked && (
+                <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-sm text-yellow-800">
+                    <Lock className="inline h-4 w-4 mr-1" />
+                    Cost type is locked to "{lockedCostType}" because there are already registered lines. 
+                    To change the cost type, you must first delete all supplier invoice lines.
+                  </p>
+                </div>
+              )}
               <RadioGroup 
                 className="flex space-x-4"
                 value={costType}
-                onValueChange={(value: "Project" | "Invoice lines" | "Booking Supplier") => setCostType(value)}
+                onValueChange={(value: "Project" | "Invoice lines" | "Booking Supplier") => {
+                  if (!isCostTypeLocked) {
+                    setCostType(value);
+                  }
+                }}
+                disabled={isCostTypeLocked}
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Project" id="project" />
-                  <Label htmlFor="project">Project</Label>
+                  <RadioGroupItem 
+                    value="Project" 
+                    id="project" 
+                    disabled={isCostTypeLocked}
+                  />
+                  <Label 
+                    htmlFor="project" 
+                    className={isCostTypeLocked ? "text-gray-400" : ""}
+                  >
+                    Project
+                  </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Invoice lines" id="invoice-lines" />
-                  <Label htmlFor="invoice-lines">Invoice lines</Label>
+                  <RadioGroupItem 
+                    value="Invoice lines" 
+                    id="invoice-lines" 
+                    disabled={isCostTypeLocked}
+                  />
+                  <Label 
+                    htmlFor="invoice-lines" 
+                    className={isCostTypeLocked ? "text-gray-400" : ""}
+                  >
+                    Invoice lines
+                  </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Booking Supplier" id="booking-supplier" />
-                  <Label htmlFor="booking-supplier">Booking Supplier</Label>
+                  <RadioGroupItem 
+                    value="Booking Supplier" 
+                    id="booking-supplier" 
+                    disabled={isCostTypeLocked}
+                  />
+                  <Label 
+                    htmlFor="booking-supplier" 
+                    className={isCostTypeLocked ? "text-gray-400" : ""}
+                  >
+                    Booking Supplier
+                  </Label>
                 </div>
               </RadioGroup>
             </div>
