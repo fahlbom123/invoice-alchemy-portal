@@ -140,10 +140,12 @@ const InvoiceForm = () => {
 
   const handleProjectSelect = (project: Project) => {
     setSelectedProject(project);
+    setFormData(prev => ({ ...prev, projectId: project.id }));
   };
 
   const handleProjectRemove = () => {
     setSelectedProject(null);
+    setFormData(prev => ({ ...prev, projectId: undefined }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
