@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Lock } from "lucide-react";
 import { useSupabaseProjects } from "@/hooks/useSupabaseProjects";
 
 interface Project {
@@ -31,11 +30,8 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
   
   const { projects, isLoading: projectsLoading } = useSupabaseProjects();
 
-  // Check if project selection is locked (when a project is already connected or disabled)
-  const isProjectLocked = selectedProject !== null || disabled;
-
   const handleSearch = () => {
-    if (isProjectLocked) return; // Prevent search when locked
+    if (disabled) return;
     
     console.log("Searching projects with:", { projectDescription, projectNumber });
     
@@ -53,7 +49,7 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
   };
 
   const handleClear = () => {
-    if (isProjectLocked) return; // Prevent clear when locked
+    if (disabled) return;
     
     setProjectDescription("");
     setProjectNumber("");
@@ -62,7 +58,7 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
   };
 
   const handleSelectProject = (project: Project) => {
-    if (isProjectLocked) return; // Prevent selection when locked
+    if (disabled) return;
     
     if (onProjectSelect) {
       onProjectSelect(project);
@@ -77,23 +73,9 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
     <>
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Search Projects
-            {isProjectLocked && (
-              <Lock className="h-4 w-4 text-gray-500" />
-            )}
-          </CardTitle>
+          <CardTitle>Search Projects</CardTitle>
         </CardHeader>
         <CardContent>
-          {isProjectLocked && (
-            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-              <p className="text-sm text-yellow-800">
-                <Lock className="inline h-4 w-4 mr-1" />
-                A project is already connected to this supplier invoice. Remove the current project before selecting a different one.
-              </p>
-            </div>
-          )}
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="space-y-2">
               <Label htmlFor="projectDescription">Project Description</Label>
@@ -102,7 +84,7 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
                 placeholder="Search by project description..."
-                disabled={isProjectLocked}
+                disabled={disabled}
               />
             </div>
 
@@ -113,7 +95,7 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
                 value={projectNumber}
                 onChange={(e) => setProjectNumber(e.target.value)}
                 placeholder="Search by project number..."
-                disabled={isProjectLocked}
+                disabled={disabled}
               />
             </div>
           </div>
@@ -122,13 +104,13 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
             <Button 
               variant="outline" 
               onClick={handleClear}
-              disabled={isProjectLocked}
+              disabled={disabled}
             >
               Clear
             </Button>
             <Button 
               onClick={handleSearch}
-              disabled={isProjectLocked}
+              disabled={disabled}
             >
               Search
             </Button>
@@ -136,7 +118,7 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
         </CardContent>
       </Card>
 
-      {!isProjectLocked && hasSearched && (
+      {hasSearched && (
         <Card>
           <CardHeader>
             <CardTitle>
@@ -182,6 +164,7 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
                           variant="outline"
                           size="sm"
                           onClick={() => handleSelectProject(project)}
+                          disabled={disabled}
                         >
                           Select
                         </Button>
@@ -196,7 +179,7 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
               </div>
             )}
           </CardContent>
-        </Card>
+        </div>
       )}
     </>
   );
