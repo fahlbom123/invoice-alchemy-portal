@@ -5,6 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ProjectSearchForm from "./ProjectSearchForm";
 import { Edit, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface InvoiceHeaderViewProps {
   formData: InvoiceFormData;
@@ -487,43 +498,36 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
         </div>
 
         {currentSelectedProject ? (
-          <>
-            <div className="space-y-2">
-              <div className="flex flex-col">
-                <span className="text-sm text-gray-500">Project Number</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{currentSelectedProject.projectNumber}</span>
-                  {!isSentToAccounting && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowProjectSearch(true)}
-                        className="h-6 w-6 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleProjectRemove}
-                        className="h-6 w-6 p-0"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
+          <div className="space-y-2 col-span-1 md:col-span-2">
+            <div className="flex flex-col">
+              <span className="text-sm text-gray-500">Project</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">
+                  {currentSelectedProject.projectNumber} - {currentSelectedProject.description}
+                </span>
+                {!isSentToAccounting && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowProjectSearch(true)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleProjectRemove}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
-
-            <div className="space-y-2">
-              <div className="flex flex-col">
-                <span className="text-sm text-gray-500">Project Description</span>
-                <span className="font-medium">{currentSelectedProject.description}</span>
-              </div>
-            </div>
-          </>
+          </div>
         ) : (
           <div className="space-y-2">
             <div className="flex flex-col">
