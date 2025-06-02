@@ -15,7 +15,6 @@ import { Invoice, InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/ty
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
-import ProjectSearchForm from "@/components/invoice/ProjectSearchForm";
 import { ArrowLeft, Edit, Trash2, Save, X, Lock } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
@@ -27,9 +26,6 @@ const InvoiceView = () => {
   const { suppliers } = useSuppliers();
   const { saveInvoice } = useSaveInvoice();
   const navigate = useNavigate();
-
-  // Add selected project state
-  const [selectedProject, setSelectedProject] = useState<any>(null);
 
   // Add state to track if invoice is cancelled
   const [isCancelled, setIsCancelled] = useState(false);
@@ -45,16 +41,11 @@ const InvoiceView = () => {
     }
   }, [invoice]);
 
-  // Determine the locked cost type based on existing supplier invoice lines OR connected project
-  const getLockedCostType = (): "Project" | "Invoice lines" | "Booking Supplier" | null => {
+  // Determine the locked cost type based on existing supplier invoice lines
+  const getLockedCostType = (): "Invoice lines" | "Booking Supplier" | null => {
     // If invoice is cancelled or sent to accounting, lock cost type
     if (isCancelled || isSentToAccounting) {
       return "Invoice lines"; // Default lock when cancelled or sent to accounting
-    }
-
-    // If a project is selected, lock to "Project" cost type
-    if (selectedProject) {
-      return "Project";
     }
 
     if (!invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0) {
@@ -89,12 +80,12 @@ const InvoiceView = () => {
   // Check if cancel button should be enabled (no lines connected)
   const canCancelInvoice = !invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0;
 
-  // Add cost type state with new option - use locked type if available
-  const [costType, setCostType] = useState<"Project" | "Invoice lines" | "Booking Supplier">(
+  // Add cost type state - remove Project option, use locked type if available
+  const [costType, setCostType] = useState<"Invoice lines" | "Booking Supplier">(
     lockedCostType || "Invoice lines"
   );
 
-  // Update cost type when invoice changes or project is selected/removed
+  // Update cost type when invoice changes
   useEffect(() => {
     if (invoice) {
       const locked = getLockedCostType();
@@ -102,7 +93,7 @@ const InvoiceView = () => {
         setCostType(locked);
       }
     }
-  }, [invoice, selectedProject]);
+  }, [invoice]);
 
   // Add the missing formData state
   const [formData, setFormData] = useState<InvoiceFormData>({
@@ -503,29 +494,9 @@ const InvoiceView = () => {
     }
   };
 
-  // Add function to handle registration with project locking checks
+  // Add function to handle registration
   const handleRegistration = async (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[], allLinesPaid?: boolean) => {
     if (!invoice) return;
-
-    // If a project is connected and we're trying to register non-project lines, prevent it
-    if (selectedProject && costType !== "Project") {
-      toast({
-        title: "Cannot Register Lines",
-        description: "Remove the connected project before registering invoice lines or booking supplier groups.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // If we have existing lines and trying to register a project, prevent it
-    if (costType === "Project" && invoice.supplierInvoiceLines && invoice.supplierInvoiceLines.length > 0) {
-      toast({
-        title: "Cannot Connect Project",
-        description: "Remove all supplier invoice lines before connecting a project.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     try {
       console.log("Registering supplier invoice lines:", supplierInvoiceLines);
@@ -586,8 +557,7 @@ const InvoiceView = () => {
           description: "All lines are now fully paid. Invoice status updated to 'paid'.",
         });
       } else {
-        const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : 
-                               costType === "Project" ? "project" : "invoice lines";
+        const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : "invoice lines";
         toast({
           title: `${costType} Registered`,
           description: `Selected ${registrationType} have been successfully registered to this supplier invoice.`,
@@ -598,37 +568,13 @@ const InvoiceView = () => {
       window.location.reload();
     } catch (error) {
       console.error("Error saving invoice:", error);
-      const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : 
-                             costType === "Project" ? "project" : "invoice lines";
+      const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : "invoice lines";
       toast({
         title: "Error",
         description: `Failed to register ${registrationType}.`,
         variant: "destructive",
       });
     }
-  };
-
-  // Add handler for project selection with locking logic
-  const handleProjectSelect = (project: any) => {
-    // If there are already supplier invoice lines and cost type is not "Project", prevent selection
-    if (invoice?.supplierInvoiceLines && invoice.supplierInvoiceLines.length > 0 && costType !== "Project") {
-      toast({
-        title: "Cannot Connect Project",
-        description: "Remove all supplier invoice lines before connecting a project.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setSelectedProject(project);
-    setCostType("Project");
-    console.log("Selected project:", project);
-  };
-
-  // Add handler for project removal
-  const handleProjectRemove = () => {
-    setSelectedProject(null);
-    // Cost type will be unlocked automatically by the getLockedCostType function
   };
 
   // Add function to cancel supplier invoice
@@ -747,7 +693,7 @@ const InvoiceView = () => {
                 registeredTotals={registeredTotals}
                 supplierInvoiceLines={invoice.supplierInvoiceLines || []}
                 invoiceId={invoice.id}
-                selectedProject={selectedProject}
+                selectedProject={null}
               />
 
               {/* Supplier Invoice Lines */}
@@ -861,54 +807,6 @@ const InvoiceView = () => {
                   </div>
                 </div>
               )}
-
-              {/* Connected Project Details */}
-              {selectedProject && (
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium">Connected Project</h3>
-                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Project Number</TableHead>
-                          <TableHead>Description</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Start Date</TableHead>
-                          <TableHead>End Date</TableHead>
-                          <TableHead>Action</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell className="font-medium">{selectedProject.projectNumber}</TableCell>
-                          <TableCell>{selectedProject.description}</TableCell>
-                          <TableCell>
-                            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                              selectedProject.status === 'Active' ? 'bg-green-100 text-green-800' :
-                              selectedProject.status === 'Planning' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {selectedProject.status}
-                            </span>
-                          </TableCell>
-                          <TableCell>{new Date(selectedProject.startDate).toLocaleDateString()}</TableCell>
-                          <TableCell>{new Date(selectedProject.endDate).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleProjectRemove}
-                              disabled={isSentToAccounting}
-                            >
-                              Remove
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -933,37 +831,20 @@ const InvoiceView = () => {
                     <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                       <p className="text-sm text-yellow-800">
                         <Lock className="inline h-4 w-4 mr-1" />
-                        {selectedProject ? (
-                          <>Cost type is locked to "Project" because a project is connected. Remove the project to change the cost type or register other lines.</>
-                        ) : (
-                          <>Cost type is locked to "{lockedCostType}" because there are already registered lines. To change the cost type, you must first delete all supplier invoice lines.</>
-                        )}
+                        Cost type is locked to "{lockedCostType}" because there are already registered lines. To change the cost type, you must first delete all supplier invoice lines.
                       </p>
                     </div>
                   )}
                   <RadioGroup 
                     className="flex space-x-4"
                     value={costType}
-                    onValueChange={(value: "Project" | "Invoice lines" | "Booking Supplier") => {
+                    onValueChange={(value: "Invoice lines" | "Booking Supplier") => {
                       if (!isCostTypeLocked) {
                         setCostType(value);
                       }
                     }}
                     disabled={isCostTypeLocked}
                   >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="Project" 
-                        id="project" 
-                        disabled={isCostTypeLocked}
-                      />
-                      <Label 
-                        htmlFor="project" 
-                        className={isCostTypeLocked ? "text-gray-400" : ""}
-                      >
-                        Project
-                      </Label>
-                    </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem 
                         value="Invoice lines" 
@@ -995,135 +876,125 @@ const InvoiceView = () => {
               </CardContent>
             </Card>
 
-            {/* Conditional Search Forms */}
-            {(costType === "Invoice lines" || costType === "Booking Supplier") && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>
-                    {costType === "Booking Supplier" ? "Search Booking Supplier" : "Search Invoice Lines"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="supplier">Supplier</Label>
-                      <Select
-                        value={supplierId}
-                        onValueChange={setSupplierId}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="All Suppliers" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Suppliers</SelectItem>
-                          {suppliers.map(supplier => (
-                            <SelectItem key={supplier.id} value={supplier.id}>
-                              {supplier.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Input
-                        id="description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Search by description..."
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="bookingNumber">Booking Number</Label>
-                      <Input
-                        id="bookingNumber"
-                        value={bookingNumber}
-                        onChange={(e) => setBookingNumber(e.target.value)}
-                        placeholder="Search by booking number..."
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmationNumber">Confirmation Number</Label>
-                      <Input
-                        id="confirmationNumber"
-                        value={confirmationNumber}
-                        onChange={(e) => setConfirmationNumber(e.target.value)}
-                        placeholder="Search by confirmation number..."
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="departureDateStart">Departure Date (From)</Label>
-                      <Input
-                        id="departureDateStart"
-                        type="date"
-                        value={departureDateStart}
-                        onChange={(e) => setDepartureDateStart(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="departureDateEnd">Departure Date (To)</Label>
-                      <Input
-                        id="departureDateEnd"
-                        type="date"
-                        value={departureDateEnd}
-                        onChange={(e) => setDepartureDateEnd(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-3 col-span-2">
-                      <Label>Payment Status</Label>
-                      <RadioGroup 
-                        className="flex space-x-4"
-                        value={paymentStatus}
-                        onValueChange={setPaymentStatus}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="all" id="all" />
-                          <Label htmlFor="all">All</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="paid" id="paid" />
-                          <Label htmlFor="paid">Paid</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="unpaid" id="unpaid" />
-                          <Label htmlFor="unpaid">Unpaid</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="partial" id="partial" />
-                          <Label htmlFor="partial">Partial Paid</Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
+            {/* Search Forms for Invoice lines and Booking Supplier */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>
+                  {costType === "Booking Supplier" ? "Search Booking Supplier" : "Search Invoice Lines"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="supplier">Supplier</Label>
+                    <Select
+                      value={supplierId}
+                      onValueChange={setSupplierId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Suppliers" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Suppliers</SelectItem>
+                        {suppliers.map(supplier => (
+                          <SelectItem key={supplier.id} value={supplier.id}>
+                            {supplier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={handleClear}>
-                      Clear
-                    </Button>
-                    <Button onClick={handleSearch}>
-                      Search
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
-            {costType === "Project" && (
-              <ProjectSearchForm 
-                onProjectSelect={handleProjectSelect} 
-                selectedProject={selectedProject}
-                disabled={selectedProject !== null}
-              />
-            )}
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Search by description..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bookingNumber">Booking Number</Label>
+                    <Input
+                      id="bookingNumber"
+                      value={bookingNumber}
+                      onChange={(e) => setBookingNumber(e.target.value)}
+                      placeholder="Search by booking number..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmationNumber">Confirmation Number</Label>
+                    <Input
+                      id="confirmationNumber"
+                      value={confirmationNumber}
+                      onChange={(e) => setConfirmationNumber(e.target.value)}
+                      placeholder="Search by confirmation number..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="departureDateStart">Departure Date (From)</Label>
+                    <Input
+                      id="departureDateStart"
+                      type="date"
+                      value={departureDateStart}
+                      onChange={(e) => setDepartureDateStart(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="departureDateEnd">Departure Date (To)</Label>
+                    <Input
+                      id="departureDateEnd"
+                      type="date"
+                      value={departureDateEnd}
+                      onChange={(e) => setDepartureDateEnd(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-3 col-span-2">
+                    <Label>Payment Status</Label>
+                    <RadioGroup 
+                      className="flex space-x-4"
+                      value={paymentStatus}
+                      onValueChange={setPaymentStatus}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="all" id="all" />
+                        <Label htmlFor="all">All</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="paid" id="paid" />
+                        <Label htmlFor="paid">Paid</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="unpaid" id="unpaid" />
+                        <Label htmlFor="unpaid">Unpaid</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="partial" id="partial" />
+                        <Label htmlFor="partial">Partial Paid</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" onClick={handleClear}>
+                    Clear
+                  </Button>
+                  <Button onClick={handleSearch}>
+                    Search
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Search Results for both Invoice lines and Booking Supplier */}
-            {(costType === "Invoice lines" || costType === "Booking Supplier") && hasSearched && (
+            {hasSearched && (
               <Card>
                 <CardHeader>
                   <CardTitle>
