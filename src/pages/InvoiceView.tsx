@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -216,19 +217,26 @@ const InvoiceView = () => {
     if (!invoice || !editingLine) return;
 
     try {
-      // Update the supplier invoice line in the invoice
-      const updatedSupplierInvoiceLines = (invoice.supplierInvoiceLines || []).map(line =>
-        line.id === editingLine.id ? editingLine : line
-      );
+      // Update in Supabase
+      const { error } = await supabase
+        .from('supplier_invoice_lines')
+        .update({
+          description: editingLine.description,
+          actual_cost: editingLine.actualCost,
+          actual_vat: editingLine.actualVat,
+        })
+        .eq('id', editingLine.id);
 
-      const updatedInvoice = {
-        ...invoice,
-        supplierInvoiceLines: updatedSupplierInvoiceLines,
-        updatedAt: new Date().toISOString(),
-      };
+      if (error) {
+        console.error('Error updating supplier invoice line:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update supplier invoice line.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      await saveInvoice(updatedInvoice);
-      
       toast({
         title: "Line Updated",
         description: "Supplier invoice line has been updated successfully.",
@@ -254,19 +262,22 @@ const InvoiceView = () => {
     if (!invoice) return;
 
     try {
-      // Remove the supplier invoice line from the invoice
-      const updatedSupplierInvoiceLines = (invoice.supplierInvoiceLines || []).filter(
-        line => line.id !== supplierLineId
-      );
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('supplier_invoice_lines')
+        .delete()
+        .eq('id', supplierLineId);
 
-      const updatedInvoice = {
-        ...invoice,
-        supplierInvoiceLines: updatedSupplierInvoiceLines,
-        updatedAt: new Date().toISOString(),
-      };
+      if (error) {
+        console.error('Error deleting supplier invoice line:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete supplier invoice line.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      await saveInvoice(updatedInvoice);
-      
       toast({
         title: "Line Deleted",
         description: "Supplier invoice line has been deleted successfully.",
@@ -409,31 +420,48 @@ const InvoiceView = () => {
     }
   };
 
-  // Add function to handle registration
+  // Add function to handle registration - this creates supplier invoice lines
   const handleRegistration = async (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[], allLinesPaid?: boolean) => {
     if (!invoice) return;
 
     try {
       console.log("Registering supplier invoice lines:", supplierInvoiceLines);
-      console.log("Selected lines with actual values:", selectedLines.map(line => ({
-        id: line.id,
-        description: line.description,
-        actualCost: line.actualCost,
-        actualVat: line.actualVat
-      })));
+      
+      // Save each supplier invoice line to Supabase
+      const insertPromises = supplierInvoiceLines.map(async (line) => {
+        const { error } = await supabase
+          .from('supplier_invoice_lines')
+          .insert({
+            invoice_line_id: line.invoiceLineId,
+            actual_cost: line.actualCost,
+            actual_vat: line.actualVat,
+            currency: line.currency,
+            description: line.description,
+            supplier_name: line.supplierName,
+            created_by: line.createdBy || 'System',
+          });
+
+        if (error) {
+          console.error('Error inserting supplier invoice line:', error);
+          throw error;
+        }
+      });
+
+      await Promise.all(insertPromises);
 
       // Determine new status based on whether all lines are paid
       const newStatus = allLinesPaid ? "paid" : invoice.status;
 
-      // Update the invoice with supplier invoice lines and potentially change status to paid
-      const updatedInvoice = {
-        ...invoice,
-        status: newStatus,
-        supplierInvoiceLines: [...(invoice.supplierInvoiceLines || []), ...supplierInvoiceLines],
-        updatedAt: new Date().toISOString(),
-      };
+      // Update the invoice status if needed
+      if (newStatus !== invoice.status) {
+        const updatedInvoice = {
+          ...invoice,
+          status: newStatus,
+          updatedAt: new Date().toISOString(),
+        };
+        await saveInvoice(updatedInvoice);
+      }
 
-      await saveInvoice(updatedInvoice);
       setRegisteredTotals(totals);
       
       // Reload supplier invoice lines from database to get updated totals
