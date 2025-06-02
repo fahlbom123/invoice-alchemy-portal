@@ -3,7 +3,6 @@ import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import ProjectSearchForm from "./ProjectSearchForm";
 import { Edit, Trash2 } from "lucide-react";
 
@@ -387,38 +386,6 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
   // Check if invoice is sent to accounting (locked state)
   const isSentToAccounting = formData.status === "sent_to_accounting";
 
-  // Handle cancel invoice with confirmation
-  const handleCancelInvoice = () => {
-    if (!invoiceId) return;
-
-    try {
-      const savedInvoices = localStorage.getItem('invoices');
-      if (!savedInvoices) return;
-
-      const invoices = JSON.parse(savedInvoices);
-      const updatedInvoices = invoices.map((invoice: any) => {
-        if (invoice.id === invoiceId) {
-          return {
-            ...invoice,
-            status: "cancelled",
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return invoice;
-      });
-
-      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
-      
-      // Dispatch custom event to notify other components
-      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
-      
-      // Refresh the page to show updated data
-      window.location.reload();
-    } catch (error) {
-      console.error('Error cancelling invoice:', error);
-    }
-  };
-
   // Check if invoice can be sent to accounting
   const canSendToAccounting = () => {
     return totalEstimatedCost > 0 || currentSelectedProject !== null;
@@ -660,44 +627,15 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
         )}
       </div>
 
-      {/* Action buttons section - moved to bottom right */}
-      <div className="flex justify-between items-center pt-6">
-        <div>
-          {!isSentToAccounting && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">
-                  Cancel Invoice
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Cancel Invoice</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to cancel this invoice? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleCancelInvoice}>
-                    OK
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-        </div>
-        
-        <div>
-          <Button
-            onClick={handleSendToAccounting}
-            disabled={isSentToAccounting || !canSendToAccounting()}
-            variant={isSentToAccounting ? "secondary" : "default"}
-            className="ml-auto"
-          >
-            {isSentToAccounting ? "Sent to Accounting" : "Send to Accounting"}
-          </Button>
-        </div>
+      {/* Action buttons section - only Send to Accounting button */}
+      <div className="flex justify-end items-center pt-6">
+        <Button
+          onClick={handleSendToAccounting}
+          disabled={isSentToAccounting || !canSendToAccounting()}
+          variant={isSentToAccounting ? "secondary" : "default"}
+        >
+          {isSentToAccounting ? "Sent to Accounting" : "Send to Accounting"}
+        </Button>
       </div>
     </div>
   );
