@@ -18,16 +18,17 @@ interface Project {
 interface ProjectSearchFormProps {
   onProjectSelect?: (project: Project) => void;
   selectedProject?: Project | null;
+  disabled?: boolean;
 }
 
-const ProjectSearchForm = ({ onProjectSelect, selectedProject }: ProjectSearchFormProps) => {
+const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false }: ProjectSearchFormProps) => {
   const [projectDescription, setProjectDescription] = useState<string>("");
   const [projectNumber, setProjectNumber] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Project[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Check if project selection is locked (when a project is already connected)
-  const isProjectLocked = selectedProject !== null;
+  // Check if project selection is locked (when a project is already connected or disabled)
+  const isProjectLocked = selectedProject !== null || disabled;
 
   const exampleProjects: Project[] = [
     {
