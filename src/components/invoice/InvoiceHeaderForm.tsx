@@ -181,7 +181,7 @@ const InvoiceHeaderForm = ({
       <div className="space-y-2">
         <Label htmlFor="periodizationMonth">Periodization Month</Label>
         <Select
-          value={formData.periodizationMonth?.toString() || new Date().getMonth() + 1}
+          value={formData.periodizationMonth?.toString() || (new Date().getMonth() + 1).toString()}
           onValueChange={(value) => handleSelectChange('periodizationMonth', value)}
         >
           <SelectTrigger>
