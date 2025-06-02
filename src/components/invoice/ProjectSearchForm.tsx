@@ -179,7 +179,7 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
               </div>
             )}
           </CardContent>
-        </div>
+        </Card>
       )}
     </>
   );
