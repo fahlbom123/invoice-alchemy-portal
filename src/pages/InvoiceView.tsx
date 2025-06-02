@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useInvoiceById, useInvoices, useSaveInvoice } from "@/hooks/useInvoices";
-import { useSuppliers } from "@/hooks/useSuppliers";
+import { useSuppliers, useSupabaseProjects } from "@/hooks/useSuppliers";
 import { Invoice, InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
@@ -26,6 +26,12 @@ const InvoiceView = () => {
   const { suppliers } = useSuppliers();
   const { saveInvoice } = useSaveInvoice();
   const navigate = useNavigate();
+
+  // Fetch projects from Supabase
+  const { projects, isLoading: isLoadingProjects } = useSupabaseProjects();
+  
+  // Find the actual project data if the invoice has a project ID
+  const selectedProject = invoice?.projectId ? projects.find(p => p.id === invoice.projectId) : null;
 
   // Add state to track if invoice is cancelled
   const [isCancelled, setIsCancelled] = useState(false);
@@ -733,34 +739,49 @@ const InvoiceView = () => {
                 registeredTotals={registeredTotals}
                 supplierInvoiceLines={invoice.supplierInvoiceLines || []}
                 invoiceId={invoice.id}
-                selectedProject={invoice.projectId ? {
-                  id: invoice.projectId,
-                  projectNumber: "Loading...",
-                  description: "Loading...",
-                  status: "Unknown",
-                  startDate: "",
-                  endDate: ""
-                } : null}
+                selectedProject={selectedProject}
               />
 
               {/* Project Details Section */}
               <div className="space-y-2">
                 <h3 className="text-lg font-medium">Project</h3>
                 <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                  {invoice.projectId ? (
+                  {selectedProject ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <div className="flex flex-col">
                           <span className="text-sm text-gray-500">Project Number</span>
-                          <span className="font-medium">Loading...</span>
+                          <span className="font-medium">{selectedProject.projectNumber}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <div className="flex flex-col">
                           <span className="text-sm text-gray-500">Project Description</span>
-                          <span className="font-medium">Loading...</span>
+                          <span className="font-medium">{selectedProject.description}</span>
                         </div>
                       </div>
+                      <div className="space-y-2">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-500">Status</span>
+                          <span className="font-medium">{selectedProject.status}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-500">Start Date</span>
+                          <span className="font-medium">{new Date(selectedProject.startDate).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-500">End Date</span>
+                          <span className="font-medium">{new Date(selectedProject.endDate).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isLoadingProjects && invoice.projectId ? (
+                    <div className="text-center py-4 text-gray-500">
+                      Loading project information...
                     </div>
                   ) : (
                     <div className="text-center py-4 text-gray-500">

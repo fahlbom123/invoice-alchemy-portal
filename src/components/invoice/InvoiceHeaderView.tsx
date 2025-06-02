@@ -4,6 +4,7 @@ import { formatCurrency } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ProjectSearchForm from "./ProjectSearchForm";
+import { useSupabaseProjects } from "@/hooks/useSupabaseProjects";
 
 interface InvoiceHeaderViewProps {
   formData: InvoiceFormData;
@@ -68,6 +69,12 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
   const [currentSelectedProject, setCurrentSelectedProject] = useState<Project | null>(selectedProject);
   const [periodizationYear, setPeriodizationYear] = useState(formData.periodizationYear || new Date().getFullYear());
   const [periodizationMonth, setPeriodizationMonth] = useState(formData.periodizationMonth || new Date().getMonth() + 1);
+
+  // Fetch projects from Supabase
+  const { projects, isLoading: isLoadingProjects } = useSupabaseProjects();
+  
+  // Find the actual project data if we have a project ID
+  const actualProject = formData.projectId ? projects.find(p => p.id === formData.projectId) : null;
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
@@ -328,7 +335,7 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
 
   // Check if invoice can be sent to accounting
   const canSendToAccounting = () => {
-    return totalEstimatedCost > 0 || currentSelectedProject !== null;
+    return totalEstimatedCost > 0 || actualProject !== null;
   };
 
   return (
@@ -401,10 +408,12 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
         <div className="space-y-2">
           <div className="flex flex-col">
             <span className="text-sm text-gray-500">Project</span>
-            {selectedProject ? (
+            {actualProject ? (
               <span className="font-medium">
-                {selectedProject.projectNumber} - {selectedProject.description}
+                {actualProject.projectNumber} - {actualProject.description}
               </span>
+            ) : isLoadingProjects && formData.projectId ? (
+              <span className="font-medium text-gray-500">Loading...</span>
             ) : (
               <span className="font-medium text-gray-400">No project connected</span>
             )}
