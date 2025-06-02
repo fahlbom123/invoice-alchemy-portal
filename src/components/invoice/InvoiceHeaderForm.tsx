@@ -28,12 +28,30 @@ const vatAccounts = [
   { code: "2645", description: "Calculated input VAT (reverse charge)" },
 ];
 
+const months = [
+  { value: 1, label: "January" },
+  { value: 2, label: "February" },
+  { value: 3, label: "March" },
+  { value: 4, label: "April" },
+  { value: 5, label: "May" },
+  { value: 6, label: "June" },
+  { value: 7, label: "July" },
+  { value: 8, label: "August" },
+  { value: 9, label: "September" },
+  { value: 10, label: "October" },
+  { value: 11, label: "November" },
+  { value: 12, label: "December" },
+];
+
 const InvoiceHeaderForm = ({
   formData,
   handleInputChange,
   handleNumberInputChange,
   handleSelectChange,
 }: InvoiceHeaderFormProps) => {
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-2">
@@ -135,6 +153,44 @@ const InvoiceHeaderForm = ({
             {vatAccounts.map((account) => (
               <SelectItem key={account.code} value={account.code}>
                 {account.code} - {account.description}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="periodizationYear">Periodization Year</Label>
+        <Select
+          value={formData.periodizationYear?.toString() || currentYear.toString()}
+          onValueChange={(value) => handleSelectChange('periodizationYear', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select year" />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            {years.map((year) => (
+              <SelectItem key={year} value={year.toString()}>
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="periodizationMonth">Periodization Month</Label>
+        <Select
+          value={formData.periodizationMonth?.toString() || new Date().getMonth() + 1}
+          onValueChange={(value) => handleSelectChange('periodizationMonth', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select month" />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            {months.map((month) => (
+              <SelectItem key={month.value} value={month.value.toString()}>
+                {month.label}
               </SelectItem>
             ))}
           </SelectContent>

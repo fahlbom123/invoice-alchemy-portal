@@ -75,6 +75,8 @@ export interface Invoice {
   source?: "Fortnox" | "Manual";
   account?: string;
   vatAccount?: string;
+  periodizationYear?: number;
+  periodizationMonth?: number;
 }
 
 export interface InvoiceFormData {
@@ -94,4 +96,6 @@ export interface InvoiceFormData {
   source?: "Fortnox" | "Manual";
   account?: string;
   vatAccount?: string;
+  periodizationYear?: number;
+  periodizationMonth?: number;
 }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -49,10 +50,30 @@ const vatAccounts = [
   { code: "2645", description: "Calculated input VAT (reverse charge)" },
 ];
 
+const months = [
+  { value: 1, label: "January" },
+  { value: 2, label: "February" },
+  { value: 3, label: "March" },
+  { value: 4, label: "April" },
+  { value: 5, label: "May" },
+  { value: 6, label: "June" },
+  { value: 7, label: "July" },
+  { value: 8, label: "August" },
+  { value: 9, label: "September" },
+  { value: 10, label: "October" },
+  { value: 11, label: "November" },
+  { value: 12, label: "December" },
+];
+
 const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [], invoiceId, selectedProject }: InvoiceHeaderViewProps) => {
   const [source, setSource] = useState<"Fortnox" | "Manual">(formData.source || "Manual");
   const [currentSelectedProject, setCurrentSelectedProject] = useState<Project | null>(selectedProject);
   const [showProjectSearch, setShowProjectSearch] = useState(false);
+  const [periodizationYear, setPeriodizationYear] = useState(formData.periodizationYear || new Date().getFullYear());
+  const [periodizationMonth, setPeriodizationMonth] = useState(formData.periodizationMonth || new Date().getMonth() + 1);
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 
   // Helper function to capitalize status
   const capitalizeStatus = (status: string) => {
@@ -77,6 +98,12 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
   const getVatAccountDescription = (code: string) => {
     const account = vatAccounts.find(acc => acc.code === code);
     return account ? `${account.code} - ${account.description}` : code;
+  };
+
+  // Helper function to get month name
+  const getMonthName = (monthNumber: number) => {
+    const month = months.find(m => m.value === monthNumber);
+    return month ? month.label : monthNumber.toString();
   };
 
   // Calculate registered totals from supplier invoice lines
@@ -219,6 +246,44 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
       window.dispatchEvent(new CustomEvent('invoicesUpdated'));
     } catch (error) {
       console.error('Error updating invoice source:', error);
+    }
+  };
+
+  // Handle periodization changes
+  const handlePeriodizationChange = (field: 'year' | 'month', value: string) => {
+    const numValue = parseInt(value);
+    
+    if (field === 'year') {
+      setPeriodizationYear(numValue);
+    } else {
+      setPeriodizationMonth(numValue);
+    }
+    
+    // Update invoice in localStorage
+    if (!invoiceId) return;
+
+    try {
+      const savedInvoices = localStorage.getItem('invoices');
+      if (!savedInvoices) return;
+
+      const invoices = JSON.parse(savedInvoices);
+      const updatedInvoices = invoices.map((invoice: any) => {
+        if (invoice.id === invoiceId) {
+          return {
+            ...invoice,
+            [field === 'year' ? 'periodizationYear' : 'periodizationMonth']: numValue,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return invoice;
+      });
+
+      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
+    } catch (error) {
+      console.error('Error updating invoice periodization:', error);
     }
   };
 
@@ -403,6 +468,56 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
           </div>
         </div>
 
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">Periodization Year</span>
+            {isSentToAccounting ? (
+              <span className="font-medium">{periodizationYear}</span>
+            ) : (
+              <Select
+                value={periodizationYear.toString()}
+                onValueChange={(value) => handlePeriodizationChange('year', value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">Periodization Month</span>
+            {isSentToAccounting ? (
+              <span className="font-medium">{getMonthName(periodizationMonth)}</span>
+            ) : (
+              <Select
+                value={periodizationMonth.toString()}
+                onValueChange={(value) => handlePeriodizationChange('month', value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {months.map((month) => (
+                    <SelectItem key={month.value} value={month.value.toString()}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>
+
         {currentSelectedProject ? (
           <>
             <div className="space-y-2">
@@ -438,15 +553,6 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
               <div className="flex flex-col">
                 <span className="text-sm text-gray-500">Project Description</span>
                 <span className="font-medium">{currentSelectedProject.description}</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex flex-col">
-                <span className="text-sm text-gray-500">Project Period</span>
-                <span className="font-medium">
-                  {new Date(currentSelectedProject.startDate).toLocaleDateString()} - {new Date(currentSelectedProject.endDate).toLocaleDateString()}
-                </span>
               </div>
             </div>
           </>

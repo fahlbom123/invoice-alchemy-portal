@@ -36,6 +36,8 @@ const InvoiceForm = () => {
     ocr: "",
     account: "4010",
     vatAccount: "2641",
+    periodizationYear: new Date().getFullYear(),
+    periodizationMonth: new Date().getMonth() + 1,
   });
 
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
@@ -65,6 +67,8 @@ const InvoiceForm = () => {
         ocr: invoice.ocr || "",
         account: invoice.account || "4010",
         vatAccount: invoice.vatAccount || "2641",
+        periodizationYear: invoice.periodizationYear || new Date().getFullYear(),
+        periodizationMonth: invoice.periodizationMonth || new Date().getMonth() + 1,
       });
     }
   }, [invoice, isEditing]);
@@ -94,7 +98,11 @@ const InvoiceForm = () => {
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'periodizationYear' || name === 'periodizationMonth') {
+      setFormData(prev => ({ ...prev, [name]: parseInt(value) }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSupplierChange = (supplierId: string) => {
