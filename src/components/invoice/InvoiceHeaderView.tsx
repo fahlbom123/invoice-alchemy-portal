@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -471,50 +470,14 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
         <div className="space-y-2">
           <div className="flex flex-col">
             <span className="text-sm text-gray-500">Periodization Year</span>
-            {isSentToAccounting ? (
-              <span className="font-medium">{periodizationYear}</span>
-            ) : (
-              <Select
-                value={periodizationYear.toString()}
-                onValueChange={(value) => handlePeriodizationChange('year', value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {years.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <span className="font-medium">{formData.periodizationYear || new Date().getFullYear()}</span>
           </div>
         </div>
 
         <div className="space-y-2">
           <div className="flex flex-col">
             <span className="text-sm text-gray-500">Periodization Month</span>
-            {isSentToAccounting ? (
-              <span className="font-medium">{getMonthName(periodizationMonth)}</span>
-            ) : (
-              <Select
-                value={periodizationMonth.toString()}
-                onValueChange={(value) => handlePeriodizationChange('month', value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {months.map((month) => (
-                    <SelectItem key={month.value} value={month.value.toString()}>
-                      {month.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <span className="font-medium">{getMonthName(formData.periodizationMonth || new Date().getMonth() + 1)}</span>
           </div>
         </div>
 
