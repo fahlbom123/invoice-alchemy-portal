@@ -44,6 +44,9 @@ export function useSupabaseInvoices() {
         ocr: invoice.ocr,
         source: invoice.source as "Fortnox" | "Manual",
         account: invoice.account,
+        vatAccount: null, // This field doesn't exist in the database schema
+        periodizationYear: null, // This field doesn't exist in the database schema
+        periodizationMonth: null, // This field doesn't exist in the database schema
         updatedAt: invoice.updated_at,
         projectId: invoice.project_id,
         supplier: {
@@ -146,6 +149,9 @@ export function useSupabaseInvoiceById(id: string) {
           ocr: data.ocr,
           source: data.source as "Fortnox" | "Manual",
           account: data.account,
+          vatAccount: null, // This field doesn't exist in the database schema
+          periodizationYear: null, // This field doesn't exist in the database schema
+          periodizationMonth: null, // This field doesn't exist in the database schema
           updatedAt: data.updated_at,
           projectId: data.project_id,
           supplier: {
