@@ -74,6 +74,7 @@ export interface Invoice {
   ocr?: string;
   source?: "Fortnox" | "Manual";
   account?: string;
+  vatAccount?: string;
 }
 
 export interface InvoiceFormData {
@@ -92,4 +93,5 @@ export interface InvoiceFormData {
   ocr?: string;
   source?: "Fortnox" | "Manual";
   account?: string;
+  vatAccount?: string;
 }

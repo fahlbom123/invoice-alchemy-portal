@@ -22,6 +22,22 @@ interface InvoiceHeaderViewProps {
   } | null;
 }
 
+const costAccounts = [
+  { code: "4010", description: "Purchase of goods" },
+  { code: "4020", description: "Domestic purchase of goods" },
+  { code: "4050", description: "Purchase of goods from EU" },
+  { code: "4531", description: "Purchase of services outside EU" },
+  { code: "5460", description: "Consumables / Supplies" },
+  { code: "6110", description: "Office supplies" },
+  { code: "6540", description: "IT services" },
+];
+
+const vatAccounts = [
+  { code: "2641", description: "Input VAT" },
+  { code: "2614", description: "Output VAT (reverse charge)" },
+  { code: "2645", description: "Calculated input VAT (reverse charge)" },
+];
+
 const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [], invoiceId, selectedProject }: InvoiceHeaderViewProps) => {
   const [source, setSource] = useState<"Fortnox" | "Manual">(formData.source || "Manual");
 
@@ -37,6 +53,17 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
       return "Sent to Accounting";
     }
     return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  // Helper function to get account description
+  const getCostAccountDescription = (code: string) => {
+    const account = costAccounts.find(acc => acc.code === code);
+    return account ? `${account.code} - ${account.description}` : code;
+  };
+
+  const getVatAccountDescription = (code: string) => {
+    const account = vatAccounts.find(acc => acc.code === code);
+    return account ? `${account.code} - ${account.description}` : code;
   };
 
   // Calculate registered totals from supplier invoice lines
@@ -265,8 +292,15 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
 
         <div className="space-y-2">
           <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Account</span>
-            <span className="font-medium">{formData.account || "4010"}</span>
+            <span className="text-sm text-gray-500">Cost Account</span>
+            <span className="font-medium">{getCostAccountDescription(formData.account || "4010")}</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">VAT Account</span>
+            <span className="font-medium">{getVatAccountDescription(formData.vatAccount || "2641")}</span>
           </div>
         </div>
 
