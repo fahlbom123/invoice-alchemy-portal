@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useInvoiceById, useInvoices, useSaveInvoice } from "@/hooks/useInvoices";
+import { useSupabaseInvoiceLines } from "@/hooks/useSupabaseInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useSupabaseProjects } from "@/hooks/useSupabaseProjects";
 import { Invoice, InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
@@ -25,6 +25,7 @@ const InvoiceView = () => {
   const { id } = useParams<{ id: string }>();
   const { invoice, isLoading } = useInvoiceById(id || "");
   const { invoices, isLoading: isLoadingInvoices } = useInvoices();
+  const { invoiceLines: supabaseInvoiceLines, isLoading: isLoadingInvoiceLines } = useSupabaseInvoiceLines();
   const { suppliers } = useSuppliers();
   const { saveInvoice } = useSaveInvoice();
   const navigate = useNavigate();
@@ -89,19 +90,17 @@ const InvoiceView = () => {
   const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Extract all invoice lines from all invoices - now include invoice total amount
-  const allInvoiceLines = invoices.flatMap(invoice => 
-    invoice.invoiceLines.map(line => ({
-      ...line,
-      invoiceId: invoice.id,
-      invoiceNumber: invoice.invoiceNumber,
-      bookingNumber: line.bookingNumber || "",
-      confirmationNumber: line.confirmationNumber || "",
-      departureDate: line.departureDate || "",
-      paymentStatus: line.paymentStatus || "unpaid",
-      invoiceTotalAmount: invoice.totalAmount || 0
-    }))
-  );
+  // Use Supabase invoice lines instead of invoice lines from invoices
+  const allInvoiceLines = supabaseInvoiceLines.map(line => ({
+    ...line,
+    invoiceId: line.invoiceId || '',
+    invoiceNumber: line.invoiceNumber || '',
+    bookingNumber: line.bookingNumber || "",
+    confirmationNumber: line.confirmationNumber || "",
+    departureDate: line.departureDate || "",
+    paymentStatus: line.paymentStatus || "unpaid",
+    invoiceTotalAmount: 0
+  }));
 
   // Get all supplier invoice lines from all invoices
   const allSupplierInvoiceLines = invoices.flatMap(invoice => 
@@ -270,6 +269,8 @@ const InvoiceView = () => {
   };
 
   const handleSearch = () => {
+    console.log("Searching through", allInvoiceLines.length, "invoice lines");
+    
     const filtered = allInvoiceLines.filter(line => {
       const matchesSupplier = supplierId === "all" || line.supplierId === supplierId;
       const matchesDescription = !description || 
@@ -300,6 +301,7 @@ const InvoiceView = () => {
              matchesPaymentStatus;
     });
     
+    console.log("Search found", filtered.length, "results");
     setSearchResults(filtered);
     setHasSearched(true);
   };
@@ -469,7 +471,7 @@ const InvoiceView = () => {
     }
   };
 
-  if (isLoading || isLoadingInvoices) {
+  if (isLoading || isLoadingInvoices || isLoadingInvoiceLines) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
@@ -680,7 +682,7 @@ const InvoiceView = () => {
             {/* Search Forms for Invoice lines */}
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Search Invoice Lines</CardTitle>
+                <CardTitle>Search Invoice Lines ({allInvoiceLines.length} total lines available)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
