@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from "sonner";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useInvoiceById, useSaveInvoice, useInvoices } from "@/hooks/useInvoices";
+import { useSupabaseProjects } from "@/hooks/useSupabaseProjects";
 import { InvoiceFormData } from "@/types/invoice";
 import SupplierSelector from "@/components/invoice/SupplierSelector";
 import SupplierDetails from "@/components/invoice/SupplierDetails";
@@ -29,6 +29,7 @@ const InvoiceForm = () => {
   const { invoice, isLoading: isLoadingInvoice } = useInvoiceById(id || "");
   const { invoices } = useInvoices();
   const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers();
+  const { projects, isLoading: isLoadingProjects } = useSupabaseProjects();
   const { saveInvoice, isLoading: isSaving } = useSaveInvoice();
   const navigate = useNavigate();
 
@@ -61,7 +62,7 @@ const InvoiceForm = () => {
     : null;
 
   useEffect(() => {
-    if (invoice && isEditing) {
+    if (invoice && isEditing && projects.length > 0) {
       setFormData({
         invoiceNumber: invoice.invoiceNumber,
         reference: invoice.reference,
@@ -81,35 +82,27 @@ const InvoiceForm = () => {
         vatAccount: invoice.vatAccount || "2641",
         periodizationYear: invoice.periodizationYear || new Date().getFullYear(),
         periodizationMonth: invoice.periodizationMonth || new Date().getMonth() + 1,
+        projectId: invoice.projectId,
       });
 
       // Load project if it exists
       if (invoice.projectId) {
-        // Try to get project from localStorage
-        try {
-          const savedProjects = localStorage.getItem('projects');
-          if (savedProjects) {
-            const projects = JSON.parse(savedProjects);
-            const project = projects.find((p: any) => p.id === invoice.projectId);
-            if (project) {
-              setSelectedProject({
-                id: project.id,
-                projectNumber: project.projectNumber,
-                description: project.description,
-                status: project.status,
-                startDate: project.startDate,
-                endDate: project.endDate
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Error loading project:', error);
+        const project = projects.find(p => p.id === invoice.projectId);
+        if (project) {
+          setSelectedProject({
+            id: project.id,
+            projectNumber: project.projectNumber,
+            description: project.description,
+            status: project.status,
+            startDate: project.startDate,
+            endDate: project.endDate
+          });
         }
       }
     }
-  }, [invoice, isEditing]);
+  }, [invoice, isEditing, projects]);
 
-  if ((isLoadingInvoice && isEditing) || isLoadingSuppliers) {
+  if ((isLoadingInvoice && isEditing) || isLoadingSuppliers || isLoadingProjects) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
