@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -114,6 +115,13 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
   const getMonthName = (monthNumber: number) => {
     const month = months.find(m => m.value === monthNumber);
     return month ? month.label : monthNumber.toString();
+  };
+
+  // Helper function to format periodization for display
+  const formatPeriodization = () => {
+    const year = formData.periodizationYear || new Date().getFullYear();
+    const month = formData.periodizationMonth || new Date().getMonth() + 1;
+    return `${getMonthName(month)} ${year}`;
   };
 
   // Calculate registered totals from supplier invoice lines
@@ -485,15 +493,8 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
 
         <div className="space-y-2">
           <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Periodization Year</span>
-            <span className="font-medium">{formData.periodizationYear || new Date().getFullYear()}</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Periodization Month</span>
-            <span className="font-medium">{getMonthName(formData.periodizationMonth || new Date().getMonth() + 1)}</span>
+            <span className="text-sm text-gray-500">Periodization</span>
+            <span className="font-medium">{formatPeriodization()}</span>
           </div>
         </div>
 
