@@ -67,7 +67,14 @@ const InvoiceView = () => {
     currency: "USD",
     totalAmount: 0,
     totalVat: 0,
+    vat: 0,
     ocr: "",
+    source: undefined,
+    account: "",
+    vatAccount: "",
+    periodizationYear: undefined,
+    periodizationMonth: undefined,
+    projectId: undefined,
   });
 
   // Add state for registered totals
@@ -177,7 +184,14 @@ const InvoiceView = () => {
         currency: invoice.currency || "USD",
         totalAmount: invoice.totalAmount || 0,
         totalVat: invoice.totalVat || 0,
+        vat: invoice.vat || 0,
         ocr: invoice.ocr || "",
+        source: invoice.source || undefined,
+        account: invoice.account || "",
+        vatAccount: invoice.vatAccount || "",
+        periodizationYear: invoice.periodizationYear || undefined,
+        periodizationMonth: invoice.periodizationMonth || undefined,
+        projectId: invoice.projectId || undefined,
       });
       
       // Set the supplier search filter to match the current invoice's supplier
