@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Invoice, InvoiceLine, InvoiceLineWithReference } from "@/types/invoice";
+import { Invoice, InvoiceLine, InvoiceLineWithReference, SupplierInvoiceLine } from "@/types/invoice";
 
 export function useSupabaseInvoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -27,62 +27,90 @@ export function useSupabaseInvoices() {
         return;
       }
 
+      // Fetch all supplier invoice lines
+      const { data: supplierInvoiceData, error: supplierError } = await supabase
+        .from('supplier_invoice_lines')
+        .select('*');
+
+      if (supplierError) {
+        console.error('Error fetching supplier invoice lines:', supplierError);
+      }
+
       // Transform database format to match our interface
-      const transformedInvoices: Invoice[] = invoicesData.map(invoice => ({
-        id: invoice.id,
-        invoiceNumber: invoice.invoice_number,
-        reference: invoice.reference,
-        createdAt: invoice.created_at,
-        dueDate: invoice.due_date,
-        invoiceDate: invoice.invoice_date,
-        status: invoice.status,
-        totalAmount: parseFloat(String(invoice.total_amount || '0')),
-        notes: invoice.notes,
-        currency: invoice.currency,
-        vat: parseFloat(String(invoice.vat || '0')),
-        totalVat: parseFloat(String(invoice.total_vat || '0')),
-        ocr: invoice.ocr,
-        source: invoice.source as "Fortnox" | "Manual",
-        account: invoice.account,
-        vatAccount: null, // This field doesn't exist in the database schema
-        periodizationYear: null, // This field doesn't exist in the database schema
-        periodizationMonth: null, // This field doesn't exist in the database schema
-        updatedAt: invoice.updated_at,
-        projectId: invoice.project_id,
-        supplier: {
-          id: invoice.suppliers.id,
-          name: invoice.suppliers.name,
-          email: invoice.suppliers.email,
-          phone: invoice.suppliers.phone,
-          accountNumber: invoice.suppliers.account_number,
-          defaultCurrency: invoice.suppliers.default_currency,
-          currencyRate: invoice.suppliers.currency_rate,
-          address: invoice.suppliers.address,
-          zipCode: invoice.suppliers.zip_code,
-          city: invoice.suppliers.city,
-          country: invoice.suppliers.country
-        },
-        invoiceLines: invoice.invoice_lines.map((line: any) => ({
-          id: line.id,
-          description: line.description,
-          quantity: parseFloat(String(line.quantity || '1')),
-          unitPrice: parseFloat(String(line.unit_price || '0')),
-          estimatedCost: parseFloat(String(line.estimated_cost || '0')),
-          actualCost: line.actual_cost ? parseFloat(String(line.actual_cost)) : undefined,
-          supplierId: line.supplier_id,
-          supplierName: line.supplier_name,
-          supplierPartNumber: line.supplier_part_number,
-          bookingNumber: line.booking_number,
-          confirmationNumber: line.confirmation_number,
-          departureDate: line.departure_date,
-          paymentStatus: line.payment_status as "paid" | "unpaid" | "partial",
-          fullyInvoiced: line.fully_invoiced,
-          currency: line.currency,
-          invoiceType: line.invoice_type as "single" | "multi",
-          estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
-          actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
-        }))
-      }));
+      const transformedInvoices: Invoice[] = invoicesData.map(invoice => {
+        // Find supplier invoice lines that belong to this invoice's invoice lines
+        const invoiceLineIds = invoice.invoice_lines.map((line: any) => line.id);
+        const relatedSupplierLines = (supplierInvoiceData || [])
+          .filter((supplierLine: any) => invoiceLineIds.includes(supplierLine.invoice_line_id))
+          .map((line: any): SupplierInvoiceLine => ({
+            id: line.id,
+            invoiceLineId: line.invoice_line_id,
+            actualCost: parseFloat(String(line.actual_cost || '0')),
+            actualVat: parseFloat(String(line.actual_vat || '0')),
+            currency: line.currency,
+            createdAt: line.created_at,
+            createdBy: line.created_by,
+            description: line.description,
+            supplierName: line.supplier_name,
+          }));
+
+        return {
+          id: invoice.id,
+          invoiceNumber: invoice.invoice_number,
+          reference: invoice.reference,
+          createdAt: invoice.created_at,
+          dueDate: invoice.due_date,
+          invoiceDate: invoice.invoice_date,
+          status: invoice.status,
+          totalAmount: parseFloat(String(invoice.total_amount || '0')),
+          notes: invoice.notes,
+          currency: invoice.currency,
+          vat: parseFloat(String(invoice.vat || '0')),
+          totalVat: parseFloat(String(invoice.total_vat || '0')),
+          ocr: invoice.ocr,
+          source: invoice.source as "Fortnox" | "Manual",
+          account: invoice.account,
+          vatAccount: null,
+          periodizationYear: null,
+          periodizationMonth: null,
+          updatedAt: invoice.updated_at,
+          projectId: invoice.project_id,
+          supplier: {
+            id: invoice.suppliers.id,
+            name: invoice.suppliers.name,
+            email: invoice.suppliers.email,
+            phone: invoice.suppliers.phone,
+            accountNumber: invoice.suppliers.account_number,
+            defaultCurrency: invoice.suppliers.default_currency,
+            currencyRate: invoice.suppliers.currency_rate,
+            address: invoice.suppliers.address,
+            zipCode: invoice.suppliers.zip_code,
+            city: invoice.suppliers.city,
+            country: invoice.suppliers.country
+          },
+          invoiceLines: invoice.invoice_lines.map((line: any) => ({
+            id: line.id,
+            description: line.description,
+            quantity: parseFloat(String(line.quantity || '1')),
+            unitPrice: parseFloat(String(line.unit_price || '0')),
+            estimatedCost: parseFloat(String(line.estimated_cost || '0')),
+            actualCost: line.actual_cost ? parseFloat(String(line.actual_cost)) : undefined,
+            supplierId: line.supplier_id,
+            supplierName: line.supplier_name,
+            supplierPartNumber: line.supplier_part_number,
+            bookingNumber: line.booking_number,
+            confirmationNumber: line.confirmation_number,
+            departureDate: line.departure_date,
+            paymentStatus: line.payment_status as "paid" | "unpaid" | "partial",
+            fullyInvoiced: line.fully_invoiced,
+            currency: line.currency,
+            invoiceType: line.invoice_type as "single" | "multi",
+            estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
+            actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
+          })),
+          supplierInvoiceLines: relatedSupplierLines
+        };
+      });
 
       console.log('Loaded invoices from Supabase:', transformedInvoices);
       setInvoices(transformedInvoices);
@@ -132,7 +160,31 @@ export function useSupabaseInvoiceById(id: string) {
           return;
         }
 
-        // Transform to match our interface (same logic as above)
+        // Fetch supplier invoice lines for this invoice
+        const invoiceLineIds = data.invoice_lines.map((line: any) => line.id);
+        const { data: supplierInvoiceData, error: supplierError } = await supabase
+          .from('supplier_invoice_lines')
+          .select('*')
+          .in('invoice_line_id', invoiceLineIds);
+
+        if (supplierError) {
+          console.error('Error fetching supplier invoice lines:', supplierError);
+        }
+
+        // Transform supplier invoice lines
+        const supplierInvoiceLines: SupplierInvoiceLine[] = (supplierInvoiceData || []).map((line: any) => ({
+          id: line.id,
+          invoiceLineId: line.invoice_line_id,
+          actualCost: parseFloat(String(line.actual_cost || '0')),
+          actualVat: parseFloat(String(line.actual_vat || '0')),
+          currency: line.currency,
+          createdAt: line.created_at,
+          createdBy: line.created_by,
+          description: line.description,
+          supplierName: line.supplier_name,
+        }));
+
+        // Transform to match our interface
         const transformedInvoice: Invoice = {
           id: data.id,
           invoiceNumber: data.invoice_number,
@@ -149,9 +201,9 @@ export function useSupabaseInvoiceById(id: string) {
           ocr: data.ocr,
           source: data.source as "Fortnox" | "Manual",
           account: data.account,
-          vatAccount: null, // This field doesn't exist in the database schema
-          periodizationYear: null, // This field doesn't exist in the database schema
-          periodizationMonth: null, // This field doesn't exist in the database schema
+          vatAccount: null,
+          periodizationYear: null,
+          periodizationMonth: null,
           updatedAt: data.updated_at,
           projectId: data.project_id,
           supplier: {
@@ -186,7 +238,8 @@ export function useSupabaseInvoiceById(id: string) {
             invoiceType: line.invoice_type as "single" | "multi",
             estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
             actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
-          }))
+          })),
+          supplierInvoiceLines: supplierInvoiceLines
         };
 
         setInvoice(transformedInvoice);
