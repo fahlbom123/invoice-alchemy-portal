@@ -10,7 +10,7 @@ export function useSupabaseInvoices() {
     setIsLoading(true);
     
     try {
-      // Fetch invoices with suppliers, invoice lines, and projects
+      // Fetch invoices with suppliers and invoice lines
       const { data: invoicesData, error: invoicesError } = await supabase
         .from('invoices')
         .select(`
@@ -53,6 +53,8 @@ export function useSupabaseInvoices() {
             description: line.description,
             supplierName: line.supplier_name,
           }));
+
+        console.log(`Invoice ${invoice.invoice_number} has ${relatedSupplierLines.length} supplier invoice lines`);
 
         return {
           id: invoice.id,
@@ -112,7 +114,7 @@ export function useSupabaseInvoices() {
         };
       });
 
-      console.log('Loaded invoices from Supabase:', transformedInvoices);
+      console.log('Loaded invoices from Supabase with supplier lines:', transformedInvoices);
       setInvoices(transformedInvoices);
     } catch (error) {
       console.error('Error fetching invoices:', error);
@@ -160,8 +162,10 @@ export function useSupabaseInvoiceById(id: string) {
           return;
         }
 
-        // Fetch supplier invoice lines for this invoice
+        // Fetch supplier invoice lines for this invoice's invoice lines
         const invoiceLineIds = data.invoice_lines.map((line: any) => line.id);
+        console.log('Looking for supplier invoice lines for invoice line IDs:', invoiceLineIds);
+        
         const { data: supplierInvoiceData, error: supplierError } = await supabase
           .from('supplier_invoice_lines')
           .select('*')
@@ -170,6 +174,8 @@ export function useSupabaseInvoiceById(id: string) {
         if (supplierError) {
           console.error('Error fetching supplier invoice lines:', supplierError);
         }
+
+        console.log('Found supplier invoice lines:', supplierInvoiceData);
 
         // Transform supplier invoice lines
         const supplierInvoiceLines: SupplierInvoiceLine[] = (supplierInvoiceData || []).map((line: any) => ({
@@ -242,6 +248,7 @@ export function useSupabaseInvoiceById(id: string) {
           supplierInvoiceLines: supplierInvoiceLines
         };
 
+        console.log('Transformed invoice with supplier lines:', transformedInvoice);
         setInvoice(transformedInvoice);
       } catch (error) {
         console.error('Error fetching invoice:', error);
