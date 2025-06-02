@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -48,59 +49,8 @@ const InvoiceView = () => {
     }
   }, [invoice]);
 
-  // Determine the locked cost type based on existing supplier invoice lines
-  const getLockedCostType = (): "Invoice lines" | "Booking Supplier" | null => {
-    // If invoice is cancelled or sent to accounting, lock cost type
-    if (isCancelled || isSentToAccounting) {
-      return "Invoice lines"; // Default lock when cancelled or sent to accounting
-    }
-
-    if (!invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0) {
-      return null;
-    }
-
-    // Check if any supplier invoice line has a summary ID (booking supplier)
-    const hasBookingSupplierLines = invoice.supplierInvoiceLines.some(line => 
-      line.invoiceLineId && line.invoiceLineId.startsWith('summary-')
-    );
-
-    if (hasBookingSupplierLines) {
-      return "Booking Supplier";
-    }
-
-    // Check if any supplier invoice line references individual invoice lines
-    const hasIndividualLines = invoice.supplierInvoiceLines.some(line => 
-      line.invoiceLineId && !line.invoiceLineId.startsWith('summary-')
-    );
-
-    if (hasIndividualLines) {
-      return "Invoice lines";
-    }
-
-    // Default fallback (shouldn't happen but just in case)
-    return "Invoice lines";
-  };
-
-  const lockedCostType = getLockedCostType();
-  const isCostTypeLocked = lockedCostType !== null;
-
   // Check if cancel button should be enabled (no lines connected)
   const canCancelInvoice = !invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0;
-
-  // Add cost type state - remove Project option, use locked type if available
-  const [costType, setCostType] = useState<"Invoice lines" | "Booking Supplier">(
-    lockedCostType || "Invoice lines"
-  );
-
-  // Update cost type when invoice changes
-  useEffect(() => {
-    if (invoice) {
-      const locked = getLockedCostType();
-      if (locked) {
-        setCostType(locked);
-      }
-    }
-  }, [invoice]);
 
   // Add the missing formData state
   const [formData, setFormData] = useState<InvoiceFormData>({
@@ -138,14 +88,6 @@ const InvoiceView = () => {
   const [paymentStatus, setPaymentStatus] = useState<string>("all");
   const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
-
-  // Add state for booking supplier summary
-  const [selectedSummaryLines, setSelectedSummaryLines] = useState<Set<string>>(new Set());
-  const [editingSummaryLine, setEditingSummaryLine] = useState<string | null>(null);
-  const [editingActualCost, setEditingActualCost] = useState<string>("");
-  const [editingActualVat, setEditingActualVat] = useState<string>("");
-  const [summaryActualCosts, setSummaryActualCosts] = useState<Map<string, number>>(new Map());
-  const [summaryActualVats, setSummaryActualVats] = useState<Map<string, number>>(new Map());
 
   // Extract all invoice lines from all invoices - now include invoice total amount
   const allInvoiceLines = invoices.flatMap(invoice => 
@@ -360,72 +302,6 @@ const InvoiceView = () => {
     
     setSearchResults(filtered);
     setHasSearched(true);
-    // Reset selections when new search is performed
-    setSelectedSummaryLines(new Set());
-    setSummaryActualCosts(new Map());
-    setSummaryActualVats(new Map());
-  };
-
-  // Function to group and summarize search results for Booking Supplier
-  const getBookingSupplierSummary = () => {
-    const grouped = new Map();
-    
-    searchResults.forEach(line => {
-      const key = `${line.supplierId}-${line.currency || 'USD'}`;
-      
-      if (!grouped.has(key)) {
-        grouped.set(key, {
-          id: `summary-${key}`,
-          supplierName: line.supplierName,
-          bookingNumbers: new Set(),
-          confirmationNumbers: new Set(),
-          departureDates: new Set(),
-          totalEstimatedCost: 0,
-          totalEstimatedVat: 0,
-          paymentStatuses: new Set(),
-          currency: line.currency || "USD",
-          lines: [],
-          supplierId: line.supplierId
-        });
-      }
-      
-      const group = grouped.get(key);
-      if (line.bookingNumber) group.bookingNumbers.add(line.bookingNumber);
-      if (line.confirmationNumber) group.confirmationNumbers.add(line.confirmationNumber);
-      if (line.departureDate) group.departureDates.add(line.departureDate);
-      group.totalEstimatedCost += line.estimatedCost;
-      group.totalEstimatedVat += (line.estimatedVat || 0);
-      group.paymentStatuses.add(line.paymentStatus);
-      group.lines.push(line);
-    });
-    
-    return Array.from(grouped.values()).map(group => {
-      // Calculate registered amounts from supplier invoice lines
-      const registeredLines = allSupplierInvoiceLines.filter(sil => 
-        group.lines.some(line => line.id === sil.invoiceLineId)
-      );
-      const registeredActualCost = registeredLines.reduce((sum, sil) => sum + sil.actualCost, 0);
-      const registeredActualVat = registeredLines.reduce((sum, sil) => sum + sil.actualVat, 0);
-
-      return {
-        ...group,
-        bookingNumbers: Array.from(group.bookingNumbers).join(", "),
-        confirmationNumbers: Array.from(group.confirmationNumbers).join(", "),
-        departureDates: Array.from(group.departureDates).map(date => 
-          new Date(date as string).toLocaleDateString()
-        ).join(", "),
-        paymentStatus: group.paymentStatuses.has("paid") ? "paid" : 
-                     group.paymentStatuses.has("partial") ? "partial" : "unpaid",
-        // Set actual values from summary state or default to estimated
-        actualCost: summaryActualCosts.get(group.id) || group.totalEstimatedCost,
-        actualVat: summaryActualVats.get(group.id) || group.totalEstimatedVat,
-        estimatedCost: group.totalEstimatedCost,
-        estimatedVat: group.totalEstimatedVat,
-        registeredActualCost,
-        registeredActualVat,
-        selected: selectedSummaryLines.has(group.id)
-      };
-    });
   };
 
   const handleClear = () => {
@@ -439,54 +315,6 @@ const InvoiceView = () => {
     setPaymentStatus("all");
     setSearchResults([]);
     setHasSearched(false);
-    setSelectedSummaryLines(new Set());
-    setSummaryActualCosts(new Map());
-    setSummaryActualVats(new Map());
-  };
-
-  // Handle summary line selection
-  const handleSummaryLineSelect = (lineId: string, checked: boolean) => {
-    const newSelected = new Set(selectedSummaryLines);
-    if (checked) {
-      newSelected.add(lineId);
-    } else {
-      newSelected.delete(lineId);
-    }
-    setSelectedSummaryLines(newSelected);
-  };
-
-  // Handle editing actual cost/vat for summary lines
-  const handleEditSummaryActual = (lineId: string, type: 'cost' | 'vat') => {
-    setEditingSummaryLine(`${lineId}-${type}`);
-    if (type === 'cost') {
-      const currentCost = summaryActualCosts.get(lineId) || 0;
-      setEditingActualCost(currentCost.toString());
-    } else {
-      const currentVat = summaryActualVats.get(lineId) || 0;
-      setEditingActualVat(currentVat.toString());
-    }
-  };
-
-  // Save edited actual cost/vat for summary lines
-  const handleSaveSummaryActual = (lineId: string) => {
-    if (editingSummaryLine?.includes('-cost')) {
-      const newCost = parseFloat(editingActualCost) || 0;
-      setSummaryActualCosts(prev => new Map(prev.set(lineId, newCost)));
-      toast({
-        title: "Actual Cost Updated",
-        description: "The actual cost has been updated successfully.",
-      });
-    } else if (editingSummaryLine?.includes('-vat')) {
-      const newVat = parseFloat(editingActualVat) || 0;
-      setSummaryActualVats(prev => new Map(prev.set(lineId, newVat)));
-      toast({
-        title: "Actual VAT Updated",
-        description: "The actual VAT has been updated successfully.",
-      });
-    }
-    setEditingSummaryLine(null);
-    setEditingActualCost("");
-    setEditingActualVat("");
   };
 
   // Add function to handle line status updates
@@ -559,35 +387,32 @@ const InvoiceView = () => {
       await saveInvoice(updatedInvoice);
       setRegisteredTotals(totals);
       
-      // Only update invoices in localStorage for individual invoice lines, not booking supplier summaries
-      if (costType === "Invoice lines") {
-        // Update the invoices in localStorage to mark selected lines as registered
-        const savedInvoices = localStorage.getItem('invoices');
-        let allInvoices = savedInvoices ? JSON.parse(savedInvoices) : [];
-        
-        // Mark the selected invoice lines as registered by updating their fullyInvoiced status
-        const selectedLineIds = selectedLines.map(line => line.id);
-        allInvoices = allInvoices.map((inv: Invoice) => {
-          if (inv.invoiceLines.some(line => selectedLineIds.includes(line.id))) {
-            return {
-              ...inv,
-              invoiceLines: inv.invoiceLines.map(line => 
-                selectedLineIds.includes(line.id) 
-                  ? { ...line, fullyInvoiced: true }
-                  : line
-              ),
-              updatedAt: new Date().toISOString(),
-            };
-          }
-          return inv;
-        });
-        
-        // Save updated invoices back to localStorage
-        localStorage.setItem('invoices', JSON.stringify(allInvoices));
-        
-        // Dispatch custom event to notify other components of the update
-        window.dispatchEvent(new CustomEvent('invoicesUpdated'));
-      }
+      // Update the invoices in localStorage to mark selected lines as registered
+      const savedInvoices = localStorage.getItem('invoices');
+      let allInvoices = savedInvoices ? JSON.parse(savedInvoices) : [];
+      
+      // Mark the selected invoice lines as registered by updating their fullyInvoiced status
+      const selectedLineIds = selectedLines.map(line => line.id);
+      allInvoices = allInvoices.map((inv: Invoice) => {
+        if (inv.invoiceLines.some(line => selectedLineIds.includes(line.id))) {
+          return {
+            ...inv,
+            invoiceLines: inv.invoiceLines.map(line => 
+              selectedLineIds.includes(line.id) 
+                ? { ...line, fullyInvoiced: true }
+                : line
+            ),
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return inv;
+      });
+      
+      // Save updated invoices back to localStorage
+      localStorage.setItem('invoices', JSON.stringify(allInvoices));
+      
+      // Dispatch custom event to notify other components of the update
+      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
       
       if (allLinesPaid) {
         toast({
@@ -595,10 +420,9 @@ const InvoiceView = () => {
           description: "All lines are now fully paid. Invoice status updated to 'paid'.",
         });
       } else {
-        const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : "invoice lines";
         toast({
-          title: `${costType} Registered`,
-          description: `Selected ${registrationType} have been successfully registered to this supplier invoice.`,
+          title: "Invoice Lines Registered",
+          description: "Selected invoice lines have been successfully registered to this supplier invoice.",
         });
       }
       
@@ -606,10 +430,9 @@ const InvoiceView = () => {
       window.location.reload();
     } catch (error) {
       console.error("Error saving invoice:", error);
-      const registrationType = costType === "Booking Supplier" ? "booking supplier groups" : "invoice lines";
       toast({
         title: "Error",
-        description: `Failed to register ${registrationType}.`,
+        description: "Failed to register invoice lines.",
         variant: "destructive",
       });
     }
@@ -644,13 +467,6 @@ const InvoiceView = () => {
         variant: "destructive",
       });
     }
-  };
-
-  // Add function to cancel editing summary lines
-  const handleCancelSummaryEdit = () => {
-    setEditingSummaryLine(null);
-    setEditingActualCost("");
-    setEditingActualVat("");
   };
 
   if (isLoading || isLoadingInvoices) {
@@ -858,77 +674,13 @@ const InvoiceView = () => {
           </CardContent>
         </Card>
 
-        {/* Only show cost type selection and search forms if not cancelled or sent to accounting */}
+        {/* Only show search forms if not cancelled or sent to accounting */}
         {!isCancelled && !isSentToAccounting && (
           <>
-            {/* Cost Type Selection */}
+            {/* Search Forms for Invoice lines */}
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  Cost Type
-                  {isCostTypeLocked && (
-                    <Lock className="h-4 w-4 text-gray-500" />
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <Label>Select Cost Type</Label>
-                  {isCostTypeLocked && (
-                    <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                      <p className="text-sm text-yellow-800">
-                        <Lock className="inline h-4 w-4 mr-1" />
-                        Cost type is locked to "{lockedCostType}" because there are already registered lines. To change the cost type, you must first delete all supplier invoice lines.
-                      </p>
-                    </div>
-                  )}
-                  <RadioGroup 
-                    className="flex space-x-4"
-                    value={costType}
-                    onValueChange={(value: "Invoice lines" | "Booking Supplier") => {
-                      if (!isCostTypeLocked) {
-                        setCostType(value);
-                      }
-                    }}
-                    disabled={isCostTypeLocked}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="Invoice lines" 
-                        id="invoice-lines" 
-                        disabled={isCostTypeLocked}
-                      />
-                      <Label 
-                        htmlFor="invoice-lines" 
-                        className={isCostTypeLocked ? "text-gray-400" : ""}
-                      >
-                        Invoice lines
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="Booking Supplier" 
-                        id="booking-supplier" 
-                        disabled={isCostTypeLocked}
-                      />
-                      <Label 
-                        htmlFor="booking-supplier" 
-                        className={isCostTypeLocked ? "text-gray-400" : ""}
-                      >
-                        Booking Supplier
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Search Forms for Invoice lines and Booking Supplier */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>
-                  {costType === "Booking Supplier" ? "Search Booking Supplier" : "Search Invoice Lines"}
-                </CardTitle>
+                <CardTitle>Search Invoice Lines</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -1040,7 +792,7 @@ const InvoiceView = () => {
               </CardContent>
             </Card>
 
-            {/* Search Results for both Invoice lines and Booking Supplier */}
+            {/* Search Results for Invoice lines */}
             {hasSearched && (
               <Card>
                 <CardHeader>
@@ -1048,223 +800,20 @@ const InvoiceView = () => {
                     Search Results
                     {searchResults.length > 0 && (
                       <span className="text-sm font-normal ml-2 text-gray-500">
-                        ({costType === "Booking Supplier" ? getBookingSupplierSummary().length + " groups found from " : ""}{searchResults.length} items found)
+                        ({searchResults.length} items found)
                       </span>
                     )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {searchResults.length > 0 ? (
-                    costType === "Invoice lines" ? (
-                      <InvoiceLineSearchResults 
-                        invoiceLines={searchResults} 
-                        onRegister={handleRegistration}
-                        onLineStatusUpdate={handleLineStatusUpdate}
-                        invoiceTotalAmount={invoice.totalAmount || 0}
-                        allSupplierInvoiceLines={allSupplierInvoiceLines}
-                      />
-                    ) : (
-                      <div className="space-y-4">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>
-                                <Checkbox 
-                                  checked={selectedSummaryLines.size > 0 && selectedSummaryLines.size === getBookingSupplierSummary().length}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      setSelectedSummaryLines(new Set(getBookingSupplierSummary().map(s => s.id)));
-                                    } else {
-                                      setSelectedSummaryLines(new Set());
-                                    }
-                                  }}
-                                />
-                              </TableHead>
-                              <TableHead>Supplier</TableHead>
-                              <TableHead>Booking</TableHead>
-                              <TableHead>Confirmation</TableHead>
-                              <TableHead>Departure Date</TableHead>
-                              <TableHead>Currency</TableHead>
-                              <TableHead>Est. Cost</TableHead>
-                              <TableHead>Est. VAT</TableHead>
-                              <TableHead>Actual Cost</TableHead>
-                              <TableHead>Actual VAT</TableHead>
-                              <TableHead>Registered Cost</TableHead>
-                              <TableHead>Registered VAT</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead>Fully Paid</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {getBookingSupplierSummary().map((summary) => (
-                              <TableRow key={summary.id}>
-                                <TableCell>
-                                  <Checkbox 
-                                    checked={selectedSummaryLines.has(summary.id)}
-                                    onCheckedChange={(checked) => handleSummaryLineSelect(summary.id, checked as boolean)}
-                                  />
-                                </TableCell>
-                                <TableCell>{summary.supplierName}</TableCell>
-                                <TableCell>{summary.bookingNumbers}</TableCell>
-                                <TableCell>{summary.confirmationNumbers}</TableCell>
-                                <TableCell>{summary.departureDates}</TableCell>
-                                <TableCell>{summary.currency}</TableCell>
-                                <TableCell>{formatCurrency(summary.totalEstimatedCost, summary.currency)}</TableCell>
-                                <TableCell>{formatCurrency(summary.totalEstimatedVat, summary.currency)}</TableCell>
-                                <TableCell>
-                                  {editingSummaryLine === `${summary.id}-cost` ? (
-                                    <div className="flex gap-2">
-                                      <Input
-                                        type="number"
-                                        step="0.01"
-                                        value={editingActualCost}
-                                        onChange={(e) => setEditingActualCost(e.target.value)}
-                                        className="w-24"
-                                      />
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        onClick={() => handleSaveSummaryActual(summary.id)}
-                                      >
-                                        <Save className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={handleCancelSummaryEdit}
-                                      >
-                                        <X className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ) : (
-                                    <div 
-                                      className="cursor-pointer hover:bg-gray-100 p-1 rounded"
-                                      onClick={() => handleEditSummaryActual(summary.id, 'cost')}
-                                    >
-                                      {formatCurrency(summary.actualCost, summary.currency)}
-                                    </div>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  {editingSummaryLine === `${summary.id}-vat` ? (
-                                    <div className="flex gap-2">
-                                      <Input
-                                        type="number"
-                                        step="0.01"
-                                        value={editingActualVat}
-                                        onChange={(e) => setEditingActualVat(e.target.value)}
-                                        className="w-24"
-                                      />
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        onClick={() => handleSaveSummaryActual(summary.id)}
-                                      >
-                                        <Save className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={handleCancelSummaryEdit}
-                                      >
-                                        <X className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ) : (
-                                    <div 
-                                      className="cursor-pointer hover:bg-gray-100 p-1 rounded"
-                                      onClick={() => handleEditSummaryActual(summary.id, 'vat')}
-                                    >
-                                      {formatCurrency(summary.actualVat, summary.currency)}
-                                    </div>
-                                  )}
-                                </TableCell>
-                                <TableCell>{formatCurrency(summary.registeredActualCost, summary.currency)}</TableCell>
-                                <TableCell>{formatCurrency(summary.registeredActualVat, summary.currency)}</TableCell>
-                                <TableCell>
-                                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                                    summary.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
-                                    summary.paymentStatus === 'partial' ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-red-100 text-red-800'
-                                  }`}>
-                                    {summary.paymentStatus}
-                                  </span>
-                                </TableCell>
-                                <TableCell>
-                                  <Checkbox 
-                                    checked={summary.paymentStatus === "paid"}
-                                    onCheckedChange={(checked) => {
-                                      // Update all lines in this summary group
-                                      const lineUpdates = summary.lines.map(line => ({
-                                        lineId: line.id,
-                                        paymentStatus: (checked ? "paid" : "unpaid") as "paid" | "unpaid" | "partial"
-                                      }));
-                                      handleLineStatusUpdate(lineUpdates);
-                                    }}
-                                  />
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                        
-                        {selectedSummaryLines.size > 0 && (
-                          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <p className="font-medium">Selected: {selectedSummaryLines.size} groups</p>
-                                <p className="text-sm text-gray-600">
-                                  Total Actual Cost: {formatCurrency(
-                                    getBookingSupplierSummary()
-                                      .filter(s => selectedSummaryLines.has(s.id))
-                                      .reduce((sum, s) => sum + s.actualCost, 0),
-                                    "USD"
-                                  )}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  Total Actual VAT: {formatCurrency(
-                                    getBookingSupplierSummary()
-                                      .filter(s => selectedSummaryLines.has(s.id))
-                                      .reduce((sum, s) => sum + s.actualVat, 0),
-                                    "USD"
-                                  )}
-                                </p>
-                              </div>
-                              <Button 
-                                onClick={() => {
-                                  const selectedSummaries = getBookingSupplierSummary().filter(s => selectedSummaryLines.has(s.id));
-                                  
-                                  // Create supplier invoice lines based on the summaries, not individual invoice lines
-                                  const supplierInvoiceLines: SupplierInvoiceLine[] = selectedSummaries.map(summary => ({
-                                    id: `sil-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                                    invoiceLineId: summary.id, // Use summary ID instead of individual line ID
-                                    actualCost: summary.actualCost,
-                                    actualVat: summary.actualVat,
-                                    currency: summary.currency,
-                                    createdAt: new Date().toISOString(),
-                                    createdBy: "Current User",
-                                    description: `Booking Supplier - ${summary.supplierName} (${summary.lines.length} items)`,
-                                    supplierName: summary.supplierName,
-                                  }));
-                                  
-                                  const totals = {
-                                    totalActualCost: selectedSummaries.reduce((sum, s) => sum + s.actualCost, 0),
-                                    totalActualVat: selectedSummaries.reduce((sum, s) => sum + s.actualVat, 0)
-                                  };
-                                  
-                                  // Pass the summaries as selected lines, not individual invoice lines
-                                  if (handleRegistration) {
-                                    handleRegistration(selectedSummaries, totals, supplierInvoiceLines);
-                                  }
-                                }}
-                              >
-                                Register Selected Groups
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )
+                    <InvoiceLineSearchResults 
+                      invoiceLines={searchResults} 
+                      onRegister={handleRegistration}
+                      onLineStatusUpdate={handleLineStatusUpdate}
+                      invoiceTotalAmount={invoice.totalAmount || 0}
+                      allSupplierInvoiceLines={allSupplierInvoiceLines}
+                    />
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       No invoice lines found matching your criteria.
