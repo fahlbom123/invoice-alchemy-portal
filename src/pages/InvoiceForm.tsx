@@ -118,7 +118,7 @@ const InvoiceForm = () => {
       const completeFormData = {
         ...formData,
         status: "unpaid",
-        id: isEditing ? id! : crypto.randomUUID(), // Use proper UUID generation
+        id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         supplier: {
@@ -151,7 +151,7 @@ const InvoiceForm = () => {
     const completeFormData = pendingSubmitData || {
       ...formData,
       status: isEditing ? formData.status : "unpaid",
-      id: isEditing ? id! : crypto.randomUUID(), // Use proper UUID generation
+      id: isEditing ? id! : crypto.randomUUID(),
       createdAt: isEditing ? invoice!.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       supplier: {
@@ -178,8 +178,13 @@ const InvoiceForm = () => {
       } else {
         navigate('/dashboard');
       }
-    } catch (error) {
-      toast.error("Failed to save invoice. Please try again.");
+    } catch (error: any) {
+      // Show user-friendly error message for duplicate invoice numbers
+      if (error.message && error.message.includes('already exists')) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to save invoice. Please try again.");
+      }
     } finally {
       setPendingSubmitData(null);
       setShowDuplicateWarning(false);

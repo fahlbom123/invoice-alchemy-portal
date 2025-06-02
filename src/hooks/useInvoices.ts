@@ -51,6 +51,10 @@ export function useSaveInvoice() {
 
       if (invoiceError) {
         console.error('Error saving invoice:', invoiceError);
+        // Handle duplicate invoice number error specifically
+        if (invoiceError.code === '23505' && invoiceError.message.includes('invoice_number_key')) {
+          throw new Error(`Invoice number "${invoice.invoiceNumber}" already exists for this supplier. Please use a different invoice number.`);
+        }
         throw invoiceError;
       }
 
