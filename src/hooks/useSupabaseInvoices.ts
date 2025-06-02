@@ -36,11 +36,11 @@ export function useSupabaseInvoices() {
         dueDate: invoice.due_date,
         invoiceDate: invoice.invoice_date,
         status: invoice.status,
-        totalAmount: parseFloat(invoice.total_amount || '0'),
+        totalAmount: parseFloat(String(invoice.total_amount || '0')),
         notes: invoice.notes,
         currency: invoice.currency,
-        vat: parseFloat(invoice.vat || '0'),
-        totalVat: parseFloat(invoice.total_vat || '0'),
+        vat: parseFloat(String(invoice.vat || '0')),
+        totalVat: parseFloat(String(invoice.total_vat || '0')),
         ocr: invoice.ocr,
         source: invoice.source as "Fortnox" | "Manual",
         account: invoice.account,
@@ -61,10 +61,10 @@ export function useSupabaseInvoices() {
         invoiceLines: invoice.invoice_lines.map((line: any) => ({
           id: line.id,
           description: line.description,
-          quantity: parseFloat(line.quantity || '1'),
-          unitPrice: parseFloat(line.unit_price || '0'),
-          estimatedCost: parseFloat(line.estimated_cost || '0'),
-          actualCost: line.actual_cost ? parseFloat(line.actual_cost) : undefined,
+          quantity: parseFloat(String(line.quantity || '1')),
+          unitPrice: parseFloat(String(line.unit_price || '0')),
+          estimatedCost: parseFloat(String(line.estimated_cost || '0')),
+          actualCost: line.actual_cost ? parseFloat(String(line.actual_cost)) : undefined,
           supplierId: line.supplier_id,
           supplierName: line.supplier_name,
           supplierPartNumber: line.supplier_part_number,
@@ -75,8 +75,8 @@ export function useSupabaseInvoices() {
           fullyInvoiced: line.fully_invoiced,
           currency: line.currency,
           invoiceType: line.invoice_type as "single" | "multi",
-          estimatedVat: line.estimated_vat ? parseFloat(line.estimated_vat) : undefined,
-          actualVat: line.actual_vat ? parseFloat(line.actual_vat) : undefined
+          estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
+          actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
         }))
       }));
 
@@ -135,11 +135,11 @@ export function useSupabaseInvoiceById(id: string) {
           dueDate: data.due_date,
           invoiceDate: data.invoice_date,
           status: data.status,
-          totalAmount: parseFloat(data.total_amount || '0'),
+          totalAmount: parseFloat(String(data.total_amount || '0')),
           notes: data.notes,
           currency: data.currency,
-          vat: parseFloat(data.vat || '0'),
-          totalVat: parseFloat(data.total_vat || '0'),
+          vat: parseFloat(String(data.vat || '0')),
+          totalVat: parseFloat(String(data.total_vat || '0')),
           ocr: data.ocr,
           source: data.source as "Fortnox" | "Manual",
           account: data.account,
@@ -160,10 +160,10 @@ export function useSupabaseInvoiceById(id: string) {
           invoiceLines: data.invoice_lines.map((line: any) => ({
             id: line.id,
             description: line.description,
-            quantity: parseFloat(line.quantity || '1'),
-            unitPrice: parseFloat(line.unit_price || '0'),
-            estimatedCost: parseFloat(line.estimated_cost || '0'),
-            actualCost: line.actual_cost ? parseFloat(line.actual_cost) : undefined,
+            quantity: parseFloat(String(line.quantity || '1')),
+            unitPrice: parseFloat(String(line.unit_price || '0')),
+            estimatedCost: parseFloat(String(line.estimated_cost || '0')),
+            actualCost: line.actual_cost ? parseFloat(String(line.actual_cost)) : undefined,
             supplierId: line.supplier_id,
             supplierName: line.supplier_name,
             supplierPartNumber: line.supplier_part_number,
@@ -174,8 +174,8 @@ export function useSupabaseInvoiceById(id: string) {
             fullyInvoiced: line.fully_invoiced,
             currency: line.currency,
             invoiceType: line.invoice_type as "single" | "multi",
-            estimatedVat: line.estimated_vat ? parseFloat(line.estimated_vat) : undefined,
-            actualVat: line.actual_vat ? parseFloat(line.actual_vat) : undefined
+            estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
+            actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
           }))
         };
 
