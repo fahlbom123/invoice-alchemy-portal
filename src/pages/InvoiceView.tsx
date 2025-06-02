@@ -63,7 +63,7 @@ const InvoiceView = () => {
 
     // Check if any supplier invoice line has a summary ID (booking supplier)
     const hasBookingSupplierLines = invoice.supplierInvoiceLines.some(line => 
-      line.invoiceLineId.startsWith('summary-')
+      line.invoiceLineId && line.invoiceLineId.startsWith('summary-')
     );
 
     if (hasBookingSupplierLines) {
@@ -72,7 +72,7 @@ const InvoiceView = () => {
 
     // Check if any supplier invoice line references individual invoice lines
     const hasIndividualLines = invoice.supplierInvoiceLines.some(line => 
-      !line.invoiceLineId.startsWith('summary-')
+      line.invoiceLineId && !line.invoiceLineId.startsWith('summary-')
     );
 
     if (hasIndividualLines) {
@@ -1118,6 +1118,7 @@ const InvoiceView = () => {
               <ProjectSearchForm 
                 onProjectSelect={handleProjectSelect} 
                 selectedProject={selectedProject}
+                disabled={selectedProject !== null}
               />
             )}
 
