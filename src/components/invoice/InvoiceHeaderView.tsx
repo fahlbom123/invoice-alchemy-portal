@@ -4,6 +4,7 @@ import { formatCurrency } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ProjectSearchForm from "./ProjectSearchForm";
+import { Edit, Trash2 } from "lucide-react";
 
 interface InvoiceHeaderViewProps {
   formData: InvoiceFormData;
@@ -407,7 +408,29 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
             <div className="space-y-2">
               <div className="flex flex-col">
                 <span className="text-sm text-gray-500">Project Number</span>
-                <span className="font-medium">{currentSelectedProject.projectNumber}</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{currentSelectedProject.projectNumber}</span>
+                  {!isSentToAccounting && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowProjectSearch(true)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleProjectRemove}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -424,30 +447,6 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
                 <span className="font-medium">
                   {new Date(currentSelectedProject.startDate).toLocaleDateString()} - {new Date(currentSelectedProject.endDate).toLocaleDateString()}
                 </span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex flex-col">
-                <span className="text-sm text-gray-500">Project Actions</span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowProjectSearch(true)}
-                    disabled={isSentToAccounting}
-                  >
-                    Change Project
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleProjectRemove}
-                    disabled={isSentToAccounting}
-                  >
-                    Remove Project
-                  </Button>
-                </div>
               </div>
             </div>
           </>
