@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface InvoiceHeaderViewProps {
@@ -23,7 +23,6 @@ interface InvoiceHeaderViewProps {
 }
 
 const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [], invoiceId, selectedProject }: InvoiceHeaderViewProps) => {
-  const [acceptDiff, setAcceptDiff] = useState(false);
   const [source, setSource] = useState<"Fortnox" | "Manual">(formData.source || "Manual");
 
   // Helper function to capitalize status
@@ -33,6 +32,9 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
     }
     if (status === "overpaid") {
       return "Overpaid";
+    }
+    if (status === "sent_to_accounting") {
+      return "Sent to Accounting";
     }
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
@@ -84,8 +86,13 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
   const calculateStatus = () => {
     const supplierInvoiceTotal = formData.totalAmount || 0;
     
-    // If accept diff is ticked or supplier invoice total equals registered total actual cost, then status is paid
-    if (acceptDiff || supplierInvoiceTotal === totalRegisteredCost) {
+    // If status is already "sent_to_accounting", keep it
+    if (formData.status === "sent_to_accounting") {
+      return "sent_to_accounting";
+    }
+    
+    // If supplier invoice total equals registered total actual cost, then status is paid
+    if (supplierInvoiceTotal === totalRegisteredCost) {
       return "paid";
     }
     
@@ -143,11 +150,6 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
     updateInvoiceStatus();
   }, [calculatedStatus, invoiceId]);
 
-  // Handle checkbox state change
-  const handleAcceptDiffChange = (checked: boolean | "indeterminate") => {
-    setAcceptDiff(checked === true);
-  };
-
   // Handle source change
   const handleSourceChange = (newSource: "Fortnox" | "Manual") => {
     setSource(newSource);
@@ -179,6 +181,41 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
       console.error('Error updating invoice source:', error);
     }
   };
+
+  // Handle send to accounting button click
+  const handleSendToAccounting = () => {
+    if (!invoiceId) return;
+
+    try {
+      const savedInvoices = localStorage.getItem('invoices');
+      if (!savedInvoices) return;
+
+      const invoices = JSON.parse(savedInvoices);
+      const updatedInvoices = invoices.map((invoice: any) => {
+        if (invoice.id === invoiceId) {
+          return {
+            ...invoice,
+            status: "sent_to_accounting",
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return invoice;
+      });
+
+      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
+      
+      // Refresh the page to show updated data
+      window.location.reload();
+    } catch (error) {
+      console.error('Error sending invoice to accounting:', error);
+    }
+  };
+
+  // Check if invoice is sent to accounting (locked state)
+  const isSentToAccounting = formData.status === "sent_to_accounting";
 
   return (
     <div className="space-y-4">
@@ -304,21 +341,26 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
         
         <div className="space-y-2">
           <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Accept diff and send to accounting</span>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="accept-diff"
-                checked={acceptDiff}
-                onCheckedChange={handleAcceptDiffChange}
-              />
-            </div>
+            <span className="text-sm text-gray-500">Send to accounting</span>
+            <Button
+              onClick={handleSendToAccounting}
+              disabled={isSentToAccounting}
+              variant={isSentToAccounting ? "secondary" : "default"}
+              className="w-fit"
+            >
+              {isSentToAccounting ? "Sent to Accounting" : "Send to Accounting"}
+            </Button>
           </div>
         </div>
 
         <div className="space-y-2">
           <div className="flex flex-col">
             <span className="text-sm text-gray-500">Source</span>
-            <Select value={source} onValueChange={handleSourceChange}>
+            <Select 
+              value={source} 
+              onValueChange={handleSourceChange}
+              disabled={isSentToAccounting}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select source" />
               </SelectTrigger>

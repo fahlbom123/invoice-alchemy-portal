@@ -34,18 +34,22 @@ const InvoiceView = () => {
   // Add state to track if invoice is cancelled
   const [isCancelled, setIsCancelled] = useState(false);
 
-  // Check if invoice is cancelled when component loads
+  // Add state to track if invoice is sent to accounting
+  const [isSentToAccounting, setIsSentToAccounting] = useState(false);
+
+  // Check if invoice is cancelled or sent to accounting when component loads
   useEffect(() => {
     if (invoice) {
       setIsCancelled(invoice.status === "cancelled");
+      setIsSentToAccounting(invoice.status === "sent_to_accounting");
     }
   }, [invoice]);
 
   // Determine the locked cost type based on existing supplier invoice lines OR connected project
   const getLockedCostType = (): "Project" | "Invoice lines" | "Booking Supplier" | null => {
-    // If invoice is cancelled, lock cost type
-    if (isCancelled) {
-      return "Invoice lines"; // Default lock when cancelled
+    // If invoice is cancelled or sent to accounting, lock cost type
+    if (isCancelled || isSentToAccounting) {
+      return "Invoice lines"; // Default lock when cancelled or sent to accounting
     }
 
     // If a project is selected, lock to "Project" cost type
@@ -692,11 +696,14 @@ const InvoiceView = () => {
             <Button 
               variant="outline" 
               onClick={handleCancelInvoice}
-              disabled={!canCancelInvoice || isCancelled}
+              disabled={!canCancelInvoice || isCancelled || isSentToAccounting}
             >
               Cancel Supplier Invoice
             </Button>
-            <Button onClick={() => navigate(`/invoices/edit/${id}`)} disabled={isCancelled}>
+            <Button 
+              onClick={() => navigate(`/invoices/edit/${id}`)} 
+              disabled={isCancelled || isSentToAccounting}
+            >
               <Edit className="mr-2 h-4 w-4" />
               Edit Supplier Invoice
             </Button>
@@ -707,10 +714,15 @@ const InvoiceView = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>
-                {isCancelled ? "Invoice Details" : "View Supplier Invoice"}
+                {isCancelled || isSentToAccounting ? "Invoice Details" : "View Supplier Invoice"}
                 {isCancelled && (
                   <span className="ml-2 text-sm font-normal text-red-600">
                     (Status: Cancelled)
+                  </span>
+                )}
+                {isSentToAccounting && (
+                  <span className="ml-2 text-sm font-normal text-green-600">
+                    (Status: Sent to Accounting)
                   </span>
                 )}
               </CardTitle>
@@ -826,6 +838,7 @@ const InvoiceView = () => {
                                       variant="outline"
                                       size="sm"
                                       onClick={() => handleEditSupplierLine(line)}
+                                      disabled={isSentToAccounting}
                                     >
                                       <Edit className="h-4 w-4" />
                                     </Button>
@@ -833,6 +846,7 @@ const InvoiceView = () => {
                                       variant="outline"
                                       size="sm"
                                       onClick={() => handleDeleteSupplierLine(line.id)}
+                                      disabled={isSentToAccounting}
                                     >
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -884,6 +898,7 @@ const InvoiceView = () => {
                               variant="outline"
                               size="sm"
                               onClick={handleProjectRemove}
+                              disabled={isSentToAccounting}
                             >
                               Remove
                             </Button>
@@ -898,8 +913,8 @@ const InvoiceView = () => {
           </CardContent>
         </Card>
 
-        {/* Only show cost type selection and search forms if not cancelled */}
-        {!isCancelled && (
+        {/* Only show cost type selection and search forms if not cancelled or sent to accounting */}
+        {!isCancelled && !isSentToAccounting && (
           <>
             {/* Cost Type Selection */}
             <Card className="mb-6">
