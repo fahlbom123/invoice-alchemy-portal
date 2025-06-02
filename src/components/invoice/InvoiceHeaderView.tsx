@@ -1,11 +1,8 @@
 
-import React, { useState, useEffect } from "react";
-import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/formatters";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import ProjectSearchForm from "./ProjectSearchForm";
-import { useSupabaseProjects } from "@/hooks/useSupabaseProjects";
+import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 
 interface InvoiceHeaderViewProps {
   formData: InvoiceFormData;
@@ -14,510 +11,121 @@ interface InvoiceHeaderViewProps {
     totalActualVat: number;
   } | null;
   supplierInvoiceLines?: SupplierInvoiceLine[];
-  invoiceId?: string;
+  invoiceId: string;
   selectedProject?: {
     id: string;
-    projectNumber: string;
+    project_number: string;
     description: string;
-    status: string;
-    startDate: string;
-    endDate: string;
   } | null;
 }
 
-interface Project {
-  id: string;
-  projectNumber: string;
-  description: string;
-  status: string;
-  startDate: string;
-  endDate: string;
-}
-
-const costAccounts = [
-  { code: "4010", description: "Purchase of goods" },
-  { code: "4020", description: "Domestic purchase of goods" },
-  { code: "4050", description: "Purchase of goods from EU" },
-  { code: "4531", description: "Purchase of services outside EU" },
-  { code: "5460", description: "Consumables / Supplies" },
-  { code: "6110", description: "Office supplies" },
-  { code: "6540", description: "IT services" },
-];
-
-const vatAccounts = [
-  { code: "2641", description: "Input VAT" },
-  { code: "2614", description: "Output VAT (reverse charge)" },
-  { code: "2645", description: "Calculated input VAT (reverse charge)" },
-];
-
-const months = [
-  { value: 1, label: "January" },
-  { value: 2, label: "February" },
-  { value: 3, label: "March" },
-  { value: 4, label: "April" },
-  { value: 5, label: "May" },
-  { value: 6, label: "June" },
-  { value: 7, label: "July" },
-  { value: 8, label: "August" },
-  { value: 9, label: "September" },
-  { value: 10, label: "October" },
-  { value: 11, label: "November" },
-  { value: 12, label: "December" },
-];
-
-const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [], invoiceId, selectedProject }: InvoiceHeaderViewProps) => {
-  const [source, setSource] = useState<"Fortnox" | "Manual">(formData.source || "Manual");
-  const [periodizationYear, setPeriodizationYear] = useState(formData.periodizationYear || new Date().getFullYear());
-  const [periodizationMonth, setPeriodizationMonth] = useState(formData.periodizationMonth || new Date().getMonth() + 1);
-
-  // Fetch projects from Supabase
-  const { projects, isLoading: isLoadingProjects } = useSupabaseProjects();
-  
-  // Find the actual project data using the projectId from formData or selectedProject
-  const actualProject = selectedProject || (formData.projectId ? projects.find(p => p.id === formData.projectId) : null);
-
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
-
-  // Helper function to capitalize status
-  const capitalizeStatus = (status: string) => {
-    if (status === "partial") {
-      return "Partial Paid";
-    }
-    if (status === "overpaid") {
-      return "Overpaid";
-    }
-    if (status === "sent_to_accounting") {
-      return "Sent to Accounting";
-    }
-    return status.charAt(0).toUpperCase() + status.slice(1);
-  };
-
-  // Helper function to get account description
-  const getCostAccountDescription = (code: string) => {
-    const account = costAccounts.find(acc => acc.code === code);
-    return account ? `${account.code} - ${account.description}` : code;
-  };
-
-  const getVatAccountDescription = (code: string) => {
-    const account = vatAccounts.find(acc => acc.code === code);
-    return account ? `${account.code} - ${account.description}` : code;
-  };
-
-  // Helper function to get month name
-  const getMonthName = (monthNumber: number) => {
-    const month = months.find(m => m.value === monthNumber);
-    return month ? month.label : monthNumber.toString();
-  };
-
-  // Helper function to format periodization for display
-  const formatPeriodization = () => {
-    const year = formData.periodizationYear || new Date().getFullYear();
-    const month = formData.periodizationMonth || new Date().getMonth() + 1;
-    return `${getMonthName(month)} ${year}`;
-  };
-
+const InvoiceHeaderView = ({ 
+  formData, 
+  registeredTotals, 
+  supplierInvoiceLines = [], 
+  invoiceId,
+  selectedProject 
+}: InvoiceHeaderViewProps) => {
   // Calculate registered totals from supplier invoice lines
   const calculateRegisteredTotals = () => {
-    if (registeredTotals) {
-      return {
-        totalRegisteredCost: registeredTotals.totalActualCost,
-        totalRegisteredVat: registeredTotals.totalActualVat
-      };
-    }
-
-    // Calculate from supplier invoice lines instead of regular invoice lines
-    const totalRegisteredCost = supplierInvoiceLines.reduce((sum, line) => {
-      return sum + (line.actualCost || 0);
-    }, 0);
-    
-    const totalRegisteredVat = supplierInvoiceLines.reduce((sum, line) => {
-      return sum + (line.actualVat || 0);
-    }, 0);
-
-    return { totalRegisteredCost, totalRegisteredVat };
+    const totalActualCost = supplierInvoiceLines.reduce((sum, line) => sum + line.actualCost, 0);
+    const totalActualVat = supplierInvoiceLines.reduce((sum, line) => sum + line.actualVat, 0);
+    return { totalActualCost, totalActualVat };
   };
 
-  const { totalRegisteredCost, totalRegisteredVat } = calculateRegisteredTotals();
-
-  // Calculate the difference between total amount and registered actual cost
-  const diffAmount = (formData.totalAmount || 0) - totalRegisteredCost;
-
-  // Calculate total estimated cost from invoice lines that are linked to supplier invoice lines
-  const totalEstimatedCost = formData.invoiceLines.reduce((sum, line) => {
-    // Only include lines that have corresponding supplier invoice lines
-    const hasSupplierInvoiceLine = supplierInvoiceLines.some(
-      supplierLine => supplierLine.invoiceLineId === line.id
-    );
-    
-    if (hasSupplierInvoiceLine) {
-      return sum + (line.quantity * line.unitPrice);
-    }
-    
-    return sum;
-  }, 0);
-
-  // Calculate supplier invoice total minus total estimated cost
-  const supplierInvoiceTotalMinusEstimated = (formData.totalAmount || 0) - totalEstimatedCost;
-
-  // Calculate status based on the new requirements
-  const calculateStatus = () => {
-    const supplierInvoiceTotal = formData.totalAmount || 0;
-    
-    // If status is already "sent_to_accounting", keep it
-    if (formData.status === "sent_to_accounting") {
-      return "sent_to_accounting";
-    }
-    
-    // If supplier invoice total equals registered total actual cost, then status is paid
-    if (supplierInvoiceTotal === totalRegisteredCost) {
-      return "paid";
-    }
-    
-    // If registered total actual cost > supplier invoice total, then overpaid
-    if (totalRegisteredCost > supplierInvoiceTotal) {
-      return "overpaid";
-    }
-    
-    // If registered total actual cost = 0, then unpaid
-    if (totalRegisteredCost === 0) {
-      return "unpaid";
-    }
-    
-    // If registered total actual cost > 0 and < Supplier Invoice Total, then partial paid
-    if (totalRegisteredCost > 0 && totalRegisteredCost < supplierInvoiceTotal) {
-      return "partial";
-    }
-    
-    // Default fallback
-    return "unpaid";
-  };
-
-  const calculatedStatus = calculateStatus();
-
-  // Update the invoice status in localStorage when it changes
-  useEffect(() => {
-    if (!invoiceId) return;
-
-    const updateInvoiceStatus = () => {
-      try {
-        const savedInvoices = localStorage.getItem('invoices');
-        if (!savedInvoices) return;
-
-        const invoices = JSON.parse(savedInvoices);
-        const updatedInvoices = invoices.map((invoice: any) => {
-          if (invoice.id === invoiceId && invoice.status !== calculatedStatus) {
-            return {
-              ...invoice,
-              status: calculatedStatus,
-              updatedAt: new Date().toISOString()
-            };
-          }
-          return invoice;
-        });
-
-        localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
-        
-        // Dispatch custom event to notify other components
-        window.dispatchEvent(new CustomEvent('invoicesUpdated'));
-      } catch (error) {
-        console.error('Error updating invoice status:', error);
-      }
-    };
-
-    updateInvoiceStatus();
-  }, [calculatedStatus, invoiceId]);
-
-  // Handle source change
-  const handleSourceChange = (newSource: "Fortnox" | "Manual") => {
-    setSource(newSource);
-    
-    // Update invoice source in localStorage
-    if (!invoiceId) return;
-
-    try {
-      const savedInvoices = localStorage.getItem('invoices');
-      if (!savedInvoices) return;
-
-      const invoices = JSON.parse(savedInvoices);
-      const updatedInvoices = invoices.map((invoice: any) => {
-        if (invoice.id === invoiceId) {
-          return {
-            ...invoice,
-            source: newSource,
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return invoice;
-      });
-
-      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
-      
-      // Dispatch custom event to notify other components
-      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
-    } catch (error) {
-      console.error('Error updating invoice source:', error);
-    }
-  };
-
-  // Handle periodization changes
-  const handlePeriodizationChange = (field: 'year' | 'month', value: string) => {
-    const numValue = parseInt(value);
-    
-    if (field === 'year') {
-      setPeriodizationYear(numValue);
-    } else {
-      setPeriodizationMonth(numValue);
-    }
-    
-    // Update invoice in localStorage
-    if (!invoiceId) return;
-
-    try {
-      const savedInvoices = localStorage.getItem('invoices');
-      if (!savedInvoices) return;
-
-      const invoices = JSON.parse(savedInvoices);
-      const updatedInvoices = invoices.map((invoice: any) => {
-        if (invoice.id === invoiceId) {
-          return {
-            ...invoice,
-            [field === 'year' ? 'periodizationYear' : 'periodizationMonth']: numValue,
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return invoice;
-      });
-
-      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
-      
-      // Dispatch custom event to notify other components
-      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
-    } catch (error) {
-      console.error('Error updating invoice periodization:', error);
-    }
-  };
-
-  // Handle send to accounting button click
-  const handleSendToAccounting = () => {
-    if (!invoiceId) return;
-
-    try {
-      const savedInvoices = localStorage.getItem('invoices');
-      if (!savedInvoices) return;
-
-      const invoices = JSON.parse(savedInvoices);
-      const updatedInvoices = invoices.map((invoice: any) => {
-        if (invoice.id === invoiceId) {
-          return {
-            ...invoice,
-            status: "sent_to_accounting",
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return invoice;
-      });
-
-      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
-      
-      // Dispatch custom event to notify other components
-      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
-      
-      // Refresh the page to show updated data
-      window.location.reload();
-    } catch (error) {
-      console.error('Error sending invoice to accounting:', error);
-    }
-  };
-
-  // Check if invoice is sent to accounting (locked state)
-  const isSentToAccounting = formData.status === "sent_to_accounting";
-
-  // Check if invoice can be sent to accounting
-  const canSendToAccounting = () => {
-    return totalEstimatedCost > 0 || actualProject !== null;
-  };
+  const { totalActualCost, totalActualVat } = registeredTotals || calculateRegisteredTotals();
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Invoice Details</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Invoice Number</span>
-            <span className="font-medium">{formData.invoiceNumber}</span>
-          </div>
-        </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Invoice Details</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Invoice Number</label>
+                <p className="text-sm">{formData.invoiceNumber}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Reference</label>
+                <p className="text-sm">{formData.reference}</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Invoice Date</label>
+                <p className="text-sm">
+                  {formData.invoiceDate ? new Date(formData.invoiceDate).toLocaleDateString() : 'Not set'}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Due Date</label>
+                <p className="text-sm">
+                  {formData.dueDate ? new Date(formData.dueDate).toLocaleDateString() : 'Not set'}
+                </p>
+              </div>
+            </div>
 
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Reference</span>
-            <span className="font-medium">{formData.reference || "N/A"}</span>
-          </div>
-        </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Status</label>
+                <p className="text-sm capitalize">{formData.status}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Currency</label>
+                <p className="text-sm">{formData.currency || 'USD'}</p>
+              </div>
+            </div>
 
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Invoice Date</span>
-            <span className="font-medium">{formData.invoiceDate}</span>
-          </div>
-        </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500">Project</label>
+              <p className="text-sm">
+                {selectedProject ? `${selectedProject.project_number} - ${selectedProject.description}` : 'No project selected'}
+              </p>
+            </div>
 
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Payment Date</span>
-            <span className="font-medium">{formData.dueDate}</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Status</span>
-            <span className="font-medium">{capitalizeStatus(calculatedStatus)}</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Currency</span>
-            <span className="font-medium">{formData.currency || "USD"}</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Cost Account</span>
-            <span className="font-medium">{getCostAccountDescription(formData.account || "4010")}</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">VAT Account</span>
-            <span className="font-medium">{getVatAccountDescription(formData.vatAccount || "2641")}</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Periodization</span>
-            <span className="font-medium">{formatPeriodization()}</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Project</span>
-            {actualProject ? (
-              <span className="font-medium">
-                {actualProject.projectNumber} - {actualProject.description}
-              </span>
-            ) : isLoadingProjects && formData.projectId ? (
-              <span className="font-medium text-gray-500">Loading...</span>
-            ) : (
-              <span className="font-medium text-gray-400">No project connected</span>
+            {formData.notes && (
+              <div>
+                <label className="text-sm font-medium text-gray-500">Notes</label>
+                <p className="text-sm">{formData.notes}</p>
+              </div>
             )}
           </div>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Supplier Invoice Total incl VAT</span>
-            <span className="font-medium">{formatCurrency(formData.totalAmount || 0, formData.currency)}</span>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Total VAT</span>
-            <span className="font-medium">{formatCurrency(formData.totalVat || 0, formData.currency)}</span>
-          </div>
-        </div>
 
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Registered Total Actual Cost</span>
-            <span className="font-medium">{formatCurrency(totalRegisteredCost, formData.currency)}</span>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Registered Total Actual VAT</span>
-            <span className="font-medium">{formatCurrency(totalRegisteredVat, formData.currency)}</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Total Estimated Cost</span>
-            <span className="font-medium">{formatCurrency(totalEstimatedCost, formData.currency)}</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Supplier invoice total incl vat - Total Estimated Cost</span>
-            <span className="font-medium">{formatCurrency(supplierInvoiceTotalMinusEstimated, formData.currency)}</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Remaining</span>
-            <span className="font-medium">{formatCurrency(diffAmount, formData.currency)}</span>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Source</span>
-            <Select 
-              value={source} 
-              onValueChange={handleSourceChange}
-              disabled={isSentToAccounting}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Manual">Manual</SelectItem>
-                <SelectItem value="Fortnox">Fortnox</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {formData.ocr && (
-          <div className="space-y-2">
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-500">OCR</span>
-              <span className="font-medium">{formData.ocr}</span>
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h4 className="font-medium mb-3">Financial Summary</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Total Amount:</span>
+                  <span className="font-medium">{formatCurrency(formData.totalAmount || 0, formData.currency)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Total VAT:</span>
+                  <span className="font-medium">{formatCurrency(formData.totalVat || 0, formData.currency)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-medium">
+                  <span>Registered Total Actual Cost:</span>
+                  <span className={totalActualCost > 0 ? "text-green-600" : "text-gray-500"}>
+                    {formatCurrency(totalActualCost, formData.currency)}
+                  </span>
+                </div>
+                <div className="flex justify-between font-medium">
+                  <span>Registered Total Actual VAT:</span>
+                  <span className={totalActualVat > 0 ? "text-green-600" : "text-gray-500"}>
+                    {formatCurrency(totalActualVat, formData.currency)}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
-        )}
-
-        {formData.notes && (
-          <div className="space-y-2 col-span-1 md:col-span-2">
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-500">Notes</span>
-              <span className="font-medium">{formData.notes}</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Action buttons section - only Send to Accounting button */}
-      <div className="flex justify-end items-center pt-6">
-        <Button
-          onClick={handleSendToAccounting}
-          disabled={isSentToAccounting || !canSendToAccounting()}
-          variant={isSentToAccounting ? "secondary" : "default"}
-        >
-          {isSentToAccounting ? "Sent to Accounting" : "Send to Accounting"}
-        </Button>
-      </div>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

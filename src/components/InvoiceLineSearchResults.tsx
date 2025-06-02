@@ -4,6 +4,7 @@ import { InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
 import SearchResultsTable from "./invoice-search/SearchResultsTable";
 import SelectedLinesSummary from "./invoice-search/SelectedLinesSummary";
 import CostRegistrationModal from "./invoice-search/CostRegistrationModal";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -310,7 +311,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
     setShowPaymentConfirmation(true);
   };
 
-  const handleConfirmRegistration = (allLinesPaid: boolean) => {
+  const handleConfirmRegistration = async (allLinesPaid: boolean) => {
     setShowPaymentConfirmation(false);
     
     console.log("Selected lines for registration:", selectedLines.map(line => ({
@@ -372,6 +373,35 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
       });
     
     console.log("Created supplier invoice lines:", supplierInvoiceLines);
+
+    // Save supplier invoice lines to Supabase database
+    try {
+      const supplierInvoiceLineData = supplierInvoiceLines.map(line => ({
+        invoice_line_id: line.invoiceLineId,
+        actual_cost: line.actualCost,
+        actual_vat: line.actualVat,
+        currency: line.currency,
+        created_by: line.createdBy,
+        description: line.description,
+        supplier_name: line.supplierName
+      }));
+
+      const { error: insertError } = await supabase
+        .from('supplier_invoice_lines')
+        .insert(supplierInvoiceLineData);
+
+      if (insertError) {
+        console.error('Error saving supplier invoice lines:', insertError);
+        toast.error("Failed to save supplier invoice lines to database");
+        return;
+      }
+
+      console.log("Successfully saved supplier invoice lines to database");
+    } catch (error) {
+      console.error('Error in database operation:', error);
+      toast.error("Failed to save supplier invoice lines");
+      return;
+    }
     
     // Check if all lines are fully paid after registration
     const allInvoiceLinesPaid = lines.every(line => 
@@ -384,7 +414,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
       onRegister(selectedLines, { totalActualCost, totalActualVat }, supplierInvoiceLines, allInvoiceLinesPaid);
     }
     
-    toast.success(`Registered ${selectedLines.length} invoice lines`);
+    toast.success(`Registered ${selectedLines.length} invoice lines to supplier invoice`);
   };
 
   const handleToggleFullyPaid = (lineId: string, isPaid: boolean) => {

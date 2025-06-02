@@ -102,6 +102,43 @@ const InvoiceView = () => {
     invoiceTotalAmount: 0
   }));
 
+  // Get all supplier invoice lines from Supabase instead of localStorage
+  const [allSupplierInvoiceLines, setAllSupplierInvoiceLines] = useState<SupplierInvoiceLine[]>([]);
+
+  // Load supplier invoice lines from Supabase
+  useEffect(() => {
+    const loadSupplierInvoiceLines = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('supplier_invoice_lines')
+          .select('*');
+
+        if (error) {
+          console.error('Error loading supplier invoice lines:', error);
+          return;
+        }
+
+        const transformedLines: SupplierInvoiceLine[] = data.map(line => ({
+          id: line.id,
+          invoiceLineId: line.invoice_line_id,
+          actualCost: parseFloat(String(line.actual_cost || '0')),
+          actualVat: parseFloat(String(line.actual_vat || '0')),
+          currency: line.currency,
+          createdAt: line.created_at,
+          createdBy: line.created_by,
+          description: line.description,
+          supplierName: line.supplier_name,
+        }));
+
+        setAllSupplierInvoiceLines(transformedLines);
+      } catch (error) {
+        console.error('Error in loadSupplierInvoiceLines:', error);
+      }
+    };
+
+    loadSupplierInvoiceLines();
+  }, []);
+
   // Get all supplier invoice lines from all invoices
   const allSupplierInvoiceLines = invoices.flatMap(invoice => 
     invoice.supplierInvoiceLines || []
@@ -388,6 +425,26 @@ const InvoiceView = () => {
 
       await saveInvoice(updatedInvoice);
       setRegisteredTotals(totals);
+      
+      // Reload supplier invoice lines from database to get updated totals
+      const { data, error } = await supabase
+        .from('supplier_invoice_lines')
+        .select('*');
+
+      if (!error && data) {
+        const transformedLines: SupplierInvoiceLine[] = data.map(line => ({
+          id: line.id,
+          invoiceLineId: line.invoice_line_id,
+          actualCost: parseFloat(String(line.actual_cost || '0')),
+          actualVat: parseFloat(String(line.actual_vat || '0')),
+          currency: line.currency,
+          createdAt: line.created_at,
+          createdBy: line.created_by,
+          description: line.description,
+          supplierName: line.supplier_name,
+        }));
+        setAllSupplierInvoiceLines(transformedLines);
+      }
       
       // Update the invoices in localStorage to mark selected lines as registered
       const savedInvoices = localStorage.getItem('invoices');
