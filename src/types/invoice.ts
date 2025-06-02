@@ -99,4 +99,5 @@ export interface InvoiceFormData {
   vatAccount?: string;
   periodizationYear?: number;
   periodizationMonth?: number;
+  projectId?: string;
 }

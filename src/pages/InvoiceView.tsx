@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useInvoiceById, useInvoices, useSaveInvoice } from "@/hooks/useInvoices";
-import { useSuppliers, useSupabaseProjects } from "@/hooks/useSuppliers";
+import { useSuppliers } from "@/hooks/useSuppliers";
+import { useSupabaseProjects } from "@/hooks/useSupabaseProjects";
 import { Invoice, InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
