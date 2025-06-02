@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -744,55 +743,6 @@ const InvoiceView = () => {
                 selectedProject={selectedProject}
               />
 
-              {/* Project Details Section */}
-              <div className="space-y-2">
-                <h3 className="text-lg font-medium">Project</h3>
-                <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                  {selectedProject ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-500">Project Number</span>
-                          <span className="font-medium">{selectedProject.projectNumber}</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-500">Project Description</span>
-                          <span className="font-medium">{selectedProject.description}</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-500">Status</span>
-                          <span className="font-medium">{selectedProject.status}</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-500">Start Date</span>
-                          <span className="font-medium">{new Date(selectedProject.startDate).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-500">End Date</span>
-                          <span className="font-medium">{new Date(selectedProject.endDate).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : isLoadingProjects && invoice.projectId ? (
-                    <div className="text-center py-4 text-gray-500">
-                      Loading project information...
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 text-gray-500">
-                      No project connected to this supplier invoice
-                    </div>
-                  )}
-                </div>
-              </div>
-
               {/* Supplier Invoice Lines */}
               {invoice.supplierInvoiceLines && invoice.supplierInvoiceLines.length > 0 && (
                 <div className="space-y-2">
@@ -1284,7 +1234,7 @@ const InvoiceView = () => {
                                 onClick={() => {
                                   const selectedSummaries = getBookingSupplierSummary().filter(s => selectedSummaryLines.has(s.id));
                                   
-                                  // Create supplier invoice lines based on the summaries, not individual lines
+                                  // Create supplier invoice lines based on the summaries, not individual invoice lines
                                   const supplierInvoiceLines: SupplierInvoiceLine[] = selectedSummaries.map(summary => ({
                                     id: `sil-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                                     invoiceLineId: summary.id, // Use summary ID instead of individual line ID

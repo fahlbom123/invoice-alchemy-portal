@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
@@ -72,8 +73,8 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
   // Fetch projects from Supabase
   const { projects, isLoading: isLoadingProjects } = useSupabaseProjects();
   
-  // Find the actual project data using the projectId from formData
-  const actualProject = formData.projectId ? projects.find(p => p.id === formData.projectId) : null;
+  // Find the actual project data using the projectId from formData or selectedProject
+  const actualProject = selectedProject || (formData.projectId ? projects.find(p => p.id === formData.projectId) : null);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
