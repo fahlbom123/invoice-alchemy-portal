@@ -118,7 +118,7 @@ const InvoiceForm = () => {
       const completeFormData = {
         ...formData,
         status: "unpaid",
-        id: `invoice-${Date.now()}`,
+        id: isEditing ? id! : crypto.randomUUID(), // Use proper UUID generation
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         supplier: {
@@ -151,7 +151,7 @@ const InvoiceForm = () => {
     const completeFormData = pendingSubmitData || {
       ...formData,
       status: isEditing ? formData.status : "unpaid",
-      id: isEditing ? id : `invoice-${Date.now()}`,
+      id: isEditing ? id! : crypto.randomUUID(), // Use proper UUID generation
       createdAt: isEditing ? invoice!.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       supplier: {
