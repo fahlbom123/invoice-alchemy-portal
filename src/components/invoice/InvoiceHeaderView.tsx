@@ -66,7 +66,6 @@ const months = [
 
 const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [], invoiceId, selectedProject }: InvoiceHeaderViewProps) => {
   const [source, setSource] = useState<"Fortnox" | "Manual">(formData.source || "Manual");
-  const [currentSelectedProject, setCurrentSelectedProject] = useState<Project | null>(selectedProject);
   const [periodizationYear, setPeriodizationYear] = useState(formData.periodizationYear || new Date().getFullYear());
   const [periodizationMonth, setPeriodizationMonth] = useState(formData.periodizationMonth || new Date().getMonth() + 1);
 
