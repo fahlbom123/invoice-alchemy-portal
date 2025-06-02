@@ -34,6 +34,7 @@ export function useSaveInvoice() {
         source: invoice.source,
         account: invoice.account,
         supplier_id: invoice.supplier.id,
+        project_id: invoice.projectId || null,
         updated_at: new Date().toISOString()
       };
 

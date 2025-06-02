@@ -107,6 +107,7 @@ export type Database = {
           invoice_number: string
           notes: string | null
           ocr: string | null
+          project_id: string | null
           reference: string
           source: string | null
           status: string
@@ -126,6 +127,7 @@ export type Database = {
           invoice_number: string
           notes?: string | null
           ocr?: string | null
+          project_id?: string | null
           reference: string
           source?: string | null
           status?: string
@@ -145,6 +147,7 @@ export type Database = {
           invoice_number?: string
           notes?: string | null
           ocr?: string | null
+          project_id?: string | null
           reference?: string
           source?: string | null
           status?: string
@@ -155,6 +158,13 @@ export type Database = {
           vat?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoices_supplier_id_fkey"
             columns: ["supplier_id"]

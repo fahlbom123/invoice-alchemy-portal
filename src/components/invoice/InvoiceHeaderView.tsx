@@ -73,7 +73,7 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
   // Fetch projects from Supabase
   const { projects, isLoading: isLoadingProjects } = useSupabaseProjects();
   
-  // Find the actual project data if we have a project ID
+  // Find the actual project data using the projectId from formData
   const actualProject = formData.projectId ? projects.find(p => p.id === formData.projectId) : null;
 
   const currentYear = new Date().getFullYear();

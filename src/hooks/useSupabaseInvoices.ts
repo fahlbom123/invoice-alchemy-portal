@@ -10,13 +10,14 @@ export function useSupabaseInvoices() {
     setIsLoading(true);
     
     try {
-      // Fetch invoices with suppliers and invoice lines
+      // Fetch invoices with suppliers, invoice lines, and projects
       const { data: invoicesData, error: invoicesError } = await supabase
         .from('invoices')
         .select(`
           *,
           suppliers (*),
-          invoice_lines (*)
+          invoice_lines (*),
+          projects (*)
         `)
         .order('created_at', { ascending: false });
       
@@ -44,6 +45,7 @@ export function useSupabaseInvoices() {
         source: invoice.source as "Fortnox" | "Manual",
         account: invoice.account,
         updatedAt: invoice.updated_at,
+        projectId: invoice.project_id,
         supplier: {
           id: invoice.suppliers.id,
           name: invoice.suppliers.name,
@@ -115,7 +117,8 @@ export function useSupabaseInvoiceById(id: string) {
           .select(`
             *,
             suppliers (*),
-            invoice_lines (*)
+            invoice_lines (*),
+            projects (*)
           `)
           .eq('id', id)
           .single();
@@ -144,6 +147,7 @@ export function useSupabaseInvoiceById(id: string) {
           source: data.source as "Fortnox" | "Manual",
           account: data.account,
           updatedAt: data.updated_at,
+          projectId: data.project_id,
           supplier: {
             id: data.suppliers.id,
             name: data.suppliers.name,
