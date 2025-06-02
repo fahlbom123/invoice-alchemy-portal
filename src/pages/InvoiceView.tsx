@@ -20,6 +20,7 @@ import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
 import { ArrowLeft, Edit, Trash2, Save, X, Lock } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const InvoiceView = () => {
   const { id } = useParams<{ id: string }>();
@@ -138,11 +139,6 @@ const InvoiceView = () => {
 
     loadSupplierInvoiceLines();
   }, []);
-
-  // Get all supplier invoice lines from all invoices
-  const allSupplierInvoiceLines = invoices.flatMap(invoice => 
-    invoice.supplierInvoiceLines || []
-  );
 
   // Function to get booking number for supplier invoice line by matching with original invoice line
   const getBookingNumberForSupplierLine = (supplierLine: SupplierInvoiceLine) => {
@@ -543,6 +539,13 @@ const InvoiceView = () => {
     );
   }
 
+  // Transform selectedProject to match expected interface
+  const transformedSelectedProject = selectedProject ? {
+    id: selectedProject.id,
+    project_number: selectedProject.project_number || selectedProject.projectNumber || '',
+    description: selectedProject.description
+  } : null;
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
@@ -615,7 +618,7 @@ const InvoiceView = () => {
                 registeredTotals={registeredTotals}
                 supplierInvoiceLines={invoice.supplierInvoiceLines || []}
                 invoiceId={invoice.id}
-                selectedProject={selectedProject}
+                selectedProject={transformedSelectedProject}
               />
 
               {/* Supplier Invoice Lines */}
