@@ -289,6 +289,37 @@ const InvoiceView = () => {
     }
   };
 
+  // Add function to undo cancel supplier invoice
+  const handleUndoCancelInvoice = async () => {
+    if (!invoice) return;
+
+    try {
+      const updatedInvoice = {
+        ...invoice,
+        status: "unpaid", // Reset to unpaid status
+        updatedAt: new Date().toISOString(),
+      };
+
+      await saveInvoice(updatedInvoice);
+      setIsCancelled(false);
+      
+      toast({
+        title: "Invoice Restored",
+        description: "Supplier invoice has been restored successfully.",
+      });
+      
+      // Refresh the page to show updated data
+      window.location.reload();
+    } catch (error) {
+      console.error("Error restoring invoice:", error);
+      toast({
+        title: "Error",
+        description: "Failed to restore supplier invoice.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSearch = () => {
     const filtered = allInvoiceLines.filter(line => {
       const matchesSupplier = supplierId === "all" || line.supplierId === supplierId;
@@ -639,6 +670,15 @@ const InvoiceView = () => {
             Back to Dashboard
           </Button>
           <div className="flex gap-2">
+            {isCancelled && (
+              <Button 
+                variant="outline" 
+                onClick={handleUndoCancelInvoice}
+                disabled={isSentToAccounting}
+              >
+                Undo Cancel
+              </Button>
+            )}
             <Button 
               variant="outline" 
               onClick={handleCancelInvoice}
@@ -693,8 +733,42 @@ const InvoiceView = () => {
                 registeredTotals={registeredTotals}
                 supplierInvoiceLines={invoice.supplierInvoiceLines || []}
                 invoiceId={invoice.id}
-                selectedProject={null}
+                selectedProject={invoice.projectId ? {
+                  id: invoice.projectId,
+                  projectNumber: "Loading...",
+                  description: "Loading...",
+                  status: "Unknown",
+                  startDate: "",
+                  endDate: ""
+                } : null}
               />
+
+              {/* Project Details Section */}
+              <div className="space-y-2">
+                <h3 className="text-lg font-medium">Project</h3>
+                <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+                  {invoice.projectId ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-500">Project Number</span>
+                          <span className="font-medium">Loading...</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-500">Project Description</span>
+                          <span className="font-medium">Loading...</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      No project connected to this supplier invoice
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* Supplier Invoice Lines */}
               {invoice.supplierInvoiceLines && invoice.supplierInvoiceLines.length > 0 && (

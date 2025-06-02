@@ -398,16 +398,18 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
           </div>
         </div>
 
-        {currentSelectedProject && (
-          <div className="space-y-2">
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-500">Project</span>
+        <div className="space-y-2">
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-500">Project</span>
+            {selectedProject ? (
               <span className="font-medium">
-                {currentSelectedProject.projectNumber} - {currentSelectedProject.description}
+                {selectedProject.projectNumber} - {selectedProject.description}
               </span>
-            </div>
+            ) : (
+              <span className="font-medium text-gray-400">No project connected</span>
+            )}
           </div>
-        )}
+        </div>
         
         <div className="space-y-2">
           <div className="flex flex-col">
