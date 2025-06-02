@@ -80,12 +80,48 @@ const InvoiceHeaderView = ({
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Account</label>
+                <p className="text-sm">{formData.account || 'Not set'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">VAT Account</label>
+                <p className="text-sm">{formData.vatAccount || 'Not set'}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Periodization Year</label>
+                <p className="text-sm">{formData.periodizationYear || 'Not set'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Periodization Month</label>
+                <p className="text-sm">{formData.periodizationMonth || 'Not set'}</p>
+              </div>
+            </div>
+
             <div>
               <label className="text-sm font-medium text-gray-500">Project</label>
               <p className="text-sm">
                 {selectedProject ? `${selectedProject.project_number} - ${selectedProject.description}` : 'No project selected'}
               </p>
             </div>
+
+            {formData.source && (
+              <div>
+                <label className="text-sm font-medium text-gray-500">Source</label>
+                <p className="text-sm">{formData.source}</p>
+              </div>
+            )}
+
+            {formData.ocr && (
+              <div>
+                <label className="text-sm font-medium text-gray-500">OCR</label>
+                <p className="text-sm">{formData.ocr}</p>
+              </div>
+            )}
 
             {formData.notes && (
               <div>
@@ -102,6 +138,10 @@ const InvoiceHeaderView = ({
                 <div className="flex justify-between">
                   <span>Total Amount:</span>
                   <span className="font-medium">{formatCurrency(formData.totalAmount || 0, formData.currency)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>VAT Amount:</span>
+                  <span className="font-medium">{formatCurrency(formData.vat || 0, formData.currency)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Total VAT:</span>
