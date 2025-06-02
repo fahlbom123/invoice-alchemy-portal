@@ -542,7 +542,7 @@ const InvoiceView = () => {
   // Transform selectedProject to match expected interface
   const transformedSelectedProject = selectedProject ? {
     id: selectedProject.id,
-    project_number: selectedProject.project_number || selectedProject.projectNumber || '',
+    project_number: selectedProject.projectNumber || '',
     description: selectedProject.description
   } : null;
 
