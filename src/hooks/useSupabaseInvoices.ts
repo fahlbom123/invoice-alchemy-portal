@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Invoice, InvoiceLine, InvoiceLineWithReference } from "@/types/invoice";
@@ -80,6 +79,7 @@ export function useSupabaseInvoices() {
         }))
       }));
 
+      console.log('Loaded invoices from Supabase:', transformedInvoices);
       setInvoices(transformedInvoices);
     } catch (error) {
       console.error('Error fetching invoices:', error);
@@ -195,21 +195,65 @@ export function useSupabaseInvoiceById(id: string) {
 }
 
 export function useSupabaseInvoiceLines() {
-  const { invoices, isLoading } = useSupabaseInvoices();
   const [invoiceLines, setInvoiceLines] = useState<InvoiceLineWithReference[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    if (!isLoading && invoices.length > 0) {
-      const allLines = invoices.flatMap(invoice => 
-        invoice.invoiceLines.map(line => ({
-          ...line,
-          invoiceId: invoice.id,
-          invoiceNumber: invoice.invoiceNumber
-        }))
-      );
-      setInvoiceLines(allLines);
-    }
-  }, [invoices, isLoading]);
+    const fetchInvoiceLines = async () => {
+      setIsLoading(true);
+      
+      try {
+        // Fetch all invoice lines with supplier information
+        const { data: linesData, error: linesError } = await supabase
+          .from('invoice_lines')
+          .select(`
+            *,
+            suppliers (*)
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (linesError) {
+          console.error('Error fetching invoice lines:', linesError);
+          setInvoiceLines([]);
+          return;
+        }
+
+        // Transform to match our interface
+        const transformedLines: InvoiceLineWithReference[] = linesData.map(line => ({
+          id: line.id,
+          description: line.description,
+          quantity: parseFloat(String(line.quantity || '1')),
+          unitPrice: parseFloat(String(line.unit_price || '0')),
+          estimatedCost: parseFloat(String(line.estimated_cost || '0')),
+          actualCost: line.actual_cost ? parseFloat(String(line.actual_cost)) : undefined,
+          supplierId: line.supplier_id,
+          supplierName: line.supplier_name,
+          supplierPartNumber: line.supplier_part_number,
+          bookingNumber: line.booking_number,
+          confirmationNumber: line.confirmation_number,
+          departureDate: line.departure_date,
+          paymentStatus: line.payment_status as "paid" | "unpaid" | "partial",
+          fullyInvoiced: line.fully_invoiced,
+          currency: line.currency,
+          invoiceType: line.invoice_type as "single" | "multi",
+          estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
+          actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined,
+          invoiceId: line.invoice_id,
+          invoiceNumber: '' // Will be populated if needed
+        }));
+        
+        console.log('Loaded invoice lines from Supabase:', transformedLines);
+        setInvoiceLines(transformedLines);
+      } catch (error) {
+        console.error('Error fetching invoice lines:', error);
+        setInvoiceLines([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInvoiceLines();
+  }, []);
   
   return { invoiceLines, isLoading };
 }

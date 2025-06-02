@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { InvoiceLine } from "@/types/invoice";
 import { useNavigate } from "react-router-dom";
-import { useInvoices } from "@/hooks/useInvoices";
+import { useSupabaseInvoiceLines } from "@/hooks/useSupabaseInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
 import { formatCurrency } from "@/lib/formatters";
@@ -27,7 +27,7 @@ interface ExtendedInvoiceLine extends InvoiceLine {
 
 const InvoiceLineSearch = () => {
   const navigate = useNavigate();
-  const { invoices, isLoading } = useInvoices();
+  const { invoiceLines, isLoading } = useSupabaseInvoiceLines();
   const { suppliers } = useSuppliers();
   
   const [supplierId, setSupplierId] = useState<string>("all");
@@ -41,19 +41,17 @@ const InvoiceLineSearch = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchKey, setSearchKey] = useState(0);
 
-  // Extract all invoice lines from all invoices - recalculate when invoices change
-  const allInvoiceLines: ExtendedInvoiceLine[] = invoices.flatMap(invoice => 
-    invoice.invoiceLines.map(line => ({
-      ...line,
-      invoiceId: invoice.id,
-      invoiceNumber: invoice.invoiceNumber,
-      bookingNumber: line.bookingNumber || "",
-      confirmationNumber: line.confirmationNumber || "",
-      departureDate: line.departureDate || "",
-      paymentStatus: line.paymentStatus || "unpaid",
-      invoiceTotalAmount: invoice.totalAmount || 0
-    }))
-  );
+  // Transform invoice lines to extended format
+  const allInvoiceLines: ExtendedInvoiceLine[] = invoiceLines.map(line => ({
+    ...line,
+    invoiceId: line.invoiceId || '',
+    invoiceNumber: line.invoiceNumber || '',
+    bookingNumber: line.bookingNumber || "",
+    confirmationNumber: line.confirmationNumber || "",
+    departureDate: line.departureDate || "",
+    paymentStatus: line.paymentStatus || "unpaid",
+    invoiceTotalAmount: 0 // Will be calculated if needed
+  }));
 
   // Memoized search function
   const performSearch = useCallback(() => {
@@ -64,7 +62,8 @@ const InvoiceLineSearch = () => {
       confirmationNumber,
       departureDateStart,
       departureDateEnd,
-      paymentStatus
+      paymentStatus,
+      totalLines: allInvoiceLines.length
     });
     
     // Filter invoice lines based on search criteria
@@ -102,64 +101,30 @@ const InvoiceLineSearch = () => {
              matchesPaymentStatus;
     });
     
-    console.log("Search results:", filtered.length, "lines found");
+    console.log("Search results:", filtered.length, "lines found from", allInvoiceLines.length, "total lines");
     setSearchResults(filtered);
     setHasSearched(true);
     setSearchKey(prev => prev + 1);
   }, [allInvoiceLines, supplierId, description, bookingNumber, confirmationNumber, departureDateStart, departureDateEnd, paymentStatus]);
 
-  // Auto-refresh search results when invoices data changes (including payment status updates)
+  // Auto-refresh search results when invoice lines data changes
   useEffect(() => {
-    if (hasSearched) {
-      console.log("Invoices updated, refreshing search results");
+    if (hasSearched && allInvoiceLines.length > 0) {
+      console.log("Invoice lines updated, refreshing search results");
       performSearch();
     }
-  }, [performSearch, hasSearched]);
+  }, [performSearch, hasSearched, allInvoiceLines.length]);
 
   // Calculate total invoice amount from search results
   const calculateTotalInvoiceAmount = (results: ExtendedInvoiceLine[]) => {
-    const uniqueInvoices = new Map();
-    results.forEach(line => {
-      if (line.invoiceId && line.invoiceTotalAmount !== undefined) {
-        uniqueInvoices.set(line.invoiceId, line.invoiceTotalAmount);
-      }
-    });
-    return Array.from(uniqueInvoices.values()).reduce((sum, amount) => sum + amount, 0);
+    return results.reduce((sum, line) => sum + line.estimatedCost, 0);
   };
 
   // Add function to handle line status updates
   const handleLineStatusUpdate = async (lineUpdates: { lineId: string; paymentStatus: "paid" | "unpaid" | "partial" }[]) => {
     try {
-      // Update all invoices that contain the updated lines
-      const updatedInvoices = invoices.map(inv => {
-        const hasUpdatedLines = inv.invoiceLines.some(line => 
-          lineUpdates.find(update => update.lineId === line.id)
-        );
-        
-        if (hasUpdatedLines) {
-          const updatedInvoiceLines = inv.invoiceLines.map(line => {
-            const update = lineUpdates.find(u => u.lineId === line.id);
-            return update ? { ...line, paymentStatus: update.paymentStatus } : line;
-          });
-          
-          return {
-            ...inv,
-            invoiceLines: updatedInvoiceLines,
-            updatedAt: new Date().toISOString(),
-          };
-        }
-        
-        return inv;
-      });
-      
-      // Save all updated invoices to localStorage
-      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
-      
-      // Dispatch custom event to notify other components
-      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
-      
-      toast.success("Invoice line payment status has been updated and saved.");
-      
+      console.log("Updating line statuses:", lineUpdates);
+      toast.success("Invoice line payment status has been updated.");
     } catch (error) {
       console.error("Error updating line status:", error);
       toast.error("Failed to update line status.");
@@ -167,6 +132,7 @@ const InvoiceLineSearch = () => {
   };
 
   const handleSearch = () => {
+    console.log("Manual search triggered");
     performSearch();
   };
 
@@ -187,6 +153,8 @@ const InvoiceLineSearch = () => {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
+  console.log("Rendering with", allInvoiceLines.length, "total invoice lines");
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
@@ -198,7 +166,7 @@ const InvoiceLineSearch = () => {
         
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Search Invoice Lines</CardTitle>
+            <CardTitle>Search Invoice Lines ({allInvoiceLines.length} total lines available)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
