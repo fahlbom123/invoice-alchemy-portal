@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,16 @@ import { InvoiceFormData } from "@/types/invoice";
 import SupplierSelector from "@/components/invoice/SupplierSelector";
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderForm from "@/components/invoice/InvoiceHeaderForm";
+import ProjectSelector from "@/components/invoice/ProjectSelector";
+
+interface Project {
+  id: string;
+  projectNumber: string;
+  description: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+}
 
 const InvoiceForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +51,7 @@ const InvoiceForm = () => {
     periodizationMonth: new Date().getMonth() + 1,
   });
 
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const [pendingSubmitData, setPendingSubmitData] = useState<any>(null);
 
@@ -70,6 +82,30 @@ const InvoiceForm = () => {
         periodizationYear: invoice.periodizationYear || new Date().getFullYear(),
         periodizationMonth: invoice.periodizationMonth || new Date().getMonth() + 1,
       });
+
+      // Load project if it exists
+      if (invoice.projectId) {
+        // Try to get project from localStorage
+        try {
+          const savedProjects = localStorage.getItem('projects');
+          if (savedProjects) {
+            const projects = JSON.parse(savedProjects);
+            const project = projects.find((p: any) => p.id === invoice.projectId);
+            if (project) {
+              setSelectedProject({
+                id: project.id,
+                projectNumber: project.projectNumber,
+                description: project.description,
+                status: project.status,
+                startDate: project.startDate,
+                endDate: project.endDate
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error loading project:', error);
+        }
+      }
     }
   }, [invoice, isEditing]);
 
@@ -109,6 +145,14 @@ const InvoiceForm = () => {
     setFormData(prev => ({ ...prev, supplierId }));
   };
 
+  const handleProjectSelect = (project: Project) => {
+    setSelectedProject(project);
+  };
+
+  const handleProjectRemove = () => {
+    setSelectedProject(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -131,6 +175,7 @@ const InvoiceForm = () => {
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        projectId: selectedProject?.id,
         supplier: {
           id: supplier.id,
           name: supplier.name,
@@ -164,6 +209,7 @@ const InvoiceForm = () => {
       id: isEditing ? id! : crypto.randomUUID(),
       createdAt: isEditing ? invoice!.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      projectId: selectedProject?.id,
       supplier: {
         id: supplier.id,
         name: supplier.name,
@@ -249,6 +295,14 @@ const InvoiceForm = () => {
                   handleInputChange={handleInputChange}
                   handleNumberInputChange={handleNumberInputChange}
                   handleSelectChange={handleSelectChange}
+                />
+
+                <Separator />
+
+                <ProjectSelector
+                  selectedProject={selectedProject}
+                  onProjectSelect={handleProjectSelect}
+                  onProjectRemove={handleProjectRemove}
                 />
               </div>
             </CardContent>
