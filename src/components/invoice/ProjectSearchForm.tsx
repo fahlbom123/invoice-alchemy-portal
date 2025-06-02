@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -5,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Lock } from "lucide-react";
+import { useSupabaseProjects } from "@/hooks/useSupabaseProjects";
 
 interface Project {
   id: string;
@@ -26,59 +28,18 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
   const [projectNumber, setProjectNumber] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Project[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  
+  const { projects, isLoading: projectsLoading } = useSupabaseProjects();
 
   // Check if project selection is locked (when a project is already connected or disabled)
   const isProjectLocked = selectedProject !== null || disabled;
-
-  const exampleProjects: Project[] = [
-    {
-      id: "proj-001",
-      projectNumber: "PRJ-2024-001",
-      description: "Office Building Construction",
-      status: "Active",
-      startDate: "2024-01-15",
-      endDate: "2024-12-31"
-    },
-    {
-      id: "proj-002",
-      projectNumber: "PRJ-2024-002", 
-      description: "Road Infrastructure Upgrade",
-      status: "Planning",
-      startDate: "2024-03-01",
-      endDate: "2024-08-30"
-    },
-    {
-      id: "proj-003",
-      projectNumber: "PRJ-2024-003",
-      description: "Hospital Renovation Project",
-      status: "Active",
-      startDate: "2024-02-10",
-      endDate: "2024-11-15"
-    },
-    {
-      id: "proj-004",
-      projectNumber: "PRJ-2023-015",
-      description: "Shopping Mall Development",
-      status: "Completed",
-      startDate: "2023-06-01",
-      endDate: "2024-01-20"
-    },
-    {
-      id: "proj-005",
-      projectNumber: "PRJ-2024-004",
-      description: "School Campus Expansion",
-      status: "Active",
-      startDate: "2024-04-01",
-      endDate: "2025-02-28"
-    }
-  ];
 
   const handleSearch = () => {
     if (isProjectLocked) return; // Prevent search when locked
     
     console.log("Searching projects with:", { projectDescription, projectNumber });
     
-    const filtered = exampleProjects.filter(project => {
+    const filtered = projects.filter(project => {
       const matchesDescription = !projectDescription || 
         project.description.toLowerCase().includes(projectDescription.toLowerCase());
       const matchesNumber = !projectNumber || 
@@ -107,6 +68,10 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
       onProjectSelect(project);
     }
   };
+
+  if (projectsLoading) {
+    return <div className="text-center py-4">Loading projects...</div>;
+  }
 
   return (
     <>
