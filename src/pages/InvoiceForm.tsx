@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -61,8 +62,9 @@ const InvoiceForm = () => {
     ? suppliers.find(s => s.id === formData.supplierId) 
     : null;
 
+  // Load invoice data when editing
   useEffect(() => {
-    if (invoice && isEditing && projects.length > 0) {
+    if (invoice && isEditing) {
       setFormData({
         invoiceNumber: invoice.invoiceNumber,
         reference: invoice.reference,
@@ -84,23 +86,25 @@ const InvoiceForm = () => {
         periodizationMonth: invoice.periodizationMonth || new Date().getMonth() + 1,
         projectId: invoice.projectId,
       });
+    }
+  }, [invoice, isEditing]);
 
-      // Load project if it exists
-      if (invoice.projectId) {
-        const project = projects.find(p => p.id === invoice.projectId);
-        if (project) {
-          setSelectedProject({
-            id: project.id,
-            projectNumber: project.projectNumber,
-            description: project.description,
-            status: project.status,
-            startDate: project.startDate,
-            endDate: project.endDate
-          });
-        }
+  // Load project when projects are available and we have a projectId
+  useEffect(() => {
+    if (projects.length > 0 && formData.projectId && !selectedProject) {
+      const project = projects.find(p => p.id === formData.projectId);
+      if (project) {
+        setSelectedProject({
+          id: project.id,
+          projectNumber: project.projectNumber,
+          description: project.description,
+          status: project.status,
+          startDate: project.startDate,
+          endDate: project.endDate
+        });
       }
     }
-  }, [invoice, isEditing, projects]);
+  }, [projects, formData.projectId, selectedProject]);
 
   if ((isLoadingInvoice && isEditing) || isLoadingSuppliers || isLoadingProjects) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
