@@ -12,6 +12,22 @@ interface InvoiceHeaderFormProps {
   handleSelectChange: (name: string, value: string) => void;
 }
 
+const costAccounts = [
+  { code: "4010", description: "Purchase of goods" },
+  { code: "4020", description: "Domestic purchase of goods" },
+  { code: "4050", description: "Purchase of goods from EU" },
+  { code: "4531", description: "Purchase of services outside EU" },
+  { code: "5460", description: "Consumables / Supplies" },
+  { code: "6110", description: "Office supplies" },
+  { code: "6540", description: "IT services" },
+];
+
+const vatAccounts = [
+  { code: "2641", description: "Input VAT" },
+  { code: "2614", description: "Output VAT (reverse charge)" },
+  { code: "2645", description: "Calculated input VAT (reverse charge)" },
+];
+
 const InvoiceHeaderForm = ({
   formData,
   handleInputChange,
@@ -83,6 +99,44 @@ const InvoiceHeaderForm = ({
             <SelectItem value="CAD">CAD</SelectItem>
             <SelectItem value="AUD">AUD</SelectItem>
             <SelectItem value="JPY">JPY</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="costAccount">Cost Account</Label>
+        <Select
+          value={formData.account || "4010"}
+          onValueChange={(value) => handleSelectChange('account', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select cost account" />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            {costAccounts.map((account) => (
+              <SelectItem key={account.code} value={account.code}>
+                {account.code} - {account.description}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="vatAccount">VAT Account</Label>
+        <Select
+          value={formData.vatAccount || "2641"}
+          onValueChange={(value) => handleSelectChange('vatAccount', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select VAT account" />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            {vatAccounts.map((account) => (
+              <SelectItem key={account.code} value={account.code}>
+                {account.code} - {account.description}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

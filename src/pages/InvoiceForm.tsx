@@ -35,6 +35,7 @@ const InvoiceForm = () => {
     totalVat: 0,
     ocr: "",
     account: "4010",
+    vatAccount: "2641",
   });
 
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
@@ -63,6 +64,7 @@ const InvoiceForm = () => {
         totalVat: invoice.totalVat || 0,
         ocr: invoice.ocr || "",
         account: invoice.account || "4010",
+        vatAccount: invoice.vatAccount || "2641",
       });
     }
   }, [invoice, isEditing]);
