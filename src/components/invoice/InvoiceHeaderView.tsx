@@ -3,6 +3,7 @@ import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { formatCurrency } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ProjectSearchForm from "./ProjectSearchForm";
 
 interface InvoiceHeaderViewProps {
   formData: InvoiceFormData;
@@ -20,6 +21,15 @@ interface InvoiceHeaderViewProps {
     startDate: string;
     endDate: string;
   } | null;
+}
+
+interface Project {
+  id: string;
+  projectNumber: string;
+  description: string;
+  status: string;
+  startDate: string;
+  endDate: string;
 }
 
 const costAccounts = [
@@ -40,6 +50,8 @@ const vatAccounts = [
 
 const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = [], invoiceId, selectedProject }: InvoiceHeaderViewProps) => {
   const [source, setSource] = useState<"Fortnox" | "Manual">(formData.source || "Manual");
+  const [currentSelectedProject, setCurrentSelectedProject] = useState<Project | null>(selectedProject);
+  const [showProjectSearch, setShowProjectSearch] = useState(false);
 
   // Helper function to capitalize status
   const capitalizeStatus = (status: string) => {
@@ -241,8 +253,94 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
     }
   };
 
+  // Handle project selection
+  const handleProjectSelect = (project: Project) => {
+    setCurrentSelectedProject(project);
+    setShowProjectSearch(false);
+    
+    // Update invoice with project in localStorage
+    if (!invoiceId) return;
+
+    try {
+      const savedInvoices = localStorage.getItem('invoices');
+      if (!savedInvoices) return;
+
+      const invoices = JSON.parse(savedInvoices);
+      const updatedInvoices = invoices.map((invoice: any) => {
+        if (invoice.id === invoiceId) {
+          return {
+            ...invoice,
+            projectId: project.id,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return invoice;
+      });
+
+      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
+    } catch (error) {
+      console.error('Error updating invoice with project:', error);
+    }
+  };
+
+  // Handle project removal
+  const handleProjectRemove = () => {
+    setCurrentSelectedProject(null);
+    
+    // Remove project from invoice in localStorage
+    if (!invoiceId) return;
+
+    try {
+      const savedInvoices = localStorage.getItem('invoices');
+      if (!savedInvoices) return;
+
+      const invoices = JSON.parse(savedInvoices);
+      const updatedInvoices = invoices.map((invoice: any) => {
+        if (invoice.id === invoiceId) {
+          const { projectId, ...invoiceWithoutProject } = invoice;
+          return {
+            ...invoiceWithoutProject,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return invoice;
+      });
+
+      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('invoicesUpdated'));
+    } catch (error) {
+      console.error('Error removing project from invoice:', error);
+    }
+  };
+
   // Check if invoice is sent to accounting (locked state)
   const isSentToAccounting = formData.status === "sent_to_accounting";
+
+  if (showProjectSearch) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">Select Project</h3>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowProjectSearch(false)}
+          >
+            Cancel
+          </Button>
+        </div>
+        <ProjectSearchForm
+          onProjectSelect={handleProjectSelect}
+          selectedProject={currentSelectedProject}
+          disabled={isSentToAccounting}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -304,12 +402,19 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
           </div>
         </div>
 
-        {selectedProject && (
+        {currentSelectedProject ? (
           <>
             <div className="space-y-2">
               <div className="flex flex-col">
                 <span className="text-sm text-gray-500">Project Number</span>
-                <span className="font-medium">{selectedProject.projectNumber}</span>
+                <span className="font-medium">{currentSelectedProject.projectNumber}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-500">Project Description</span>
+                <span className="font-medium">{currentSelectedProject.description}</span>
               </div>
             </div>
 
@@ -317,11 +422,49 @@ const InvoiceHeaderView = ({ formData, registeredTotals, supplierInvoiceLines = 
               <div className="flex flex-col">
                 <span className="text-sm text-gray-500">Project Period</span>
                 <span className="font-medium">
-                  {new Date(selectedProject.startDate).toLocaleDateString()} - {new Date(selectedProject.endDate).toLocaleDateString()}
+                  {new Date(currentSelectedProject.startDate).toLocaleDateString()} - {new Date(currentSelectedProject.endDate).toLocaleDateString()}
                 </span>
               </div>
             </div>
+
+            <div className="space-y-2">
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-500">Project Actions</span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowProjectSearch(true)}
+                    disabled={isSentToAccounting}
+                  >
+                    Change Project
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleProjectRemove}
+                    disabled={isSentToAccounting}
+                  >
+                    Remove Project
+                  </Button>
+                </div>
+              </div>
+            </div>
           </>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex flex-col">
+              <span className="text-sm text-gray-500">Project</span>
+              <Button
+                variant="outline"
+                onClick={() => setShowProjectSearch(true)}
+                disabled={isSentToAccounting}
+                className="w-fit"
+              >
+                Select Project
+              </Button>
+            </div>
+          </div>
         )}
         
         <div className="space-y-2">
