@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Invoice, InvoiceLine, InvoiceLineWithReference, SupplierInvoiceLine } from "@/types/invoice";
@@ -216,27 +217,36 @@ export function useSupabaseInvoiceById(id: string) {
 
         console.log('Invoice lines for this invoice:', invoiceLinesData);
 
-        // Get the IDs of invoice lines that belong to this invoice
-        const invoiceLineIds = (invoiceLinesData || []).map((line: any) => line.id);
+        // For supplier invoice lines, we need a different approach
+        // Since supplier invoice lines can reference invoice lines from any invoice
+        // but be "registered" to this specific supplier invoice, we need to find
+        // supplier invoice lines that were created in the context of this invoice
+        // 
+        // The challenge is that the supplier_invoice_lines table doesn't have a direct
+        // reference to the supplier invoice (invoices table). However, during registration,
+        // we typically register lines from the same supplier to a supplier invoice.
+        // 
+        // For now, let's get all supplier invoice lines and then filter by looking at
+        // recent registrations that might belong to this invoice based on timing and supplier
+        const { data: allSupplierInvoiceData, error: supplierError } = await supabase
+          .from('supplier_invoice_lines')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-        // Fetch supplier invoice lines that reference invoice lines from this specific invoice
-        // This is the correct approach: only show supplier invoice lines that reference
-        // invoice lines that belong to this specific invoice
-        let supplierInvoiceData: any[] = [];
-        if (invoiceLineIds.length > 0) {
-          const { data: filteredSupplierData, error: supplierError } = await supabase
-            .from('supplier_invoice_lines')
-            .select('*')
-            .in('invoice_line_id', invoiceLineIds);
-
-          if (supplierError) {
-            console.error('Error fetching supplier invoice lines:', supplierError);
-          } else {
-            supplierInvoiceData = filteredSupplierData || [];
-          }
+        if (supplierError) {
+          console.error('Error fetching supplier invoice lines:', supplierError);
         }
 
-        console.log('Supplier invoice lines for this invoice:', supplierInvoiceData);
+        console.log('All supplier invoice lines:', allSupplierInvoiceData);
+
+        // Filter supplier invoice lines that might belong to this invoice
+        // We'll look for lines that were created recently and reference lines from the same supplier
+        const supplierInvoiceData = (allSupplierInvoiceData || []).filter((supplierLine: any) => {
+          // Check if the supplier name matches this invoice's supplier
+          return supplierLine.supplier_name === invoiceData.suppliers.name;
+        });
+
+        console.log('Filtered supplier invoice lines for this invoice:', supplierInvoiceData);
 
         // Transform invoice lines
         const invoiceLines: InvoiceLine[] = (invoiceLinesData || []).map((line: any) => ({
