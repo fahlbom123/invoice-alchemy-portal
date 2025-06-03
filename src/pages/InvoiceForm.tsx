@@ -229,6 +229,9 @@ const InvoiceForm = () => {
       id: isEditing ? id! : crypto.randomUUID(),
       createdAt: isEditing ? invoice!.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      totalAmount: formData.totalAmount || 0,
+      invoiceLines: formData.invoiceLines || [],
+      dueDate: formData.dueDate,
       projectId: selectedProject?.id,
       supplier: {
         id: supplier.id,
