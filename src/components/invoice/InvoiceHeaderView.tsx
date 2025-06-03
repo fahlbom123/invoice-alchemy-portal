@@ -35,6 +35,8 @@ const InvoiceHeaderView = ({
 
   const { totalActualCost, totalActualVat } = registeredTotals || calculateRegisteredTotals();
 
+  console.log('InvoiceHeaderView formData.vatAccount:', formData.vatAccount);
+
   return (
     <Card>
       <CardHeader>
