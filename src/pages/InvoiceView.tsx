@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,29 @@ const InvoiceView = () => {
 
   // Check if cancel button should be enabled (no lines connected)
   const canCancelInvoice = !invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0;
+
+  // Add the missing formData state
+  const [formData, setFormData] = useState<InvoiceFormData>({
+    invoiceNumber: "",
+    reference: "",
+    status: "",
+    dueDate: "",
+    invoiceDate: "",
+    supplierId: "",
+    notes: "",
+    invoiceLines: [],
+    currency: "USD",
+    totalAmount: 0,
+    totalVat: 0,
+    vat: 0,
+    ocr: "",
+    source: undefined,
+    account: "",
+    vatAccount: "",
+    periodizationYear: undefined,
+    periodizationMonth: undefined,
+    projectId: undefined,
+  });
 
   // Add function to send invoice to accounting
   const handleSendToAccounting = async () => {
