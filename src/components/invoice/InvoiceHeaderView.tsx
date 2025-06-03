@@ -146,10 +146,6 @@ const InvoiceHeaderView = ({
                   <span className="font-medium">{formatCurrency(formData.totalAmount || 0, formData.currency)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>VAT Amount:</span>
-                  <span className="font-medium">{formatCurrency(formData.vat || 0, formData.currency)}</span>
-                </div>
-                <div className="flex justify-between">
                   <span>Total VAT:</span>
                   <span className="font-medium">{formatCurrency(formData.totalVat || 0, formData.currency)}</span>
                 </div>
