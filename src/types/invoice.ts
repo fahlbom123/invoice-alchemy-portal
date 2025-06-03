@@ -1,4 +1,3 @@
-
 export interface Supplier {
   id: string;
   name: string;
@@ -100,4 +99,11 @@ export interface InvoiceFormData {
   periodizationYear?: number;
   periodizationMonth?: number;
   projectId?: string;
+}
+
+// Extended invoice line with search result information
+export interface SearchResultLine extends InvoiceLine {
+  invoiceId?: string;
+  invoiceNumber?: string;
+  invoiceTotalAmount?: number;
 }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -52,7 +53,7 @@ const InvoiceView = () => {
   
   const { invoice, isLoading } = useSupabaseInvoiceById(id || "");
   const { invoices, isLoading: isLoadingInvoices } = useInvoices();
-  const { invoiceLines: supabaseInvoiceLines, isLoading: isLoadingInvoiceLines } = useSupababInvoiceLines();
+  const { invoiceLines: supabaseInvoiceLines, isLoading: isLoadingInvoiceLines } = useSupabaseInvoiceLines();
   const { suppliers } = useSuppliers();
   const { saveInvoice } = useSaveInvoice();
 
