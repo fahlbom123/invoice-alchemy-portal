@@ -102,7 +102,7 @@ const SearchResultsTable = ({
   }) => (
     <TableRow className="bg-gray-100 font-semibold border-t-2 border-gray-300">
       <TableCell></TableCell>
-      <TableCell colSpan={6} className="text-right">
+      <TableCell colSpan={5} className="text-right">
         Total for {supplierName}:
       </TableCell>
       <TableCell></TableCell>
@@ -147,7 +147,6 @@ const SearchResultsTable = ({
                   onCheckedChange={(checked) => onSelectAll(!!checked)} 
                 />
               </TableHead>
-              <TableHead>Invoice</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead>Booking</TableHead>
