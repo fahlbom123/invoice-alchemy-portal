@@ -18,17 +18,17 @@ export function formatDate(dateString: string): string {
   }).format(date);
 }
 
-// Example currency rates (these would typically come from an API)
+// Example currency rates (SEK as base currency)
 export const EXAMPLE_CURRENCY_RATES: Record<string, { rate: number; baseDate: string }> = {
-  'USD': { rate: 1.0, baseDate: '2024-01-01' },
-  'EUR': { rate: 0.85, baseDate: '2024-01-01' },
-  'SEK': { rate: 10.50, baseDate: '2024-01-01' },
-  'NOK': { rate: 10.75, baseDate: '2024-01-01' },
-  'DKK': { rate: 6.35, baseDate: '2024-01-01' },
-  'GBP': { rate: 0.75, baseDate: '2024-01-01' },
-  'CHF': { rate: 0.92, baseDate: '2024-01-01' },
-  'PLN': { rate: 4.20, baseDate: '2024-01-01' },
-  'CZK': { rate: 22.50, baseDate: '2024-01-01' },
+  'SEK': { rate: 1.0, baseDate: '2024-01-01' },
+  'USD': { rate: 0.095, baseDate: '2024-01-01' }, // 1 SEK = 0.095 USD
+  'EUR': { rate: 0.081, baseDate: '2024-01-01' }, // 1 SEK = 0.081 EUR
+  'NOK': { rate: 1.024, baseDate: '2024-01-01' }, // 1 SEK = 1.024 NOK
+  'DKK': { rate: 0.605, baseDate: '2024-01-01' }, // 1 SEK = 0.605 DKK
+  'GBP': { rate: 0.071, baseDate: '2024-01-01' }, // 1 SEK = 0.071 GBP
+  'CHF': { rate: 0.088, baseDate: '2024-01-01' }, // 1 SEK = 0.088 CHF
+  'PLN': { rate: 0.400, baseDate: '2024-01-01' }, // 1 SEK = 0.400 PLN
+  'CZK': { rate: 2.143, baseDate: '2024-01-01' }, // 1 SEK = 2.143 CZK
 };
 
 export function getCurrencyRate(currency: string): number {
@@ -36,7 +36,7 @@ export function getCurrencyRate(currency: string): number {
 }
 
 export function formatCurrencyWithRate(amount: number, currency?: string, showRate?: boolean): string {
-  const baseCurrency = currency || 'USD';
+  const baseCurrency = currency || 'SEK';
   const rate = getCurrencyRate(baseCurrency);
   const formattedAmount = formatCurrency(amount, baseCurrency);
   

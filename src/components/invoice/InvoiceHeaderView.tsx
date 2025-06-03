@@ -55,7 +55,7 @@ const InvoiceHeaderView = ({
     return monthNames[monthNumber - 1];
   };
 
-  const currency = formData.currency || 'USD';
+  const currency = formData.currency || 'SEK';
   const currencyRate = getCurrencyRate(currency);
 
   return (
@@ -110,12 +110,12 @@ const InvoiceHeaderView = ({
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Currency</label>
-                <p className="text-sm">{formData.currency || 'USD'}</p>
+                <p className="text-sm">{formData.currency || 'SEK'}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Exchange Rate</label>
                 <p className="text-sm">
-                  {currencyRate !== 1.0 ? `1 USD = ${currencyRate} ${currency}` : 'Base currency'}
+                  {currencyRate !== 1.0 ? `1 SEK = ${currencyRate} ${currency}` : 'Base currency'}
                 </p>
               </div>
             </div>
