@@ -133,7 +133,7 @@ const InvoiceHeaderForm = ({
           <SelectContent className="bg-white">
             <SelectItem value="Manual">Manual</SelectItem>
             <SelectItem value="Fortnox">Fortnox</SelectItem>
-            <SelectItem value="OlkaExpress">OlkaExpress</SelectItem>
+            <SelectItem value="Olka Express">Olka Express</SelectItem>
           </SelectContent>
         </Select>
       </div>
