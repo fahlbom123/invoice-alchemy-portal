@@ -102,7 +102,7 @@ const SearchResultsTable = ({
   }) => (
     <TableRow className="bg-gray-100 font-semibold border-t-2 border-gray-300">
       <TableCell></TableCell>
-      <TableCell colSpan={5} className="text-right">
+      <TableCell colSpan={4} className="text-right">
         Total for {supplierName}:
       </TableCell>
       <TableCell></TableCell>
@@ -138,30 +138,30 @@ const SearchResultsTable = ({
   return (
     <>
       {/* Desktop Table View */}
-      <div className="hidden md:block border rounded-md overflow-hidden">
-        <Table>
+      <div className="hidden md:block border rounded-md overflow-x-auto">
+        <Table className="min-w-max">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-12">
+              <TableHead className="w-10">
                 <Checkbox 
                   onCheckedChange={(checked) => onSelectAll(!!checked)} 
                 />
               </TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead>Booking</TableHead>
-              <TableHead>Confirmation</TableHead>
-              <TableHead>Departure Date</TableHead>
-              <TableHead>Qty</TableHead>
-              <TableHead>Currency</TableHead>
-              <TableHead>Est. Cost</TableHead>
-              <TableHead>Est. VAT</TableHead>
-              <TableHead>Actual Cost</TableHead>
-              <TableHead>Actual VAT</TableHead>
-              <TableHead>Registered Cost</TableHead>
-              <TableHead>Registered VAT</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Fully Paid</TableHead>
+              <TableHead className="min-w-[200px]">Description</TableHead>
+              <TableHead className="w-24">Supplier</TableHead>
+              <TableHead className="w-24">Booking</TableHead>
+              <TableHead className="w-24">Confirmation</TableHead>
+              <TableHead className="w-28">Departure Date</TableHead>
+              <TableHead className="w-16">Qty</TableHead>
+              <TableHead className="w-16">Curr</TableHead>
+              <TableHead className="w-20 text-right">Est. Cost</TableHead>
+              <TableHead className="w-20 text-right">Est. VAT</TableHead>
+              <TableHead className="w-20 text-right">Actual Cost</TableHead>
+              <TableHead className="w-20 text-right">Actual VAT</TableHead>
+              <TableHead className="w-20 text-right">Reg. Cost</TableHead>
+              <TableHead className="w-20 text-right">Reg. VAT</TableHead>
+              <TableHead className="w-16">Status</TableHead>
+              <TableHead className="w-20">Fully Paid</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
