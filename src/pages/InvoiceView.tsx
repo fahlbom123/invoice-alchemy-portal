@@ -163,6 +163,7 @@ const InvoiceView = () => {
       console.log('Invoice data received:', {
         periodizationYear: invoice.periodizationYear,
         periodizationMonth: invoice.periodizationMonth,
+        vatAccount: invoice.vatAccount, // Add this debug log
         fullInvoice: invoice
       });
       
@@ -186,7 +187,7 @@ const InvoiceView = () => {
         ocr: invoice.ocr || "",
         source: invoice.source || undefined,
         account: invoice.account || "",
-        vatAccount: invoice.vatAccount || "",
+        vatAccount: invoice.vatAccount || "", // Ensure this is properly set
         periodizationYear: invoice.periodizationYear || undefined,
         periodizationMonth: invoice.periodizationMonth || undefined,
         projectId: invoice.projectId || undefined,

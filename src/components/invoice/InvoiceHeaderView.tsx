@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/formatters";
@@ -34,8 +33,6 @@ const InvoiceHeaderView = ({
   };
 
   const { totalActualCost, totalActualVat } = registeredTotals || calculateRegisteredTotals();
-
-  console.log('InvoiceHeaderView formData.vatAccount:', formData.vatAccount);
 
   return (
     <Card>
