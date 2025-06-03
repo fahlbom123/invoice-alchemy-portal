@@ -165,21 +165,25 @@ const InvoiceView = () => {
           return;
         }
 
-        // Transform the data to match our interface with explicit type conversion
-        const transformedLines: SupplierInvoiceLine[] = (supplierLines || []).map(line => {
-          const transformedLine: SupplierInvoiceLine = {
-            id: String(line.id),
-            invoiceLineId: String(line.invoice_line_id),
-            actualCost: Number(line.actual_cost || 0),
-            actualVat: Number(line.actual_vat || 0),
-            currency: String(line.currency || 'SEK'),
-            createdAt: String(line.created_at),
-            createdBy: String(line.created_by || 'System'),
-            description: String(line.description || ''),
-            supplierName: String(line.supplier_name || ''),
-          };
-          return transformedLine;
-        });
+        // Simplified type handling to avoid TypeScript inference issues
+        const transformedLines: SupplierInvoiceLine[] = [];
+        
+        if (supplierLines) {
+          for (const line of supplierLines) {
+            const transformedLine: SupplierInvoiceLine = {
+              id: String(line.id),
+              invoiceLineId: String(line.invoice_line_id),
+              actualCost: Number(line.actual_cost || 0),
+              actualVat: Number(line.actual_vat || 0),
+              currency: String(line.currency || 'SEK'),
+              createdAt: String(line.created_at),
+              createdBy: String(line.created_by || 'System'),
+              description: String(line.description || ''),
+              supplierName: String(line.supplier_name || ''),
+            };
+            transformedLines.push(transformedLine);
+          }
+        }
 
         console.log('Connected supplier invoice lines for this invoice:', transformedLines);
         setConnectedSupplierInvoiceLines(transformedLines);
