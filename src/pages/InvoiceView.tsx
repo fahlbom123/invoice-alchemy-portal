@@ -751,8 +751,10 @@ const InvoiceView = () => {
                       <TableHead>Booking Number</TableHead>
                       <TableHead>User</TableHead>
                       <TableHead>Register Datetime</TableHead>
+                      <TableHead>Currency</TableHead>
                       <TableHead>Estimated Cost</TableHead>
                       <TableHead>Estimated VAT</TableHead>
+                      <TableHead>Currency</TableHead>
                       <TableHead>Actual Cost</TableHead>
                       <TableHead>Actual VAT</TableHead>
                       {!isSentToAccounting && <TableHead>Actions</TableHead>}
@@ -766,7 +768,7 @@ const InvoiceView = () => {
                         <React.Fragment key={bookingNumber}>
                           {/* Booking Group Header */}
                           <TableRow className="bg-blue-50 border-t-2 border-blue-200">
-                            <TableCell colSpan={!isSentToAccounting ? 11 : 10} className="font-semibold text-blue-800">
+                            <TableCell colSpan={!isSentToAccounting ? 13 : 12} className="font-semibold text-blue-800">
                               Booking: {bookingNumber}
                             </TableCell>
                           </TableRow>
@@ -790,12 +792,14 @@ const InvoiceView = () => {
                               <TableCell>
                                 {new Date(line.createdAt).toLocaleString()}
                               </TableCell>
+                              <TableCell className="text-blue-600">{currency}</TableCell>
                               <TableCell className="text-blue-600">
-                                {formatCurrency(estimatedCosts.estimatedCost / lines.length, currency)}
+                                {formatCurrency(estimatedCosts.estimatedCost / lines.length)}
                               </TableCell>
                               <TableCell className="text-blue-600">
-                                {formatCurrency(estimatedCosts.estimatedVat / lines.length, currency)}
+                                {formatCurrency(estimatedCosts.estimatedVat / lines.length)}
                               </TableCell>
+                              <TableCell className="text-green-600">{line.currency}</TableCell>
                               <TableCell>
                                 {editingLineId === line.id ? (
                                   <Input
@@ -805,7 +809,7 @@ const InvoiceView = () => {
                                     onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualCost: parseFloat(e.target.value) || 0 } : null)}
                                   />
                                 ) : (
-                                  formatCurrency(line.actualCost, currency)
+                                  formatCurrency(line.actualCost)
                                 )}
                               </TableCell>
                               <TableCell>
@@ -817,7 +821,7 @@ const InvoiceView = () => {
                                     onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualVat: parseFloat(e.target.value) || 0 } : null)}
                                   />
                                 ) : (
-                                  formatCurrency(line.actualVat, currency)
+                                  formatCurrency(line.actualVat)
                                 )}
                               </TableCell>
                               {!isSentToAccounting && (
@@ -872,22 +876,22 @@ const InvoiceView = () => {
                             <TableCell colSpan={6} className="text-right">
                               Subtotal for Booking {bookingNumber}:
                             </TableCell>
+                            <TableCell className="text-blue-600">{currency}</TableCell>
                             <TableCell className="text-blue-600">
-                              {formatCurrency(estimatedCosts.estimatedCost, currency)}
+                              {formatCurrency(estimatedCosts.estimatedCost)}
                             </TableCell>
                             <TableCell className="text-blue-600">
-                              {formatCurrency(estimatedCosts.estimatedVat, currency)}
+                              {formatCurrency(estimatedCosts.estimatedVat)}
                             </TableCell>
+                            <TableCell className="text-green-600">{currency}</TableCell>
                             <TableCell className="text-green-600">
                               {formatCurrency(
-                                lines.reduce((sum, line) => sum + line.actualCost, 0),
-                                currency
+                                lines.reduce((sum, line) => sum + line.actualCost, 0)
                               )}
                             </TableCell>
                             <TableCell className="text-green-600">
                               {formatCurrency(
-                                lines.reduce((sum, line) => sum + line.actualVat, 0),
-                                currency
+                                lines.reduce((sum, line) => sum + line.actualVat, 0)
                               )}
                             </TableCell>
                             {!isSentToAccounting && (
@@ -914,12 +918,10 @@ const InvoiceView = () => {
                   <div className="flex justify-between font-semibold">
                     <span>Total Registered:</span>
                     <span className="text-green-600">
-                      {formatCurrency(
-                        connectedSupplierInvoiceLines.reduce((sum, line) => sum + line.actualCost, 0),
-                        currency
+                      {currency} {formatCurrency(
+                        connectedSupplierInvoiceLines.reduce((sum, line) => sum + line.actualCost, 0)
                       )} + {formatCurrency(
-                        connectedSupplierInvoiceLines.reduce((sum, line) => sum + line.actualVat, 0),
-                        currency
+                        connectedSupplierInvoiceLines.reduce((sum, line) => sum + line.actualVat, 0)
                       )} VAT
                     </span>
                   </div>
