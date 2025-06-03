@@ -98,7 +98,12 @@ const InvoiceHeaderView = ({
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Periodization Month</label>
-                <p className="text-sm">{formData.periodizationMonth || 'Not set'}</p>
+                <p className="text-sm">
+                  {formData.periodizationMonth ? 
+                    new Date(2000, formData.periodizationMonth - 1).toLocaleString('default', { month: 'long' }) 
+                    : 'Not set'
+                  }
+                </p>
               </div>
             </div>
 

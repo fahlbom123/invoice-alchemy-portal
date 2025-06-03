@@ -151,6 +151,12 @@ const InvoiceView = () => {
 
   useEffect(() => {
     if (invoice) {
+      console.log('Invoice data received:', {
+        periodizationYear: invoice.periodizationYear,
+        periodizationMonth: invoice.periodizationMonth,
+        fullInvoice: invoice
+      });
+      
       setFormData({
         invoiceNumber: invoice.invoiceNumber,
         reference: invoice.reference,
