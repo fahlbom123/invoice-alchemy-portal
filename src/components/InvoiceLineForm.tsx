@@ -153,6 +153,7 @@ const InvoiceLineForm = ({
               <SelectValue placeholder="Select currency" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="SEK">SEK</SelectItem>
               <SelectItem value="USD">USD</SelectItem>
               <SelectItem value="EUR">EUR</SelectItem>
               <SelectItem value="GBP">GBP</SelectItem>
