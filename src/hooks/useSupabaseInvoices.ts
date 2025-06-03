@@ -74,10 +74,14 @@ export function useSupabaseInvoices() {
             actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
           }));
 
-        // Find supplier invoice lines that are linked to invoice lines of this invoice
-        const invoiceLineIds = invoiceLines.map(line => line.id);
+        // Get all invoice line IDs for this invoice
+        const allInvoiceLineIds = (invoiceLinesData || [])
+          .filter((line: any) => line.invoice_id === invoice.id)
+          .map((line: any) => line.id);
+
+        // Find supplier invoice lines that reference ANY invoice line from this invoice
         const relatedSupplierLines = (supplierInvoiceData || [])
-          .filter((supplierLine: any) => invoiceLineIds.includes(supplierLine.invoice_line_id))
+          .filter((supplierLine: any) => allInvoiceLineIds.includes(supplierLine.invoice_line_id))
           .map((line: any): SupplierInvoiceLine => ({
             id: line.id,
             invoiceLineId: line.invoice_line_id,
@@ -91,10 +95,16 @@ export function useSupabaseInvoices() {
           }));
 
         console.log(`Invoice ${invoice.invoice_number}:`, {
+          invoiceId: invoice.id,
           invoiceLines: invoiceLines.length,
+          allInvoiceLineIds: allInvoiceLineIds,
           supplierInvoiceLines: relatedSupplierLines.length,
-          invoiceLineIds: invoiceLineIds,
-          allSupplierLines: supplierInvoiceData?.length || 0
+          supplierLineDetails: relatedSupplierLines.map(sl => ({
+            id: sl.id,
+            invoiceLineId: sl.invoiceLineId,
+            actualCost: sl.actualCost,
+            actualVat: sl.actualVat
+          }))
         });
 
         return {
@@ -188,40 +198,49 @@ export function useSupabaseInvoiceById(id: string) {
 
         console.log('Fetched invoice data:', invoiceData);
 
-        // Fetch invoice lines for this invoice
-        const { data: invoiceLinesData, error: linesError } = await supabase
+        // Fetch ALL invoice lines (not just for this invoice) to check for any that might be registered
+        const { data: allInvoiceLinesData, error: linesError } = await supabase
           .from('invoice_lines')
-          .select('*')
-          .eq('invoice_id', id);
+          .select('*');
 
         if (linesError) {
           console.error('Error fetching invoice lines:', linesError);
         }
 
-        console.log('Invoice lines for invoice:', invoiceLinesData);
+        console.log('All invoice lines:', allInvoiceLinesData);
 
-        // Get invoice line IDs for fetching supplier invoice lines
-        const invoiceLineIds = (invoiceLinesData || []).map((line: any) => line.id);
-        console.log('Looking for supplier invoice lines for invoice line IDs:', invoiceLineIds);
-        
-        let supplierInvoiceData: any[] = [];
-        if (invoiceLineIds.length > 0) {
-          const { data, error: supplierError } = await supabase
-            .from('supplier_invoice_lines')
-            .select('*')
-            .in('invoice_line_id', invoiceLineIds);
+        // Fetch ALL supplier invoice lines to see what's registered
+        const { data: allSupplierInvoiceData, error: supplierError } = await supabase
+          .from('supplier_invoice_lines')
+          .select('*');
 
-          if (supplierError) {
-            console.error('Error fetching supplier invoice lines:', supplierError);
-          } else {
-            supplierInvoiceData = data || [];
-          }
+        if (supplierError) {
+          console.error('Error fetching supplier invoice lines:', supplierError);
         }
 
-        console.log('Found supplier invoice lines:', supplierInvoiceData);
+        console.log('All supplier invoice lines:', allSupplierInvoiceData);
+
+        // Get invoice lines that belong to this invoice
+        const invoiceLinesForThisInvoice = (allInvoiceLinesData || [])
+          .filter((line: any) => line.invoice_id === id);
+
+        console.log('Invoice lines for this invoice:', invoiceLinesForThisInvoice);
+
+        // Get all invoice line IDs (not just from this invoice, but ALL) 
+        const allInvoiceLineIds = (allInvoiceLinesData || []).map((line: any) => line.id);
+        
+        // Find supplier invoice lines that reference invoice lines registered to this supplier invoice
+        // This is the key: we need to find supplier invoice lines that were created and linked to this invoice
+        const supplierInvoiceLinesForThisInvoice = (allSupplierInvoiceData || [])
+          .filter((supplierLine: any) => {
+            // Check if this supplier line references an invoice line that exists
+            return allInvoiceLineIds.includes(supplierLine.invoice_line_id);
+          });
+
+        console.log('Supplier invoice lines that reference valid invoice lines:', supplierInvoiceLinesForThisInvoice);
 
         // Transform invoice lines
-        const invoiceLines: InvoiceLine[] = (invoiceLinesData || []).map((line: any) => ({
+        const invoiceLines: InvoiceLine[] = invoiceLinesForThisInvoice.map((line: any) => ({
           id: line.id,
           description: line.description,
           quantity: parseFloat(String(line.quantity || '1')),
@@ -242,8 +261,8 @@ export function useSupabaseInvoiceById(id: string) {
           actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
         }));
 
-        // Transform supplier invoice lines
-        const supplierInvoiceLines: SupplierInvoiceLine[] = supplierInvoiceData.map((line: any) => ({
+        // Transform supplier invoice lines - these are the registered lines
+        const supplierInvoiceLines: SupplierInvoiceLine[] = supplierInvoiceLinesForThisInvoice.map((line: any) => ({
           id: line.id,
           invoiceLineId: line.invoice_line_id,
           actualCost: parseFloat(String(line.actual_cost || '0')),
@@ -255,8 +274,8 @@ export function useSupabaseInvoiceById(id: string) {
           supplierName: line.supplier_name,
         }));
 
-        console.log('Final invoice lines:', invoiceLines);
-        console.log('Final supplier invoice lines:', supplierInvoiceLines);
+        console.log('Final invoice lines for this invoice:', invoiceLines);
+        console.log('Final supplier invoice lines for this invoice:', supplierInvoiceLines);
 
         // Transform to match our interface
         const transformedInvoice: Invoice = {
@@ -297,7 +316,11 @@ export function useSupabaseInvoiceById(id: string) {
           supplierInvoiceLines: supplierInvoiceLines
         };
 
-        console.log('Transformed single invoice:', transformedInvoice);
+        console.log('Transformed single invoice with supplier lines:', {
+          invoiceId: transformedInvoice.id,
+          supplierInvoiceLinesCount: transformedInvoice.supplierInvoiceLines.length,
+          supplierInvoiceLines: transformedInvoice.supplierInvoiceLines
+        });
         setInvoice(transformedInvoice);
       } catch (error) {
         console.error('Error fetching invoice:', error);

@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useInvoiceById, useInvoices, useSaveInvoice } from "@/hooks/useInvoices";
-import { useSupabaseInvoiceLines } from "@/hooks/useSupabaseInvoices";
+import { useSupabaseInvoiceById, useSupabaseInvoiceLines } from "@/hooks/useSupabaseInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useSupabaseProjects } from "@/hooks/useSupabaseProjects";
 import { Invoice, InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const InvoiceView = () => {
   const { id } = useParams<{ id: string }>();
-  const { invoice, isLoading } = useInvoiceById(id || "");
+  const { invoice, isLoading } = useSupabaseInvoiceById(id || "");
   const { invoices, isLoading: isLoadingInvoices } = useInvoices();
   const { invoiceLines: supabaseInvoiceLines, isLoading: isLoadingInvoiceLines } = useSupabaseInvoiceLines();
   const { suppliers } = useSuppliers();
@@ -54,7 +54,6 @@ const InvoiceView = () => {
   // Check if cancel button should be enabled (no lines connected)
   const canCancelInvoice = !invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0;
 
-  // Add the missing formData state
   const [formData, setFormData] = useState<InvoiceFormData>({
     invoiceNumber: "",
     reference: "",
@@ -97,6 +96,9 @@ const InvoiceView = () => {
   const [paymentStatus, setPaymentStatus] = useState<string>("all");
   const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Add a refresh key to force re-fetching after registration
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Use Supabase invoice lines instead of invoice lines from invoices
   const allInvoiceLines = supabaseInvoiceLines.map(line => ({
@@ -145,26 +147,7 @@ const InvoiceView = () => {
     };
 
     loadSupplierInvoiceLines();
-  }, []);
-
-  // Function to get booking number for supplier invoice line by matching with original invoice line
-  const getBookingNumberForSupplierLine = (supplierLine: SupplierInvoiceLine) => {
-    // Find the original invoice line that this supplier line references
-    const originalLine = allInvoiceLines.find(line => line.id === supplierLine.invoiceLineId);
-    
-    if (originalLine?.bookingNumber) {
-      return originalLine.bookingNumber;
-    }
-    
-    // Fallback: generate consistent random number if no booking number exists
-    const seed = supplierLine.id.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    
-    const random = Math.abs(seed) % 90000000;
-    return (10000000 + random).toString();
-  };
+  }, [refreshKey]); // Add refreshKey as dependency
 
   useEffect(() => {
     if (invoice) {
@@ -198,6 +181,25 @@ const InvoiceView = () => {
       setSupplierId(invoice.supplier.id);
     }
   }, [invoice]);
+
+  // Function to get booking number for supplier invoice line by matching with original invoice line
+  const getBookingNumberForSupplierLine = (supplierLine: SupplierInvoiceLine) => {
+    // Find the original invoice line that this supplier line references
+    const originalLine = allInvoiceLines.find(line => line.id === supplierLine.invoiceLineId);
+    
+    if (originalLine?.bookingNumber) {
+      return originalLine.bookingNumber;
+    }
+    
+    // Fallback: generate consistent random number if no booking number exists
+    const seed = supplierLine.id.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    const random = Math.abs(seed) % 90000000;
+    return (10000000 + random).toString();
+  };
 
   // Add function to start editing a supplier invoice line
   const handleEditSupplierLine = (line: SupplierInvoiceLine) => {
@@ -503,8 +505,13 @@ const InvoiceView = () => {
         });
       }
       
-      // Refresh the page to show the newly registered supplier invoice lines
-      window.location.reload();
+      // Increment refresh key to trigger data refresh
+      setRefreshKey(prev => prev + 1);
+      
+      // Also clear the search to refresh the results
+      setSearchResults([]);
+      setHasSearched(false);
+      
     } catch (error) {
       console.error("Error registering invoice lines:", error);
       toast({
