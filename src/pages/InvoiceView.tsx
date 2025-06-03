@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -842,21 +843,8 @@ const InvoiceView = () => {
                           ))}
                           {/* Subtotal row for this booking */}
                           <TableRow className="bg-gray-100 font-medium border-b-2">
-                            <TableCell colSpan={4} className="text-right">
+                            <TableCell colSpan={6} className="text-right">
                               Subtotal for Booking {bookingNumber}:
-                            </TableCell>
-                            <TableCell></TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  checked={isFullyPaid}
-                                  onCheckedChange={(checked) => handleFullyPaidChange(bookingNumber, checked as boolean)}
-                                  disabled={isSentToAccounting}
-                                />
-                                <span className="text-sm">
-                                  Fully paid: {isFullyPaid ? "Yes" : "No"}
-                                </span>
-                              </div>
                             </TableCell>
                             <TableCell className="text-blue-600">
                               {formatCurrency(estimatedCosts.estimatedCost, invoice.currency)}
@@ -876,7 +864,20 @@ const InvoiceView = () => {
                                 invoice.currency
                               )}
                             </TableCell>
-                            {!isSentToAccounting && <TableCell></TableCell>}
+                            {!isSentToAccounting && (
+                              <TableCell>
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    checked={isFullyPaid}
+                                    onCheckedChange={(checked) => handleFullyPaidChange(bookingNumber, checked as boolean)}
+                                    disabled={isSentToAccounting}
+                                  />
+                                  <span className="text-sm">
+                                    Fully paid: {isFullyPaid ? "Yes" : "No"}
+                                  </span>
+                                </div>
+                              </TableCell>
+                            )}
                           </TableRow>
                         </React.Fragment>
                       );
@@ -1058,3 +1059,4 @@ const InvoiceView = () => {
 };
 
 export default InvoiceView;
+
