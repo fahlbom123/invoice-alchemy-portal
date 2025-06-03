@@ -65,6 +65,11 @@ const InvoiceForm = () => {
   // Load invoice data when editing
   useEffect(() => {
     if (invoice && isEditing) {
+      console.log('Loading invoice data for editing:', {
+        vatAccount: invoice.vatAccount,
+        account: invoice.account
+      });
+      
       setFormData({
         invoiceNumber: invoice.invoiceNumber,
         reference: invoice.reference,
@@ -81,7 +86,7 @@ const InvoiceForm = () => {
         totalVat: invoice.totalVat || 0,
         ocr: invoice.ocr || "",
         account: invoice.account || "4010",
-        vatAccount: invoice.vatAccount || "2641",
+        vatAccount: invoice.vatAccount || "2641", // Ensure this is loaded correctly
         periodizationYear: invoice.periodizationYear || new Date().getFullYear(),
         periodizationMonth: invoice.periodizationMonth || new Date().getMonth() + 1,
         projectId: invoice.projectId,
@@ -131,10 +136,15 @@ const InvoiceForm = () => {
   };
 
   const handleSelectChange = (name: string, value: string) => {
+    console.log('handleSelectChange called:', { name, value }); // Debug log
     if (name === 'periodizationYear' || name === 'periodizationMonth') {
       setFormData(prev => ({ ...prev, [name]: parseInt(value) }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => {
+        const updatedData = { ...prev, [name]: value };
+        console.log('Updated formData:', updatedData); // Debug log
+        return updatedData;
+      });
     }
   };
 
@@ -201,6 +211,11 @@ const InvoiceForm = () => {
 
   const proceedWithSubmission = async (forceSave = false) => {
     const supplier = suppliers.find(s => s.id === formData.supplierId)!;
+    
+    console.log('Submitting with formData:', {
+      account: formData.account,
+      vatAccount: formData.vatAccount
+    }); // Debug log
     
     const completeFormData = pendingSubmitData || {
       ...formData,
