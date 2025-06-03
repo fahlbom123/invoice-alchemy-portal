@@ -107,6 +107,8 @@ export type Database = {
           invoice_number: string
           notes: string | null
           ocr: string | null
+          periodization_month: number | null
+          periodization_year: number | null
           project_id: string | null
           reference: string
           source: string | null
@@ -116,6 +118,7 @@ export type Database = {
           total_vat: number | null
           updated_at: string | null
           vat: number | null
+          vat_account: string | null
         }
         Insert: {
           account?: string | null
@@ -127,6 +130,8 @@ export type Database = {
           invoice_number: string
           notes?: string | null
           ocr?: string | null
+          periodization_month?: number | null
+          periodization_year?: number | null
           project_id?: string | null
           reference: string
           source?: string | null
@@ -136,6 +141,7 @@ export type Database = {
           total_vat?: number | null
           updated_at?: string | null
           vat?: number | null
+          vat_account?: string | null
         }
         Update: {
           account?: string | null
@@ -147,6 +153,8 @@ export type Database = {
           invoice_number?: string
           notes?: string | null
           ocr?: string | null
+          periodization_month?: number | null
+          periodization_year?: number | null
           project_id?: string | null
           reference?: string
           source?: string | null
@@ -156,6 +164,7 @@ export type Database = {
           total_vat?: number | null
           updated_at?: string | null
           vat?: number | null
+          vat_account?: string | null
         }
         Relationships: [
           {
