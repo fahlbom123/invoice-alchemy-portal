@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -146,23 +145,45 @@ const InvoiceView = () => {
     invoiceTotalAmount: 0
   }));
 
-  // Get all supplier invoice lines from Supabase instead of localStorage
-  const [allSupplierInvoiceLines, setAllSupplierInvoiceLines] = useState<SupplierInvoiceLine[]>([]);
+  // Get supplier invoice lines that are actually connected to THIS invoice
+  const [connectedSupplierInvoiceLines, setConnectedSupplierInvoiceLines] = useState<SupplierInvoiceLine[]>([]);
 
-  // Load supplier invoice lines from Supabase
+  // Load supplier invoice lines that are connected to this specific invoice
   useEffect(() => {
-    const loadSupplierInvoiceLines = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('supplier_invoice_lines')
-          .select('*');
+    const loadConnectedSupplierInvoiceLines = async () => {
+      if (!invoice || !invoice.id) return;
 
-        if (error) {
-          console.error('Error loading supplier invoice lines:', error);
+      try {
+        // First, get all invoice line IDs that belong to this specific invoice
+        const { data: thisInvoiceLines, error: invoiceLinesError } = await supabase
+          .from('invoice_lines')
+          .select('id')
+          .eq('invoice_id', invoice.id);
+
+        if (invoiceLinesError) {
+          console.error('Error loading invoice lines for this invoice:', invoiceLinesError);
           return;
         }
 
-        const transformedLines: SupplierInvoiceLine[] = data.map(line => ({
+        const thisInvoiceLineIds = thisInvoiceLines?.map(line => line.id) || [];
+
+        if (thisInvoiceLineIds.length === 0) {
+          setConnectedSupplierInvoiceLines([]);
+          return;
+        }
+
+        // Then, get supplier invoice lines that reference these specific invoice lines
+        const { data: supplierLines, error: supplierLinesError } = await supabase
+          .from('supplier_invoice_lines')
+          .select('*')
+          .in('invoice_line_id', thisInvoiceLineIds);
+
+        if (supplierLinesError) {
+          console.error('Error loading connected supplier invoice lines:', supplierLinesError);
+          return;
+        }
+
+        const transformedLines: SupplierInvoiceLine[] = (supplierLines || []).map(line => ({
           id: line.id,
           invoiceLineId: line.invoice_line_id,
           actualCost: parseFloat(String(line.actual_cost || '0')),
@@ -174,14 +195,15 @@ const InvoiceView = () => {
           supplierName: line.supplier_name,
         }));
 
-        setAllSupplierInvoiceLines(transformedLines);
+        console.log('Connected supplier invoice lines for this invoice:', transformedLines);
+        setConnectedSupplierInvoiceLines(transformedLines);
       } catch (error) {
-        console.error('Error in loadSupplierInvoiceLines:', error);
+        console.error('Error in loadConnectedSupplierInvoiceLines:', error);
       }
     };
 
-    loadSupplierInvoiceLines();
-  }, [dataRefreshKey]); // Add dataRefreshKey as dependency
+    loadConnectedSupplierInvoiceLines();
+  }, [invoice?.id, dataRefreshKey]); // Add dataRefreshKey as dependency
 
   // Add function to refresh invoice data
   const refreshInvoiceData = async () => {
@@ -660,8 +682,8 @@ const InvoiceView = () => {
     description: selectedProject.description
   } : null;
 
-  // Group supplier invoice lines by booking number
-  const groupedSupplierLines = invoice.supplierInvoiceLines ? groupSupplierLinesByBooking(invoice.supplierInvoiceLines) : {};
+  // Use the connected supplier invoice lines instead of all supplier invoice lines
+  const groupedSupplierLines = groupSupplierLinesByBooking(connectedSupplierInvoiceLines);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
@@ -743,7 +765,7 @@ const InvoiceView = () => {
               <InvoiceHeaderView 
                 formData={formData} 
                 registeredTotals={registeredTotals}
-                supplierInvoiceLines={invoice.supplierInvoiceLines || []}
+                supplierInvoiceLines={connectedSupplierInvoiceLines}
                 invoiceId={invoice.id}
                 selectedProject={transformedSelectedProject}
               />
@@ -752,11 +774,11 @@ const InvoiceView = () => {
         </Card>
 
         {/* Registered Supplier Invoice Lines - Show this section prominently */}
-        {invoice.supplierInvoiceLines && invoice.supplierInvoiceLines.length > 0 && (
+        {connectedSupplierInvoiceLines && connectedSupplierInvoiceLines.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="text-lg font-medium text-green-700">
-                Registered Supplier Invoice Lines ({invoice.supplierInvoiceLines.length} lines)
+                Registered Supplier Invoice Lines ({connectedSupplierInvoiceLines.length} lines)
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -934,10 +956,10 @@ const InvoiceView = () => {
                     <span>Total Registered:</span>
                     <span className="text-green-600">
                       {formatCurrency(
-                        invoice.supplierInvoiceLines.reduce((sum, line) => sum + line.actualCost, 0),
+                        connectedSupplierInvoiceLines.reduce((sum, line) => sum + line.actualCost, 0),
                         invoice.currency
                       )} + {formatCurrency(
-                        invoice.supplierInvoiceLines.reduce((sum, line) => sum + line.actualVat, 0),
+                        connectedSupplierInvoiceLines.reduce((sum, line) => sum + line.actualVat, 0),
                         invoice.currency
                       )} VAT
                     </span>
@@ -1086,7 +1108,7 @@ const InvoiceView = () => {
                       onRegister={handleRegistration}
                       onLineStatusUpdate={handleLineStatusUpdate}
                       invoiceTotalAmount={invoice.totalAmount || 0}
-                      allSupplierInvoiceLines={allSupplierInvoiceLines}
+                      allSupplierInvoiceLines={connectedSupplierInvoiceLines}
                     />
                   ) : (
                     <div className="text-center py-8 text-gray-500">
