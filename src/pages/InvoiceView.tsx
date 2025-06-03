@@ -13,17 +13,13 @@ import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import { supabase } from "@/integrations/supabase/client";
 
-interface RouteParams {
+interface RouteParams extends Record<string, string | undefined> {
   id?: string;
-}
-
-interface InvoiceViewProps {
-  // Define any props the component might receive here
 }
 
 const InvoiceView = () => {
   const { id } = useParams<RouteParams>();
-  const { invoice, isLoading, refetch } = useInvoiceById(id || "");
+  const { invoice, isLoading } = useInvoiceById(id || "");
   const { suppliers } = useSuppliers();
   const { saveInvoice } = useSaveInvoice();
   const navigate = useNavigate();
@@ -67,10 +63,37 @@ const InvoiceView = () => {
     projectId: undefined,
   });
 
+  // Update formData when invoice changes
+  useEffect(() => {
+    if (invoice) {
+      setFormData({
+        invoiceNumber: invoice.invoiceNumber,
+        reference: invoice.reference,
+        status: invoice.status,
+        dueDate: invoice.dueDate,
+        invoiceDate: invoice.invoiceDate || "",
+        supplierId: invoice.supplier.id,
+        notes: invoice.notes || "",
+        invoiceLines: invoice.invoiceLines,
+        currency: invoice.currency || "USD",
+        totalAmount: invoice.totalAmount,
+        totalVat: invoice.totalVat || 0,
+        vat: invoice.vat || 0,
+        ocr: invoice.ocr || "",
+        source: invoice.source,
+        account: invoice.account || "",
+        vatAccount: invoice.vatAccount || "",
+        periodizationYear: invoice.periodizationYear,
+        periodizationMonth: invoice.periodizationMonth,
+        projectId: invoice.projectId,
+      });
+    }
+  }, [invoice]);
+
   // Load registered lines only if invoice exists and has supplier invoice lines
   useEffect(() => {
     const loadRegisteredLines = async () => {
-      if (!invoice?.supplierInvoiceLines) {
+      if (!invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0) {
         setRegisteredLines([]);
         return;
       }
@@ -87,7 +110,20 @@ const InvoiceView = () => {
           return;
         }
 
-        setRegisteredLines(data || []);
+        // Transform the data to match our SupplierInvoiceLine interface
+        const transformedLines: SupplierInvoiceLine[] = (data || []).map(line => ({
+          id: line.id,
+          invoiceLineId: line.invoice_line_id,
+          actualCost: parseFloat(String(line.actual_cost || '0')),
+          actualVat: parseFloat(String(line.actual_vat || '0')),
+          currency: line.currency,
+          createdAt: line.created_at,
+          createdBy: line.created_by,
+          description: line.description,
+          supplierName: line.supplier_name,
+        }));
+
+        setRegisteredLines(transformedLines);
       } catch (error) {
         console.error('Error loading registered lines:', error);
         toast.error("Failed to load registered lines");
@@ -96,6 +132,11 @@ const InvoiceView = () => {
 
     loadRegisteredLines();
   }, [invoice?.supplierInvoiceLines]);
+
+  const reloadInvoice = async () => {
+    // Since useInvoiceById doesn't provide refetch, we'll refresh the page
+    window.location.reload();
+  };
 
   const handleSendToAccounting = async () => {
     setShowSendToAccountingDialog(true);
@@ -113,7 +154,7 @@ const InvoiceView = () => {
       toast.success("Sending invoice to accounting...");
       await saveInvoice({ ...invoice, status: "sent_to_accounting" });
       toast.success("Invoice sent to accounting successfully");
-      refetch(); // Refresh the invoice data
+      reloadInvoice(); // Refresh the invoice data
     } catch (error) {
       console.error("Error sending invoice to accounting:", error);
       toast.error("Failed to send invoice to accounting");
@@ -139,7 +180,7 @@ const InvoiceView = () => {
       toast.success("Cancelling invoice...");
       await saveInvoice({ ...invoice, status: "cancelled" });
       toast.success("Invoice cancelled successfully");
-      refetch(); // Refresh the invoice data
+      reloadInvoice(); // Refresh the invoice data
     } catch (error) {
       console.error("Error cancelling invoice:", error);
       toast.error("Failed to cancel invoice");
@@ -165,7 +206,7 @@ const InvoiceView = () => {
       toast.success("Uncancelling invoice...");
       await saveInvoice({ ...invoice, status: "unpaid" });
       toast.success("Invoice uncancelled successfully");
-      refetch(); // Refresh the invoice data
+      reloadInvoice(); // Refresh the invoice data
     } catch (error) {
       console.error("Error uncancelling invoice:", error);
       toast.error("Failed to uncancel invoice");
@@ -246,7 +287,11 @@ const InvoiceView = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <InvoiceHeaderView invoice={invoice} supplier={supplier} />
+              <InvoiceHeaderView 
+                formData={formData}
+                supplierInvoiceLines={registeredLines}
+                invoiceId={invoice.id}
+              />
 
               <Separator />
 
