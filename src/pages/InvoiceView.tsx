@@ -632,6 +632,32 @@ const InvoiceView = () => {
     }
   };
 
+  // Function to generate line numbers based on unique invoice line IDs
+  const generateLineNumbers = (supplierLines: SupplierInvoiceLine[]) => {
+    const lineNumbers: Record<string, string> = {};
+    const uniqueLineCounter: Record<string, number> = {};
+    const subLineCounter: Record<string, number> = {};
+    let mainCounter = 1;
+
+    supplierLines.forEach((line) => {
+      const invoiceLineId = line.invoiceLineId;
+      
+      if (!uniqueLineCounter[invoiceLineId]) {
+        // This is the first occurrence of this invoice line ID
+        uniqueLineCounter[invoiceLineId] = mainCounter;
+        subLineCounter[invoiceLineId] = 1;
+        lineNumbers[line.id] = mainCounter.toString();
+        mainCounter++;
+      } else {
+        // This is a subsequent occurrence of the same invoice line ID
+        subLineCounter[invoiceLineId]++;
+        lineNumbers[line.id] = `${uniqueLineCounter[invoiceLineId]}.${subLineCounter[invoiceLineId] - 1}`;
+      }
+    });
+
+    return lineNumbers;
+  };
+
   if (isLoading || isLoadingInvoices || isLoadingInvoiceLines) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
@@ -772,6 +798,7 @@ const InvoiceView = () => {
                     {Object.entries(groupedSupplierLines).map(([bookingNumber, lines]) => {
                       const estimatedCostsForSubtotal = getEstimatedCostsForSupplierLinesInBooking(lines);
                       const isFullyPaid = fullyPaidStatus[bookingNumber] || false;
+                      const lineNumbers = generateLineNumbers(lines);
                       return (
                         <React.Fragment key={bookingNumber}>
                           {/* Booking Group Header */}
@@ -786,7 +813,7 @@ const InvoiceView = () => {
                             const originalLine = allInvoiceLines.find(origLine => origLine.id === line.invoiceLineId);
                             return (
                               <TableRow key={line.id}>
-                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{lineNumbers[line.id]}</TableCell>
                                 <TableCell>
                                   {editingLineId === line.id ? (
                                     <Input
