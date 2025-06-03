@@ -168,7 +168,7 @@ const InvoiceView = () => {
 
       try {
         // Get supplier invoice lines that are directly linked to this supplier invoice
-        const { data, error } = await supabase
+        const { data: rawData, error } = await supabase
           .from('supplier_invoice_lines')
           .select('*')
           .eq('supplier_invoice_id', invoice.id);
@@ -178,13 +178,13 @@ const InvoiceView = () => {
           return;
         }
 
-        // Transform the data to match our interface with explicit typing
+        // Transform the data with explicit typing to avoid deep type inference
         const transformedLines: SupplierInvoiceLine[] = [];
         
-        if (data && Array.isArray(data)) {
-          // Process each line individually to avoid deep type inference
-          data.forEach((rawLine: any) => {
-            const transformedLine: SupplierInvoiceLine = {
+        if (rawData) {
+          for (let i = 0; i < rawData.length; i++) {
+            const rawLine = rawData[i];
+            transformedLines.push({
               id: String(rawLine.id),
               invoiceLineId: String(rawLine.invoice_line_id),
               actualCost: Number(rawLine.actual_cost),
@@ -194,9 +194,8 @@ const InvoiceView = () => {
               createdBy: rawLine.created_by ? String(rawLine.created_by) : 'System',
               description: String(rawLine.description),
               supplierName: String(rawLine.supplier_name),
-            };
-            transformedLines.push(transformedLine);
-          });
+            });
+          }
         }
 
         console.log('Connected supplier invoice lines for this invoice:', transformedLines);
