@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -172,14 +171,14 @@ const InvoiceView = () => {
         const { data: supplierLines, error: supplierLinesError } = await supabase
           .from('supplier_invoice_lines')
           .select('*')
-          .eq('supplier_invoice_id', invoice.id) as { data: SupabaseSupplierInvoiceLine[] | null; error: any };
+          .eq('supplier_invoice_id', invoice.id);
 
         if (supplierLinesError) {
           console.error('Error loading connected supplier invoice lines:', supplierLinesError);
           return;
         }
 
-        // Transform with explicit types to avoid TypeScript issues
+        // Transform the data to match our interface
         const transformedLines: SupplierInvoiceLine[] = [];
         
         if (supplierLines) {
