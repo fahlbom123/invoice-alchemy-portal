@@ -34,16 +34,25 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
     if (disabled) return;
     
     console.log("Searching projects with:", { projectDescription, projectNumber });
+    console.log("Available projects:", projects);
+    
+    // If no search criteria provided, show all projects
+    if (!projectDescription.trim() && !projectNumber.trim()) {
+      setSearchResults(projects);
+      setHasSearched(true);
+      return;
+    }
     
     const filtered = projects.filter(project => {
-      const matchesDescription = !projectDescription || 
-        project.description.toLowerCase().includes(projectDescription.toLowerCase());
-      const matchesNumber = !projectNumber || 
-        project.projectNumber.toLowerCase().includes(projectNumber.toLowerCase());
+      const matchesDescription = !projectDescription.trim() || 
+        project.description.toLowerCase().includes(projectDescription.toLowerCase().trim());
+      const matchesNumber = !projectNumber.trim() || 
+        project.projectNumber.toLowerCase().includes(projectNumber.toLowerCase().trim());
       
       return matchesDescription && matchesNumber;
     });
     
+    console.log("Filtered results:", filtered);
     setSearchResults(filtered);
     setHasSearched(true);
   };
@@ -60,10 +69,19 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
   const handleSelectProject = (project: Project) => {
     if (disabled) return;
     
+    console.log("Selected project:", project);
     if (onProjectSelect) {
       onProjectSelect(project);
     }
   };
+
+  // Auto-search when component mounts to show available projects
+  React.useEffect(() => {
+    if (projects.length > 0 && !hasSearched) {
+      setSearchResults(projects);
+      setHasSearched(true);
+    }
+  }, [projects, hasSearched]);
 
   if (projectsLoading) {
     return <div className="text-center py-4">Loading projects...</div>;
@@ -176,6 +194,11 @@ const ProjectSearchForm = ({ onProjectSelect, selectedProject, disabled = false 
             ) : (
               <div className="text-center py-8 text-gray-500">
                 No projects found matching your criteria.
+                {projects.length === 0 && (
+                  <div className="mt-2 text-sm">
+                    No projects available in the database.
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
