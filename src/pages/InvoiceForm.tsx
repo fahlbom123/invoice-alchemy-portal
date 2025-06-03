@@ -142,7 +142,12 @@ const InvoiceForm = () => {
     } else {
       setFormData(prev => {
         const updatedData = { ...prev, [name]: value };
-        console.log('Updated formData:', updatedData); // Debug log
+        console.log('Updated formData after change:', { 
+          field: name, 
+          newValue: value, 
+          vatAccount: updatedData.vatAccount,
+          account: updatedData.account 
+        });
         return updatedData;
       });
     }
@@ -212,10 +217,11 @@ const InvoiceForm = () => {
   const proceedWithSubmission = async (forceSave = false) => {
     const supplier = suppliers.find(s => s.id === formData.supplierId)!;
     
-    console.log('Submitting with formData:', {
+    console.log('Submitting with formData - FINAL CHECK:', {
       account: formData.account,
-      vatAccount: formData.vatAccount
-    }); // Debug log
+      vatAccount: formData.vatAccount,
+      fullFormData: formData
+    });
     
     const completeFormData = pendingSubmitData || {
       ...formData,
@@ -224,6 +230,9 @@ const InvoiceForm = () => {
       createdAt: isEditing ? invoice!.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       projectId: selectedProject?.id,
+      // Explicitly ensure vatAccount and account are included
+      account: formData.account,
+      vatAccount: formData.vatAccount,
       supplier: {
         id: supplier.id,
         name: supplier.name,
@@ -238,6 +247,11 @@ const InvoiceForm = () => {
         country: supplier.country
       }
     };
+
+    console.log('Complete form data being saved:', {
+      account: completeFormData.account,
+      vatAccount: completeFormData.vatAccount
+    });
 
     try {
       await saveInvoice(completeFormData);
