@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -596,6 +597,14 @@ const InvoiceView = () => {
 
   // Add state for tracking fully paid status for each booking
   const [fullyPaidStatus, setFullyPaidStatus] = useState<Record<string, boolean>>({});
+
+  // Add function to handle fully paid checkbox changes
+  const handleFullyPaidChange = (bookingNumber: string, isChecked: boolean) => {
+    setFullyPaidStatus(prev => ({
+      ...prev,
+      [bookingNumber]: isChecked
+    }));
+  };
 
   if (isLoading || isLoadingInvoices || isLoadingInvoiceLines) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
