@@ -198,7 +198,8 @@ const InvoiceView = () => {
         const { data, error } = await supabase
           .from('supplier_invoice_lines')
           .select('*')
-          .eq('supplier_invoice_id', invoice.id);
+          .eq('supplier_invoice_id', invoice.id)
+          .order('created_at', { ascending: true }); // Order by creation time to maintain consistency
 
         if (error) {
           console.error('Error loading connected supplier invoice lines:', error);
@@ -282,6 +283,16 @@ const InvoiceView = () => {
       return acc;
     }, {} as Record<string, SupplierInvoiceLine[]>);
     return grouped;
+  };
+
+  // Add function to check if this is the first occurrence of an invoice line ID within a booking
+  const isFirstOccurrenceOfInvoiceLine = (supplierLines: SupplierInvoiceLine[], currentLine: SupplierInvoiceLine, currentIndex: number) => {
+    // Check if this is the first supplier line that references this invoice line ID within this booking group
+    const previousLinesWithSameInvoiceLineId = supplierLines
+      .slice(0, currentIndex)
+      .filter(line => line.invoiceLineId === currentLine.invoiceLineId);
+    
+    return previousLinesWithSameInvoiceLineId.length === 0;
   };
 
   // Add function to start editing a supplier invoice line
@@ -797,111 +808,114 @@ const InvoiceView = () => {
                             </TableCell>
                           </TableRow>
                           {/* Lines for this booking */}
-                          {lines.map((line, index) => (
-                            <TableRow key={line.id}>
-                              <TableCell>{index + 1}</TableCell>
-                              <TableCell>
-                                {editingLineId === line.id ? (
-                                  <Input
-                                    value={editingLine?.description || ""}
-                                    onChange={(e) => setEditingLine(prev => prev ? { ...prev, description: e.target.value } : null)}
-                                  />
-                                ) : (
-                                  line.description
-                                )}
-                              </TableCell>
-                              <TableCell>{line.supplierName}</TableCell>
-                              <TableCell>{bookingNumber}</TableCell>
-                              <TableCell>{line.createdBy || "Unknown"}</TableCell>
-                              <TableCell>
-                                {new Date(line.createdAt).toLocaleString('en-US', {
-                                  year: 'numeric',
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                  hour12: false
-                                })}
-                              </TableCell>
-                              <TableCell className="text-blue-600">{estimatedCosts.currency}</TableCell>
-                              <TableCell className="text-blue-600">
-                                {formatCurrency(estimatedCosts.estimatedCost / lines.length)}
-                              </TableCell>
-                              <TableCell className="text-blue-600">
-                                {formatCurrency(estimatedCosts.estimatedVat / lines.length)}
-                              </TableCell>
-                              <TableCell className="text-green-600">{currency}</TableCell>
-                              <TableCell>
-                                {editingLineId === line.id ? (
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    value={editingLine?.actualCost || 0}
-                                    onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualCost: parseFloat(e.target.value) || 0 } : null)}
-                                  />
-                                ) : (
-                                  formatCurrency(line.actualCost)
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                {editingLineId === line.id ? (
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    value={editingLine?.actualVat || 0}
-                                    onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualVat: parseFloat(e.target.value) || 0 } : null)}
-                                  />
-                                ) : (
-                                  formatCurrency(line.actualVat)
-                                )}
-                              </TableCell>
-                              {!isSentToAccounting && (
+                          {lines.map((line, index) => {
+                            const isFirstOccurrence = isFirstOccurrenceOfInvoiceLine(lines, line, index);
+                            return (
+                              <TableRow key={line.id}>
+                                <TableCell>{index + 1}</TableCell>
                                 <TableCell>
-                                  <div className="flex gap-2">
-                                    {editingLineId === line.id ? (
-                                      <>
-                                        <Button
-                                          variant="default"
-                                          size="sm"
-                                          onClick={handleSaveSupplierLine}
-                                          disabled={isFullyPaid}
-                                        >
-                                          <Save className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={handleCancelEdit}
-                                          disabled={isFullyPaid}
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => handleEditSupplierLine(line)}
-                                          disabled={isFullyPaid}
-                                        >
-                                          <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => handleDeleteSupplierLine(line.id)}
-                                          disabled={isFullyPaid}
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </>
-                                    )}
-                                  </div>
+                                  {editingLineId === line.id ? (
+                                    <Input
+                                      value={editingLine?.description || ""}
+                                      onChange={(e) => setEditingLine(prev => prev ? { ...prev, description: e.target.value } : null)}
+                                    />
+                                  ) : (
+                                    line.description
+                                  )}
                                 </TableCell>
-                              )}
-                            </TableRow>
-                          ))}
+                                <TableCell>{line.supplierName}</TableCell>
+                                <TableCell>{bookingNumber}</TableCell>
+                                <TableCell>{line.createdBy || "Unknown"}</TableCell>
+                                <TableCell>
+                                  {new Date(line.createdAt).toLocaleString('en-US', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false
+                                  })}
+                                </TableCell>
+                                <TableCell className="text-blue-600">{estimatedCosts.currency}</TableCell>
+                                <TableCell className="text-blue-600">
+                                  {isFirstOccurrence ? formatCurrency(estimatedCosts.estimatedCost / lines.length) : ""}
+                                </TableCell>
+                                <TableCell className="text-blue-600">
+                                  {isFirstOccurrence ? formatCurrency(estimatedCosts.estimatedVat / lines.length) : ""}
+                                </TableCell>
+                                <TableCell className="text-green-600">{currency}</TableCell>
+                                <TableCell>
+                                  {editingLineId === line.id ? (
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      value={editingLine?.actualCost || 0}
+                                      onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualCost: parseFloat(e.target.value) || 0 } : null)}
+                                    />
+                                  ) : (
+                                    formatCurrency(line.actualCost)
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {editingLineId === line.id ? (
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      value={editingLine?.actualVat || 0}
+                                      onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualVat: parseFloat(e.target.value) || 0 } : null)}
+                                    />
+                                  ) : (
+                                    formatCurrency(line.actualVat)
+                                  )}
+                                </TableCell>
+                                {!isSentToAccounting && (
+                                  <TableCell>
+                                    <div className="flex gap-2">
+                                      {editingLineId === line.id ? (
+                                        <>
+                                          <Button
+                                            variant="default"
+                                            size="sm"
+                                            onClick={handleSaveSupplierLine}
+                                            disabled={isFullyPaid}
+                                          >
+                                            <Save className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleCancelEdit}
+                                            disabled={isFullyPaid}
+                                          >
+                                            <X className="h-4 w-4" />
+                                          </Button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleEditSupplierLine(line)}
+                                            disabled={isFullyPaid}
+                                          >
+                                            <Edit className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleDeleteSupplierLine(line.id)}
+                                            disabled={isFullyPaid}
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                )}
+                              </TableRow>
+                            );
+                          })}
                           {/* Subtotal row for this booking */}
                           <TableRow className="bg-gray-100 font-medium border-b-2">
                             <TableCell colSpan={6} className="text-right">
