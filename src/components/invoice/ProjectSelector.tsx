@@ -35,7 +35,20 @@ const ProjectSelector = ({ selectedProject, onProjectSelect, onProjectRemove, di
   const [showProjectSearch, setShowProjectSearch] = useState(false);
 
   const handleProjectSelect = (project: Project) => {
+    console.log("ProjectSelector: handleProjectSelect called with:", project);
     onProjectSelect(project);
+    setShowProjectSearch(false);
+  };
+
+  const handleShowProjectSearch = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent any default behavior
+    console.log("ProjectSelector: showing project search");
+    setShowProjectSearch(true);
+  };
+
+  const handleCancel = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent any default behavior
+    console.log("ProjectSelector: canceling project search");
     setShowProjectSearch(false);
   };
 
@@ -45,8 +58,9 @@ const ProjectSelector = ({ selectedProject, onProjectSelect, onProjectRemove, di
         <div className="flex items-center justify-between">
           <h4 className="text-md font-medium">Select Project</h4>
           <Button 
+            type="button"
             variant="outline" 
-            onClick={() => setShowProjectSearch(false)}
+            onClick={handleCancel}
           >
             Cancel
           </Button>
@@ -75,7 +89,7 @@ const ProjectSelector = ({ selectedProject, onProjectSelect, onProjectRemove, di
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowProjectSearch(true)}
+                  onClick={handleShowProjectSearch}
                   className="h-6 w-6 p-0"
                 >
                   <Edit className="h-4 w-4" />
@@ -121,7 +135,7 @@ const ProjectSelector = ({ selectedProject, onProjectSelect, onProjectRemove, di
         <Button
           type="button"
           variant="outline"
-          onClick={() => setShowProjectSearch(true)}
+          onClick={handleShowProjectSearch}
           disabled={disabled}
           className="w-fit"
         >
