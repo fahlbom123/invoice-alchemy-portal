@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -175,11 +176,11 @@ const InvoiceHeaderView = ({
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Total Amount:</span>
-                  <span className="font-medium">{formatCurrency(formData.totalAmount || 0, currency)}</span>
+                  <span className="font-medium">{formatCurrency(formData.totalAmount || 0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Total VAT:</span>
-                  <span className="font-medium">{formatCurrency(formData.totalVat || 0, currency)}</span>
+                  <span className="font-medium">{formatCurrency(formData.totalVat || 0)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-medium">
