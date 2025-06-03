@@ -175,11 +175,11 @@ const InvoiceHeaderView = ({
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Total Amount:</span>
-                  <span className="font-medium">{formatCurrencyWithRate(formData.totalAmount || 0, currency, true)}</span>
+                  <span className="font-medium">{formatCurrency(formData.totalAmount || 0, currency)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Total VAT:</span>
-                  <span className="font-medium">{formatCurrencyWithRate(formData.totalVat || 0, currency, true)}</span>
+                  <span className="font-medium">{formatCurrency(formData.totalVat || 0, currency)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-medium">
