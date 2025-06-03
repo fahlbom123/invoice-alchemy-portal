@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/formatters";
@@ -34,6 +33,15 @@ const InvoiceHeaderView = ({
   };
 
   const { totalActualCost, totalActualVat } = registeredTotals || calculateRegisteredTotals();
+
+  // Helper function to get month name
+  const getMonthName = (monthNumber: number) => {
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return monthNames[monthNumber - 1];
+  };
 
   return (
     <Card>
@@ -98,7 +106,9 @@ const InvoiceHeaderView = ({
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Periodization Month</label>
-                <p className="text-sm">{formData.periodizationMonth || 'Not set'}</p>
+                <p className="text-sm">
+                  {formData.periodizationMonth ? getMonthName(formData.periodizationMonth) : 'Not set'}
+                </p>
               </div>
             </div>
 
