@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,19 @@ import { ArrowLeft, Edit, Trash2, Save, X, Lock, Send } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+
+// Add explicit type for Supabase query result
+interface SupabaseSupplierInvoiceLine {
+  id: string;
+  invoice_line_id: string;
+  actual_cost: number;
+  actual_vat: number;
+  currency: string;
+  created_at: string;
+  created_by: string | null;
+  description: string;
+  supplier_name: string;
+}
 
 const InvoiceView = () => {
   const { id } = useParams<{ id: string }>();
@@ -158,31 +172,31 @@ const InvoiceView = () => {
         const { data: supplierLines, error: supplierLinesError } = await supabase
           .from('supplier_invoice_lines')
           .select('*')
-          .eq('supplier_invoice_id', invoice.id);
+          .eq('supplier_invoice_id', invoice.id) as { data: SupabaseSupplierInvoiceLine[] | null; error: any };
 
         if (supplierLinesError) {
           console.error('Error loading connected supplier invoice lines:', supplierLinesError);
           return;
         }
 
-        // Simplified type handling to avoid TypeScript inference issues
+        // Transform with explicit types to avoid TypeScript issues
         const transformedLines: SupplierInvoiceLine[] = [];
         
         if (supplierLines) {
-          for (const line of supplierLines) {
+          supplierLines.forEach(line => {
             const transformedLine: SupplierInvoiceLine = {
-              id: String(line.id),
-              invoiceLineId: String(line.invoice_line_id),
-              actualCost: Number(line.actual_cost || 0),
-              actualVat: Number(line.actual_vat || 0),
-              currency: String(line.currency || 'SEK'),
-              createdAt: String(line.created_at),
-              createdBy: String(line.created_by || 'System'),
-              description: String(line.description || ''),
-              supplierName: String(line.supplier_name || ''),
+              id: line.id,
+              invoiceLineId: line.invoice_line_id,
+              actualCost: line.actual_cost,
+              actualVat: line.actual_vat,
+              currency: line.currency,
+              createdAt: line.created_at,
+              createdBy: line.created_by || 'System',
+              description: line.description,
+              supplierName: line.supplier_name,
             };
             transformedLines.push(transformedLine);
-          }
+          });
         }
 
         console.log('Connected supplier invoice lines for this invoice:', transformedLines);
