@@ -71,7 +71,7 @@ const InvoiceView = () => {
   // Check if cancel button should be enabled (no lines connected)
   const canCancelInvoice = !invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0;
 
-  // Add the missing formData state
+  // Update formData state to populate with invoice data
   const [formData, setFormData] = useState<InvoiceFormData>({
     invoiceNumber: "",
     reference: "",
@@ -93,6 +93,33 @@ const InvoiceView = () => {
     periodizationMonth: undefined,
     projectId: undefined,
   });
+
+  // Populate formData when invoice data is loaded
+  useEffect(() => {
+    if (invoice) {
+      setFormData({
+        invoiceNumber: invoice.invoiceNumber,
+        reference: invoice.reference,
+        status: invoice.status,
+        dueDate: invoice.dueDate,
+        invoiceDate: invoice.invoiceDate || "",
+        supplierId: invoice.supplier.id,
+        notes: invoice.notes || "",
+        invoiceLines: invoice.invoiceLines,
+        currency: invoice.currency || "USD",
+        totalAmount: invoice.totalAmount,
+        totalVat: invoice.totalVat || 0,
+        vat: invoice.vat || 0,
+        ocr: invoice.ocr || "",
+        source: invoice.source,
+        account: invoice.account || "",
+        vatAccount: invoice.vatAccount || "",
+        periodizationYear: invoice.periodizationYear,
+        periodizationMonth: invoice.periodizationMonth,
+        projectId: invoice.projectId,
+      });
+    }
+  }, [invoice]);
 
   // Add function to send invoice to accounting
   const handleSendToAccounting = async () => {
