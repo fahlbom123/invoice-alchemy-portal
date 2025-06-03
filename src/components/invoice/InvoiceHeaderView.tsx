@@ -146,40 +146,40 @@ const InvoiceHeaderView = ({
 
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-md">
-              <h4 className="font-medium mb-3">Financial Summary</h4>
+              <h4 className="font-medium mb-3">Financial Summary ({currency})</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Total Amount:</span>
-                  <span className="font-medium">{formatCurrency(formData.totalAmount || 0, currency)}</span>
+                  <span className="font-medium">{formatCurrency(formData.totalAmount || 0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Total VAT:</span>
-                  <span className="font-medium">{formatCurrency(formData.totalVat || 0, currency)}</span>
+                  <span className="font-medium">{formatCurrency(formData.totalVat || 0)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-medium">
                   <span>Registered Actual Cost:</span>
                   <span className={totalActualCost > 0 ? "text-green-600" : "text-gray-500"}>
-                    {formatCurrency(totalActualCost, currency)}
+                    {formatCurrency(totalActualCost)}
                   </span>
                 </div>
                 <div className="flex justify-between font-medium">
                   <span>Registered Actual VAT:</span>
                   <span className={totalActualVat > 0 ? "text-green-600" : "text-gray-500"}>
-                    {formatCurrency(totalActualVat, currency)}
+                    {formatCurrency(totalActualVat)}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-medium">
                   <span>Remaining Cost:</span>
                   <span className={remainingCost !== 0 ? (remainingCost > 0 ? "text-orange-600" : "text-red-600") : "text-gray-500"}>
-                    {formatCurrency(remainingCost, currency)}
+                    {formatCurrency(remainingCost)}
                   </span>
                 </div>
                 <div className="flex justify-between font-medium">
                   <span>Remaining VAT:</span>
                   <span className={remainingVat !== 0 ? (remainingVat > 0 ? "text-orange-600" : "text-red-600") : "text-gray-500"}>
-                    {formatCurrency(remainingVat, currency)}
+                    {formatCurrency(remainingVat)}
                   </span>
                 </div>
               </div>
