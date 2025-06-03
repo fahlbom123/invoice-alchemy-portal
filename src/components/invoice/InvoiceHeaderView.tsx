@@ -121,19 +121,15 @@ const InvoiceHeaderView = ({
               </div>
             )}
 
-            {formData.ocr && (
-              <div>
-                <label className="text-sm font-medium text-gray-500">OCR</label>
-                <p className="text-sm">{formData.ocr}</p>
-              </div>
-            )}
+            <div>
+              <label className="text-sm font-medium text-gray-500">OCR</label>
+              <p className="text-sm">{formData.ocr || 'Not set'}</p>
+            </div>
 
-            {formData.notes && (
-              <div>
-                <label className="text-sm font-medium text-gray-500">Notes</label>
-                <p className="text-sm">{formData.notes}</p>
-              </div>
-            )}
+            <div>
+              <label className="text-sm font-medium text-gray-500">Notes (Optional)</label>
+              <p className="text-sm">{formData.notes || 'No notes'}</p>
+            </div>
           </div>
 
           <div className="space-y-4">
