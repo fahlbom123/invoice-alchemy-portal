@@ -104,7 +104,9 @@ export function useSupabaseInvoices() {
             invoiceLineId: sl.invoiceLineId,
             actualCost: sl.actualCost,
             actualVat: sl.actualVat
-          }))
+          })),
+          periodizationYear: invoice.periodization_year,
+          periodizationMonth: invoice.periodization_month
         });
 
         return {
@@ -123,9 +125,9 @@ export function useSupabaseInvoices() {
           ocr: invoice.ocr,
           source: invoice.source as "Fortnox" | "Manual",
           account: invoice.account,
-          vatAccount: null,
-          periodizationYear: null,
-          periodizationMonth: null,
+          vatAccount: invoice.vat_account,
+          periodizationYear: invoice.periodization_year,
+          periodizationMonth: invoice.periodization_month,
           updatedAt: invoice.updated_at,
           projectId: invoice.project_id,
           supplier: {
@@ -197,6 +199,10 @@ export function useSupabaseInvoiceById(id: string) {
         }
 
         console.log('Fetched invoice data:', invoiceData);
+        console.log('Periodization fields from DB:', {
+          periodization_year: invoiceData.periodization_year,
+          periodization_month: invoiceData.periodization_month
+        });
 
         // Fetch ALL invoice lines (not just for this invoice) to check for any that might be registered
         const { data: allInvoiceLinesData, error: linesError } = await supabase
@@ -294,9 +300,9 @@ export function useSupabaseInvoiceById(id: string) {
           ocr: invoiceData.ocr,
           source: invoiceData.source as "Fortnox" | "Manual",
           account: invoiceData.account,
-          vatAccount: null,
-          periodizationYear: null,
-          periodizationMonth: null,
+          vatAccount: invoiceData.vat_account,
+          periodizationYear: invoiceData.periodization_year,
+          periodizationMonth: invoiceData.periodization_month,
           updatedAt: invoiceData.updated_at,
           projectId: invoiceData.project_id,
           supplier: {
@@ -319,7 +325,9 @@ export function useSupabaseInvoiceById(id: string) {
         console.log('Transformed single invoice with supplier lines:', {
           invoiceId: transformedInvoice.id,
           supplierInvoiceLinesCount: transformedInvoice.supplierInvoiceLines.length,
-          supplierInvoiceLines: transformedInvoice.supplierInvoiceLines
+          supplierInvoiceLines: transformedInvoice.supplierInvoiceLines,
+          periodizationYear: transformedInvoice.periodizationYear,
+          periodizationMonth: transformedInvoice.periodizationMonth
         });
         setInvoice(transformedInvoice);
       } catch (error) {
