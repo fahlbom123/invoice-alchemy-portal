@@ -1,7 +1,8 @@
 
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import SearchResultRow from "./SearchResultRow";
+import { formatCurrency } from "@/lib/formatters";
 
 interface SearchResultLine {
   id: string;
@@ -61,6 +62,78 @@ const SearchResultsTable = ({
   setEditingCost,
   setEditingVat,
 }: SearchResultsTableProps) => {
+  // Group lines by supplier
+  const groupedLines = lines.reduce((groups, line) => {
+    const supplierKey = `${line.supplierId}-${line.supplierName}`;
+    if (!groups[supplierKey]) {
+      groups[supplierKey] = {
+        supplierName: line.supplierName,
+        lines: []
+      };
+    }
+    groups[supplierKey].lines.push(line);
+    return groups;
+  }, {} as Record<string, { supplierName: string; lines: SearchResultLine[] }>);
+
+  // Calculate totals for a supplier's lines
+  const calculateSupplierTotals = (supplierLines: SearchResultLine[]) => {
+    return supplierLines.reduce((totals, line) => {
+      totals.estimatedCost += line.estimatedCost;
+      totals.estimatedVat += line.estimatedVat || 0;
+      totals.actualCost += line.actualCost || 0;
+      totals.actualVat += line.actualVat || 0;
+      totals.registeredCost += line.registeredActualCost || 0;
+      totals.registeredVat += line.registeredActualVat || 0;
+      return totals;
+    }, {
+      estimatedCost: 0,
+      estimatedVat: 0,
+      actualCost: 0,
+      actualVat: 0,
+      registeredCost: 0,
+      registeredVat: 0
+    });
+  };
+
+  const SupplierSummaryRow = ({ supplierName, totals }: { 
+    supplierName: string; 
+    totals: ReturnType<typeof calculateSupplierTotals> 
+  }) => (
+    <TableRow className="bg-gray-100 font-semibold border-t-2 border-gray-300">
+      <TableCell></TableCell>
+      <TableCell colSpan={6} className="text-right">
+        Total for {supplierName}:
+      </TableCell>
+      <TableCell></TableCell>
+      <TableCell></TableCell>
+      <TableCell className="text-right">{formatCurrency(totals.estimatedCost)}</TableCell>
+      <TableCell className="text-right">{formatCurrency(totals.estimatedVat)}</TableCell>
+      <TableCell className="text-right">{formatCurrency(totals.actualCost)}</TableCell>
+      <TableCell className="text-right">{formatCurrency(totals.actualVat)}</TableCell>
+      <TableCell className="text-right">{formatCurrency(totals.registeredCost)}</TableCell>
+      <TableCell className="text-right">{formatCurrency(totals.registeredVat)}</TableCell>
+      <TableCell></TableCell>
+      <TableCell></TableCell>
+    </TableRow>
+  );
+
+  const MobileSupplierSummary = ({ supplierName, totals }: { 
+    supplierName: string; 
+    totals: ReturnType<typeof calculateSupplierTotals> 
+  }) => (
+    <div className="bg-gray-100 p-4 rounded-md border-t-2 border-gray-300 mt-2">
+      <h4 className="font-semibold mb-2">Total for {supplierName}:</h4>
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <div>Est. Cost: {formatCurrency(totals.estimatedCost)}</div>
+        <div>Est. VAT: {formatCurrency(totals.estimatedVat)}</div>
+        <div>Actual Cost: {formatCurrency(totals.actualCost)}</div>
+        <div>Actual VAT: {formatCurrency(totals.actualVat)}</div>
+        <div>Reg. Cost: {formatCurrency(totals.registeredCost)}</div>
+        <div>Reg. VAT: {formatCurrency(totals.registeredVat)}</div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {/* Desktop Table View */}
@@ -92,21 +165,29 @@ const SearchResultsTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lines.map((line) => (
-              <SearchResultRow
-                key={line.id}
-                line={line}
-                editingLine={editingLine}
-                editingCost={editingCost}
-                editingVat={editingVat}
-                onSelectLine={onSelectLine}
-                onEditActualCost={onEditActualCost}
-                onSaveActualCost={onSaveActualCost}
-                onCancelEdit={onCancelEdit}
-                onToggleFullyPaid={onToggleFullyPaid}
-                setEditingCost={setEditingCost}
-                setEditingVat={setEditingVat}
-              />
+            {Object.entries(groupedLines).map(([supplierKey, { supplierName, lines: supplierLines }]) => (
+              <React.Fragment key={supplierKey}>
+                {supplierLines.map((line) => (
+                  <SearchResultRow
+                    key={line.id}
+                    line={line}
+                    editingLine={editingLine}
+                    editingCost={editingCost}
+                    editingVat={editingVat}
+                    onSelectLine={onSelectLine}
+                    onEditActualCost={onEditActualCost}
+                    onSaveActualCost={onSaveActualCost}
+                    onCancelEdit={onCancelEdit}
+                    onToggleFullyPaid={onToggleFullyPaid}
+                    setEditingCost={setEditingCost}
+                    setEditingVat={setEditingVat}
+                  />
+                ))}
+                <SupplierSummaryRow 
+                  supplierName={supplierName} 
+                  totals={calculateSupplierTotals(supplierLines)} 
+                />
+              </React.Fragment>
             ))}
           </TableBody>
         </Table>
@@ -121,22 +202,30 @@ const SearchResultsTable = ({
           <span className="text-sm font-medium">Select All</span>
         </div>
         
-        {lines.map((line) => (
-          <SearchResultRow
-            key={line.id}
-            line={line}
-            editingLine={editingLine}
-            editingCost={editingCost}
-            editingVat={editingVat}
-            onSelectLine={onSelectLine}
-            onEditActualCost={onEditActualCost}
-            onSaveActualCost={onSaveActualCost}
-            onCancelEdit={onCancelEdit}
-            onToggleFullyPaid={onToggleFullyPaid}
-            setEditingCost={setEditingCost}
-            setEditingVat={setEditingVat}
-            isMobile={true}
-          />
+        {Object.entries(groupedLines).map(([supplierKey, { supplierName, lines: supplierLines }]) => (
+          <div key={supplierKey} className="space-y-2">
+            {supplierLines.map((line) => (
+              <SearchResultRow
+                key={line.id}
+                line={line}
+                editingLine={editingLine}
+                editingCost={editingCost}
+                editingVat={editingVat}
+                onSelectLine={onSelectLine}
+                onEditActualCost={onEditActualCost}
+                onSaveActualCost={onSaveActualCost}
+                onCancelEdit={onCancelEdit}
+                onToggleFullyPaid={onToggleFullyPaid}
+                setEditingCost={setEditingCost}
+                setEditingVat={setEditingVat}
+                isMobile={true}
+              />
+            ))}
+            <MobileSupplierSummary 
+              supplierName={supplierName} 
+              totals={calculateSupplierTotals(supplierLines)} 
+            />
+          </div>
         ))}
       </div>
     </>
