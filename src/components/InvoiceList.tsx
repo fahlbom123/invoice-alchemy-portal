@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -87,7 +86,6 @@ const InvoiceList = ({ invoices }: InvoiceListProps) => {
                 <TableHead>Pay Date</TableHead>
                 <TableHead>Currency</TableHead>
                 <TableHead>Amount</TableHead>
-                <TableHead>Currency</TableHead>
                 <TableHead>Source</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -102,7 +100,6 @@ const InvoiceList = ({ invoices }: InvoiceListProps) => {
                   <TableCell>{formatDate(invoice.dueDate)}</TableCell>
                   <TableCell>{invoice.currency || "USD"}</TableCell>
                   <TableCell>{formatCurrency(invoice.totalAmount, undefined)}</TableCell>
-                  <TableCell>{invoice.currency || "USD"}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                       {invoice.source || "Manual"}
