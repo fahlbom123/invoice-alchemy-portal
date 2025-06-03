@@ -273,6 +273,27 @@ const InvoiceView = () => {
     }), { estimatedCost: 0, estimatedVat: 0, currency: lineCurrency });
   };
 
+  // Add new function to get estimated costs for unique invoice lines in a booking's supplier lines
+  const getEstimatedCostsForSupplierLinesInBooking = (supplierLines: SupplierInvoiceLine[]) => {
+    // Get unique invoice line IDs from the supplier lines
+    const uniqueInvoiceLineIds = [...new Set(supplierLines.map(line => line.invoiceLineId))];
+    
+    // Find the original invoice lines that match these IDs
+    const matchingOriginalLines = allInvoiceLines.filter(line => 
+      uniqueInvoiceLineIds.includes(line.id)
+    );
+    
+    // Get the currency from the first line
+    const lineCurrency = matchingOriginalLines.length > 0 ? matchingOriginalLines[0].currency || 'USD' : 'USD';
+    
+    // Sum up the estimated costs and VAT for these unique lines
+    return matchingOriginalLines.reduce((acc, line) => ({
+      estimatedCost: acc.estimatedCost + (line.estimatedCost || 0),
+      estimatedVat: acc.estimatedVat + (line.estimatedVat || 0),
+      currency: lineCurrency
+    }), { estimatedCost: 0, estimatedVat: 0, currency: lineCurrency });
+  };
+
   // Function to group supplier invoice lines by booking number
   const groupSupplierLinesByBooking = (lines: SupplierInvoiceLine[]) => {
     const grouped = lines.reduce((acc, line) => {
@@ -749,7 +770,7 @@ const InvoiceView = () => {
                   </TableHeader>
                   <TableBody>
                     {Object.entries(groupedSupplierLines).map(([bookingNumber, lines]) => {
-                      const estimatedCosts = getEstimatedCostsForBooking(bookingNumber);
+                      const estimatedCostsForSubtotal = getEstimatedCostsForSupplierLinesInBooking(lines);
                       const isFullyPaid = fullyPaidStatus[bookingNumber] || false;
                       return (
                         <React.Fragment key={bookingNumber}>
@@ -762,6 +783,7 @@ const InvoiceView = () => {
                           {/* Lines for this booking */}
                           {lines.map((line, index) => {
                             const isFirstOccurrence = isFirstOccurrenceOfInvoiceLine(lines, line, index);
+                            const originalLine = allInvoiceLines.find(origLine => origLine.id === line.invoiceLineId);
                             return (
                               <TableRow key={line.id}>
                                 <TableCell>{index + 1}</TableCell>
@@ -798,12 +820,12 @@ const InvoiceView = () => {
                                     hour12: false
                                   })}
                                 </TableCell>
-                                <TableCell className="text-blue-600">{estimatedCosts.currency}</TableCell>
+                                <TableCell className="text-blue-600">{originalLine?.currency || 'USD'}</TableCell>
                                 <TableCell className="text-blue-600">
-                                  {isFirstOccurrence ? formatCurrency(estimatedCosts.estimatedCost / lines.length) : formatCurrency(0)}
+                                  {isFirstOccurrence ? formatCurrency(originalLine?.estimatedCost || 0) : formatCurrency(0)}
                                 </TableCell>
                                 <TableCell className="text-blue-600">
-                                  {isFirstOccurrence ? formatCurrency(estimatedCosts.estimatedVat / lines.length) : formatCurrency(0)}
+                                  {isFirstOccurrence ? formatCurrency(originalLine?.estimatedVat || 0) : formatCurrency(0)}
                                 </TableCell>
                                 <TableCell className="text-green-600">{currency}</TableCell>
                                 <TableCell>
@@ -883,12 +905,12 @@ const InvoiceView = () => {
                             <TableCell colSpan={6} className="text-right">
                               Subtotal for Booking {bookingNumber}:
                             </TableCell>
-                            <TableCell className="text-blue-600">{estimatedCosts.currency}</TableCell>
+                            <TableCell className="text-blue-600">{estimatedCostsForSubtotal.currency}</TableCell>
                             <TableCell className="text-blue-600">
-                              {formatCurrency(estimatedCosts.estimatedCost)}
+                              {formatCurrency(estimatedCostsForSubtotal.estimatedCost)}
                             </TableCell>
                             <TableCell className="text-blue-600">
-                              {formatCurrency(estimatedCosts.estimatedVat)}
+                              {formatCurrency(estimatedCostsForSubtotal.estimatedVat)}
                             </TableCell>
                             <TableCell className="text-green-600">{currency}</TableCell>
                             <TableCell className="text-green-600">
