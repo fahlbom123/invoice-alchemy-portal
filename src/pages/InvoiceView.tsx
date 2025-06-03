@@ -154,29 +154,11 @@ const InvoiceView = () => {
       if (!invoice || !invoice.id) return;
 
       try {
-        // First, get all invoice line IDs that belong to this specific invoice
-        const { data: thisInvoiceLines, error: invoiceLinesError } = await supabase
-          .from('invoice_lines')
-          .select('id')
-          .eq('invoice_id', invoice.id);
-
-        if (invoiceLinesError) {
-          console.error('Error loading invoice lines for this invoice:', invoiceLinesError);
-          return;
-        }
-
-        const thisInvoiceLineIds = thisInvoiceLines?.map(line => line.id) || [];
-
-        if (thisInvoiceLineIds.length === 0) {
-          setConnectedSupplierInvoiceLines([]);
-          return;
-        }
-
-        // Then, get supplier invoice lines that reference these specific invoice lines
+        // Get supplier invoice lines that are directly linked to this supplier invoice
         const { data: supplierLines, error: supplierLinesError } = await supabase
           .from('supplier_invoice_lines')
           .select('*')
-          .in('invoice_line_id', thisInvoiceLineIds);
+          .eq('supplier_invoice_id', invoice.id);
 
         if (supplierLinesError) {
           console.error('Error loading connected supplier invoice lines:', supplierLinesError);
@@ -525,12 +507,13 @@ const InvoiceView = () => {
       console.log("Registering supplier invoice lines to invoice:", invoice.id);
       console.log("Supplier invoice lines to register:", supplierInvoiceLines);
       
-      // Save each supplier invoice line to Supabase
+      // Save each supplier invoice line to Supabase with proper supplier invoice linking
       const insertPromises = supplierInvoiceLines.map(async (line) => {
         const { error } = await supabase
           .from('supplier_invoice_lines')
           .insert({
             invoice_line_id: line.invoiceLineId,
+            supplier_invoice_id: invoice.id, // Link to the current supplier invoice
             actual_cost: line.actualCost,
             actual_vat: line.actualVat,
             currency: line.currency,
