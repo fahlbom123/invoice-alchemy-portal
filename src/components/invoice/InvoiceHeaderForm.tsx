@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -134,6 +133,7 @@ const InvoiceHeaderForm = ({
           <SelectContent className="bg-white">
             <SelectItem value="Manual">Manual</SelectItem>
             <SelectItem value="Fortnox">Fortnox</SelectItem>
+            <SelectItem value="OlkaExpress">OlkaExpress</SelectItem>
           </SelectContent>
         </Select>
       </div>
