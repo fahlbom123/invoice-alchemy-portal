@@ -833,7 +833,7 @@ const InvoiceView = () => {
                               <TableCell className="text-blue-600">
                                 {formatCurrency(estimatedCosts.estimatedVat / lines.length)}
                               </TableCell>
-                              <TableCell className="text-green-600">{line.currency}</TableCell>
+                              <TableCell className="text-green-600">{currency}</TableCell>
                               <TableCell>
                                 {editingLineId === line.id ? (
                                   <Input
