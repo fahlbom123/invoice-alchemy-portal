@@ -693,16 +693,6 @@ const InvoiceView = () => {
                 Undo Cancel
               </Button>
             )}
-            {!isCancelled && !isSentToAccounting && (
-              <Button 
-                variant="default" 
-                onClick={handleSendToAccounting}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Send className="mr-2 h-4 w-4" />
-                Send to Accounting
-              </Button>
-            )}
             <Button 
               variant="outline" 
               onClick={handleCancelInvoice}
@@ -758,6 +748,9 @@ const InvoiceView = () => {
                 supplierInvoiceLines={connectedSupplierInvoiceLines}
                 invoiceId={invoice.id}
                 selectedProject={transformedSelectedProject}
+                onSendToAccounting={handleSendToAccounting}
+                isSentToAccounting={isSentToAccounting}
+                isCancelled={isCancelled}
               />
             </div>
           </CardContent>

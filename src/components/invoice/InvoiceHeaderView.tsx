@@ -1,8 +1,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/formatters";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
+import { Send } from "lucide-react";
 
 interface InvoiceHeaderViewProps {
   formData: InvoiceFormData;
@@ -17,6 +19,9 @@ interface InvoiceHeaderViewProps {
     project_number: string;
     description: string;
   } | null;
+  onSendToAccounting?: () => void;
+  isSentToAccounting?: boolean;
+  isCancelled?: boolean;
 }
 
 const InvoiceHeaderView = ({ 
@@ -24,7 +29,10 @@ const InvoiceHeaderView = ({
   registeredTotals, 
   supplierInvoiceLines = [], 
   invoiceId,
-  selectedProject 
+  selectedProject,
+  onSendToAccounting,
+  isSentToAccounting = false,
+  isCancelled = false
 }: InvoiceHeaderViewProps) => {
   // Calculate registered totals from supplier invoice lines
   const calculateRegisteredTotals = () => {
@@ -53,7 +61,18 @@ const InvoiceHeaderView = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Invoice Details</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle>Invoice Details</CardTitle>
+          {!isCancelled && !isSentToAccounting && onSendToAccounting && (
+            <Button 
+              onClick={onSendToAccounting}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Send className="mr-2 h-4 w-4" />
+              Send to Accounting
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
