@@ -168,25 +168,21 @@ const InvoiceView = () => {
 
       try {
         // Get supplier invoice lines that are directly linked to this supplier invoice
-        const result = await supabase
+        const { data, error } = await supabase
           .from('supplier_invoice_lines')
           .select('*')
           .eq('supplier_invoice_id', invoice.id);
 
-        // Explicitly type the destructuring to avoid type inference issues
-        const supplierLines = result.data as SupabaseSupplierInvoiceLine[] | null;
-        const supplierLinesError = result.error;
-
-        if (supplierLinesError) {
-          console.error('Error loading connected supplier invoice lines:', supplierLinesError);
+        if (error) {
+          console.error('Error loading connected supplier invoice lines:', error);
           return;
         }
 
         // Transform the data to match our interface
         const transformedLines: SupplierInvoiceLine[] = [];
         
-        if (supplierLines) {
-          supplierLines.forEach(line => {
+        if (data) {
+          data.forEach((line: any) => {
             const transformedLine: SupplierInvoiceLine = {
               id: line.id,
               invoiceLineId: line.invoice_line_id,
