@@ -790,7 +790,14 @@ const InvoiceView = () => {
                               <TableCell>{bookingNumber}</TableCell>
                               <TableCell>{line.createdBy || "Unknown"}</TableCell>
                               <TableCell>
-                                {new Date(line.createdAt).toLocaleString()}
+                                {new Date(line.createdAt).toLocaleString('en-US', {
+                                  year: 'numeric',
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: false
+                                })}
                               </TableCell>
                               <TableCell className="text-blue-600">{currency}</TableCell>
                               <TableCell className="text-blue-600">
