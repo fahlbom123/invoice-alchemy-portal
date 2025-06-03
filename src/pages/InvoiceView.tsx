@@ -254,17 +254,21 @@ const InvoiceView = () => {
     return (10000000 + random).toString();
   };
 
-  // Function to get estimated costs for a booking number
+  // Function to get estimated costs and currency for a booking number
   const getEstimatedCostsForBooking = (bookingNumber: string) => {
     const originalLines = allInvoiceLines.filter(line => 
       line.bookingNumber === bookingNumber || 
       (!line.bookingNumber && getBookingNumberForSupplierLine({ id: line.id } as SupplierInvoiceLine) === bookingNumber)
     );
     
+    // Get the currency from the first line (they should all have the same currency for a booking)
+    const lineCurrency = originalLines.length > 0 ? originalLines[0].currency || 'USD' : 'USD';
+    
     return originalLines.reduce((acc, line) => ({
       estimatedCost: acc.estimatedCost + (line.estimatedCost || 0),
-      estimatedVat: acc.estimatedVat + (line.estimatedVat || 0)
-    }), { estimatedCost: 0, estimatedVat: 0 });
+      estimatedVat: acc.estimatedVat + (line.estimatedVat || 0),
+      currency: lineCurrency
+    }), { estimatedCost: 0, estimatedVat: 0, currency: lineCurrency });
   };
 
   // Function to group supplier invoice lines by booking number
@@ -826,7 +830,7 @@ const InvoiceView = () => {
                                   hour12: false
                                 })}
                               </TableCell>
-                              <TableCell className="text-blue-600">{currency}</TableCell>
+                              <TableCell className="text-blue-600">{estimatedCosts.currency}</TableCell>
                               <TableCell className="text-blue-600">
                                 {formatCurrency(estimatedCosts.estimatedCost / lines.length)}
                               </TableCell>
@@ -910,7 +914,7 @@ const InvoiceView = () => {
                             <TableCell colSpan={6} className="text-right">
                               Subtotal for Booking {bookingNumber}:
                             </TableCell>
-                            <TableCell className="text-blue-600">{currency}</TableCell>
+                            <TableCell className="text-blue-600">{estimatedCosts.currency}</TableCell>
                             <TableCell className="text-blue-600">
                               {formatCurrency(estimatedCosts.estimatedCost)}
                             </TableCell>
