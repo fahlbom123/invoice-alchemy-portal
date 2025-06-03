@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/formatters";
@@ -151,13 +152,13 @@ const InvoiceHeaderView = ({
                 </div>
                 <Separator />
                 <div className="flex justify-between font-medium">
-                  <span>Registered Total Actual Cost:</span>
+                  <span>Registered Actual Cost:</span>
                   <span className={totalActualCost > 0 ? "text-green-600" : "text-gray-500"}>
                     {formatCurrency(totalActualCost, formData.currency)}
                   </span>
                 </div>
                 <div className="flex justify-between font-medium">
-                  <span>Registered Total Actual VAT:</span>
+                  <span>Registered Actual VAT:</span>
                   <span className={totalActualVat > 0 ? "text-green-600" : "text-gray-500"}>
                     {formatCurrency(totalActualVat, formData.currency)}
                   </span>
