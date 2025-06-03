@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -24,12 +25,16 @@ import { supabase } from "@/integrations/supabase/client";
 
 const InvoiceView = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  // Add key to force re-fetching when data changes
+  const [dataRefreshKey, setDataRefreshKey] = useState(0);
+  
   const { invoice, isLoading } = useSupabaseInvoiceById(id || "");
   const { invoices, isLoading: isLoadingInvoices } = useInvoices();
   const { invoiceLines: supabaseInvoiceLines, isLoading: isLoadingInvoiceLines } = useSupabaseInvoiceLines();
   const { suppliers } = useSuppliers();
   const { saveInvoice } = useSaveInvoice();
-  const navigate = useNavigate();
 
   // Fetch projects from Supabase
   const { projects, isLoading: isLoadingProjects } = useSupabaseProjects();
@@ -97,9 +102,6 @@ const InvoiceView = () => {
   const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Add a refresh key to force re-fetching after registration
-  const [refreshKey, setRefreshKey] = useState(0);
-
   // Use Supabase invoice lines instead of invoice lines from invoices
   const allInvoiceLines = supabaseInvoiceLines.map(line => ({
     ...line,
@@ -147,7 +149,14 @@ const InvoiceView = () => {
     };
 
     loadSupplierInvoiceLines();
-  }, [refreshKey]); // Add refreshKey as dependency
+  }, [dataRefreshKey]); // Add dataRefreshKey as dependency
+
+  // Add function to refresh invoice data
+  const refreshInvoiceData = async () => {
+    setDataRefreshKey(prev => prev + 1);
+    // Also trigger a page reload to ensure fresh data
+    window.location.reload();
+  };
 
   useEffect(() => {
     if (invoice) {
@@ -252,8 +261,8 @@ const InvoiceView = () => {
       setEditingLineId(null);
       setEditingLine(null);
       
-      // Refresh the page to show updated data
-      window.location.reload();
+      // Refresh the data instead of full page reload
+      await refreshInvoiceData();
     } catch (error) {
       console.error("Error updating supplier invoice line:", error);
       toast({
@@ -290,8 +299,8 @@ const InvoiceView = () => {
         description: "Supplier invoice line has been deleted successfully.",
       });
       
-      // Refresh the page to show updated data
-      window.location.reload();
+      // Refresh the data instead of full page reload
+      await refreshInvoiceData();
     } catch (error) {
       console.error("Error deleting supplier invoice line:", error);
       toast({
@@ -321,8 +330,8 @@ const InvoiceView = () => {
         description: "Supplier invoice has been restored successfully.",
       });
       
-      // Refresh the page to show updated data
-      window.location.reload();
+      // Refresh the data instead of full page reload
+      await refreshInvoiceData();
     } catch (error) {
       console.error("Error restoring invoice:", error);
       toast({
@@ -511,8 +520,8 @@ const InvoiceView = () => {
         });
       }
       
-      // Increment refresh key to trigger data refresh
-      setRefreshKey(prev => prev + 1);
+      // Refresh the data to show new supplier invoice lines immediately
+      await refreshInvoiceData();
       
       // Also clear the search to refresh the results
       setSearchResults([]);
@@ -547,8 +556,8 @@ const InvoiceView = () => {
         description: "Supplier invoice has been cancelled successfully.",
       });
       
-      // Refresh the page to show updated data
-      window.location.reload();
+      // Refresh the data instead of full page reload
+      await refreshInvoiceData();
     } catch (error) {
       console.error("Error cancelling invoice:", error);
       toast({
