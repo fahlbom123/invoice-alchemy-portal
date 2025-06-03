@@ -168,10 +168,13 @@ const InvoiceView = () => {
 
       try {
         // Get supplier invoice lines that are directly linked to this supplier invoice
-        const { data: supplierLines, error: supplierLinesError } = await supabase
+        const queryResult = await supabase
           .from('supplier_invoice_lines')
           .select('*')
           .eq('supplier_invoice_id', invoice.id);
+
+        const supplierLines = queryResult.data;
+        const supplierLinesError = queryResult.error;
 
         if (supplierLinesError) {
           console.error('Error loading connected supplier invoice lines:', supplierLinesError);
