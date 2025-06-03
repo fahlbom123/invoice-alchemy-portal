@@ -10,13 +10,12 @@ export function useSupabaseInvoices() {
     setIsLoading(true);
     
     try {
-      // Fetch invoices with suppliers and invoice lines
+      // First fetch invoices with suppliers and projects
       const { data: invoicesData, error: invoicesError } = await supabase
         .from('invoices')
         .select(`
           *,
           suppliers (*),
-          invoice_lines (*),
           projects (*)
         `)
         .order('created_at', { ascending: false });
@@ -25,6 +24,15 @@ export function useSupabaseInvoices() {
         console.error('Error fetching invoices:', invoicesError);
         setInvoices([]);
         return;
+      }
+
+      // Fetch all invoice lines separately
+      const { data: invoiceLinesData, error: linesError } = await supabase
+        .from('invoice_lines')
+        .select('*');
+
+      if (linesError) {
+        console.error('Error fetching invoice lines:', linesError);
       }
 
       // Fetch all supplier invoice lines
@@ -36,10 +44,38 @@ export function useSupabaseInvoices() {
         console.error('Error fetching supplier invoice lines:', supplierError);
       }
 
+      console.log('Raw invoices data:', invoicesData);
+      console.log('Raw invoice lines data:', invoiceLinesData);
+      console.log('Raw supplier invoice lines data:', supplierInvoiceData);
+
       // Transform database format to match our interface
       const transformedInvoices: Invoice[] = invoicesData.map(invoice => {
+        // Find invoice lines that belong to this invoice
+        const invoiceLines = (invoiceLinesData || [])
+          .filter((line: any) => line.invoice_id === invoice.id)
+          .map((line: any): InvoiceLine => ({
+            id: line.id,
+            description: line.description,
+            quantity: parseFloat(String(line.quantity || '1')),
+            unitPrice: parseFloat(String(line.unit_price || '0')),
+            estimatedCost: parseFloat(String(line.estimated_cost || '0')),
+            actualCost: line.actual_cost ? parseFloat(String(line.actual_cost)) : undefined,
+            supplierId: line.supplier_id,
+            supplierName: line.supplier_name,
+            supplierPartNumber: line.supplier_part_number,
+            bookingNumber: line.booking_number,
+            confirmationNumber: line.confirmation_number,
+            departureDate: line.departure_date,
+            paymentStatus: line.payment_status as "paid" | "unpaid" | "partial",
+            fullyInvoiced: line.fully_invoiced,
+            currency: line.currency,
+            invoiceType: line.invoice_type as "single" | "multi",
+            estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
+            actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
+          }));
+
         // Find supplier invoice lines that belong to this invoice's invoice lines
-        const invoiceLineIds = invoice.invoice_lines.map((line: any) => line.id);
+        const invoiceLineIds = invoiceLines.map(line => line.id);
         const relatedSupplierLines = (supplierInvoiceData || [])
           .filter((supplierLine: any) => invoiceLineIds.includes(supplierLine.invoice_line_id))
           .map((line: any): SupplierInvoiceLine => ({
@@ -54,7 +90,10 @@ export function useSupabaseInvoices() {
             supplierName: line.supplier_name,
           }));
 
-        console.log(`Invoice ${invoice.invoice_number} has ${relatedSupplierLines.length} supplier invoice lines`);
+        console.log(`Invoice ${invoice.invoice_number}:`, {
+          invoiceLines: invoiceLines.length,
+          supplierInvoiceLines: relatedSupplierLines.length
+        });
 
         return {
           id: invoice.id,
@@ -90,31 +129,12 @@ export function useSupabaseInvoices() {
             city: invoice.suppliers.city,
             country: invoice.suppliers.country
           },
-          invoiceLines: invoice.invoice_lines.map((line: any) => ({
-            id: line.id,
-            description: line.description,
-            quantity: parseFloat(String(line.quantity || '1')),
-            unitPrice: parseFloat(String(line.unit_price || '0')),
-            estimatedCost: parseFloat(String(line.estimated_cost || '0')),
-            actualCost: line.actual_cost ? parseFloat(String(line.actual_cost)) : undefined,
-            supplierId: line.supplier_id,
-            supplierName: line.supplier_name,
-            supplierPartNumber: line.supplier_part_number,
-            bookingNumber: line.booking_number,
-            confirmationNumber: line.confirmation_number,
-            departureDate: line.departure_date,
-            paymentStatus: line.payment_status as "paid" | "unpaid" | "partial",
-            fullyInvoiced: line.fully_invoiced,
-            currency: line.currency,
-            invoiceType: line.invoice_type as "single" | "multi",
-            estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
-            actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
-          })),
+          invoiceLines: invoiceLines,
           supplierInvoiceLines: relatedSupplierLines
         };
       });
 
-      console.log('Loaded invoices from Supabase with supplier lines:', transformedInvoices);
+      console.log('Final transformed invoices:', transformedInvoices);
       setInvoices(transformedInvoices);
     } catch (error) {
       console.error('Error fetching invoices:', error);
@@ -145,40 +165,77 @@ export function useSupabaseInvoiceById(id: string) {
       setIsLoading(true);
       
       try {
-        const { data, error } = await supabase
+        // Fetch the invoice with supplier and project
+        const { data: invoiceData, error: invoiceError } = await supabase
           .from('invoices')
           .select(`
             *,
             suppliers (*),
-            invoice_lines (*),
             projects (*)
           `)
           .eq('id', id)
           .single();
         
-        if (error) {
-          console.error('Error fetching invoice:', error);
+        if (invoiceError) {
+          console.error('Error fetching invoice:', invoiceError);
           setInvoice(null);
           return;
         }
 
-        // Fetch supplier invoice lines for this invoice's invoice lines
-        const invoiceLineIds = data.invoice_lines.map((line: any) => line.id);
+        // Fetch invoice lines for this invoice
+        const { data: invoiceLinesData, error: linesError } = await supabase
+          .from('invoice_lines')
+          .select('*')
+          .eq('invoice_id', id);
+
+        if (linesError) {
+          console.error('Error fetching invoice lines:', linesError);
+        }
+
+        // Get invoice line IDs for fetching supplier invoice lines
+        const invoiceLineIds = (invoiceLinesData || []).map((line: any) => line.id);
         console.log('Looking for supplier invoice lines for invoice line IDs:', invoiceLineIds);
         
-        const { data: supplierInvoiceData, error: supplierError } = await supabase
-          .from('supplier_invoice_lines')
-          .select('*')
-          .in('invoice_line_id', invoiceLineIds);
+        let supplierInvoiceData: any[] = [];
+        if (invoiceLineIds.length > 0) {
+          const { data, error: supplierError } = await supabase
+            .from('supplier_invoice_lines')
+            .select('*')
+            .in('invoice_line_id', invoiceLineIds);
 
-        if (supplierError) {
-          console.error('Error fetching supplier invoice lines:', supplierError);
+          if (supplierError) {
+            console.error('Error fetching supplier invoice lines:', supplierError);
+          } else {
+            supplierInvoiceData = data || [];
+          }
         }
 
         console.log('Found supplier invoice lines:', supplierInvoiceData);
 
+        // Transform invoice lines
+        const invoiceLines: InvoiceLine[] = (invoiceLinesData || []).map((line: any) => ({
+          id: line.id,
+          description: line.description,
+          quantity: parseFloat(String(line.quantity || '1')),
+          unitPrice: parseFloat(String(line.unit_price || '0')),
+          estimatedCost: parseFloat(String(line.estimated_cost || '0')),
+          actualCost: line.actual_cost ? parseFloat(String(line.actual_cost)) : undefined,
+          supplierId: line.supplier_id,
+          supplierName: line.supplier_name,
+          supplierPartNumber: line.supplier_part_number,
+          bookingNumber: line.booking_number,
+          confirmationNumber: line.confirmation_number,
+          departureDate: line.departure_date,
+          paymentStatus: line.payment_status as "paid" | "unpaid" | "partial",
+          fullyInvoiced: line.fully_invoiced,
+          currency: line.currency,
+          invoiceType: line.invoice_type as "single" | "multi",
+          estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
+          actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
+        }));
+
         // Transform supplier invoice lines
-        const supplierInvoiceLines: SupplierInvoiceLine[] = (supplierInvoiceData || []).map((line: any) => ({
+        const supplierInvoiceLines: SupplierInvoiceLine[] = supplierInvoiceData.map((line: any) => ({
           id: line.id,
           invoiceLineId: line.invoice_line_id,
           actualCost: parseFloat(String(line.actual_cost || '0')),
@@ -192,63 +249,44 @@ export function useSupabaseInvoiceById(id: string) {
 
         // Transform to match our interface
         const transformedInvoice: Invoice = {
-          id: data.id,
-          invoiceNumber: data.invoice_number,
-          reference: data.reference,
-          createdAt: data.created_at,
-          dueDate: data.due_date,
-          invoiceDate: data.invoice_date,
-          status: data.status,
-          totalAmount: parseFloat(String(data.total_amount || '0')),
-          notes: data.notes,
-          currency: data.currency,
-          vat: parseFloat(String(data.vat || '0')),
-          totalVat: parseFloat(String(data.total_vat || '0')),
-          ocr: data.ocr,
-          source: data.source as "Fortnox" | "Manual",
-          account: data.account,
+          id: invoiceData.id,
+          invoiceNumber: invoiceData.invoice_number,
+          reference: invoiceData.reference,
+          createdAt: invoiceData.created_at,
+          dueDate: invoiceData.due_date,
+          invoiceDate: invoiceData.invoice_date,
+          status: invoiceData.status,
+          totalAmount: parseFloat(String(invoiceData.total_amount || '0')),
+          notes: invoiceData.notes,
+          currency: invoiceData.currency,
+          vat: parseFloat(String(invoiceData.vat || '0')),
+          totalVat: parseFloat(String(invoiceData.total_vat || '0')),
+          ocr: invoiceData.ocr,
+          source: invoiceData.source as "Fortnox" | "Manual",
+          account: invoiceData.account,
           vatAccount: null,
           periodizationYear: null,
           periodizationMonth: null,
-          updatedAt: data.updated_at,
-          projectId: data.project_id,
+          updatedAt: invoiceData.updated_at,
+          projectId: invoiceData.project_id,
           supplier: {
-            id: data.suppliers.id,
-            name: data.suppliers.name,
-            email: data.suppliers.email,
-            phone: data.suppliers.phone,
-            accountNumber: data.suppliers.account_number,
-            defaultCurrency: data.suppliers.default_currency,
-            currencyRate: data.suppliers.currency_rate,
-            address: data.suppliers.address,
-            zipCode: data.suppliers.zip_code,
-            city: data.suppliers.city,
-            country: data.suppliers.country
+            id: invoiceData.suppliers.id,
+            name: invoiceData.suppliers.name,
+            email: invoiceData.suppliers.email,
+            phone: invoiceData.suppliers.phone,
+            accountNumber: invoiceData.suppliers.account_number,
+            defaultCurrency: invoiceData.suppliers.default_currency,
+            currencyRate: invoiceData.suppliers.currency_rate,
+            address: invoiceData.suppliers.address,
+            zipCode: invoiceData.suppliers.zip_code,
+            city: invoiceData.suppliers.city,
+            country: invoiceData.suppliers.country
           },
-          invoiceLines: data.invoice_lines.map((line: any) => ({
-            id: line.id,
-            description: line.description,
-            quantity: parseFloat(String(line.quantity || '1')),
-            unitPrice: parseFloat(String(line.unit_price || '0')),
-            estimatedCost: parseFloat(String(line.estimated_cost || '0')),
-            actualCost: line.actual_cost ? parseFloat(String(line.actual_cost)) : undefined,
-            supplierId: line.supplier_id,
-            supplierName: line.supplier_name,
-            supplierPartNumber: line.supplier_part_number,
-            bookingNumber: line.booking_number,
-            confirmationNumber: line.confirmation_number,
-            departureDate: line.departure_date,
-            paymentStatus: line.payment_status as "paid" | "unpaid" | "partial",
-            fullyInvoiced: line.fully_invoiced,
-            currency: line.currency,
-            invoiceType: line.invoice_type as "single" | "multi",
-            estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
-            actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
-          })),
+          invoiceLines: invoiceLines,
           supplierInvoiceLines: supplierInvoiceLines
         };
 
-        console.log('Transformed invoice with supplier lines:', transformedInvoice);
+        console.log('Transformed single invoice:', transformedInvoice);
         setInvoice(transformedInvoice);
       } catch (error) {
         console.error('Error fetching invoice:', error);
