@@ -1,8 +1,7 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatCurrencyWithRate, getCurrencyRate } from "@/lib/formatters";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { Send } from "lucide-react";
 
@@ -57,6 +56,7 @@ const InvoiceHeaderView = ({
   };
 
   const currency = formData.currency || 'USD';
+  const currencyRate = getCurrencyRate(currency);
 
   return (
     <Card>
@@ -111,6 +111,12 @@ const InvoiceHeaderView = ({
               <div>
                 <label className="text-sm font-medium text-gray-500">Currency</label>
                 <p className="text-sm">{formData.currency || 'USD'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Exchange Rate</label>
+                <p className="text-sm">
+                  {currencyRate !== 1.0 ? `1 USD = ${currencyRate} ${currency}` : 'Base currency'}
+                </p>
               </div>
             </div>
 
@@ -169,11 +175,11 @@ const InvoiceHeaderView = ({
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Total Amount:</span>
-                  <span className="font-medium">{formatCurrency(formData.totalAmount || 0)}</span>
+                  <span className="font-medium">{formatCurrencyWithRate(formData.totalAmount || 0, currency, true)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Total VAT:</span>
-                  <span className="font-medium">{formatCurrency(formData.totalVat || 0)}</span>
+                  <span className="font-medium">{formatCurrencyWithRate(formData.totalVat || 0, currency, true)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-medium">
