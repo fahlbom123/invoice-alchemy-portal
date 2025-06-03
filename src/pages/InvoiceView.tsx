@@ -22,8 +22,8 @@ import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-// Add explicit type for Supabase query result
-interface SupabaseSupplierInvoiceLine {
+// Define a simple interface for the raw Supabase data
+interface RawSupplierInvoiceLine {
   id: string;
   invoice_line_id: string;
   actual_cost: number;
@@ -178,24 +178,25 @@ const InvoiceView = () => {
           return;
         }
 
-        // Transform the data to match our interface
+        // Transform the data to match our interface with explicit typing
         const transformedLines: SupplierInvoiceLine[] = [];
         
-        if (data) {
-          data.forEach((line: any) => {
+        if (data && Array.isArray(data)) {
+          // Use for...of loop instead of forEach to avoid type inference issues
+          for (const rawLine of data as RawSupplierInvoiceLine[]) {
             const transformedLine: SupplierInvoiceLine = {
-              id: line.id,
-              invoiceLineId: line.invoice_line_id,
-              actualCost: line.actual_cost,
-              actualVat: line.actual_vat,
-              currency: line.currency,
-              createdAt: line.created_at,
-              createdBy: line.created_by || 'System',
-              description: line.description,
-              supplierName: line.supplier_name,
+              id: rawLine.id,
+              invoiceLineId: rawLine.invoice_line_id,
+              actualCost: rawLine.actual_cost,
+              actualVat: rawLine.actual_vat,
+              currency: rawLine.currency,
+              createdAt: rawLine.created_at,
+              createdBy: rawLine.created_by || 'System',
+              description: rawLine.description,
+              supplierName: rawLine.supplier_name,
             };
             transformedLines.push(transformedLine);
-          });
+          }
         }
 
         console.log('Connected supplier invoice lines for this invoice:', transformedLines);
@@ -214,46 +215,6 @@ const InvoiceView = () => {
     // Also trigger a page reload to ensure fresh data
     window.location.reload();
   };
-
-  useEffect(() => {
-    if (invoice) {
-      console.log('Invoice data received:', {
-        periodizationYear: invoice.periodizationYear,
-        periodizationMonth: invoice.periodizationMonth,
-        vatAccount: invoice.vatAccount, // Add this debug log
-        fullInvoice: invoice
-      });
-      
-      setFormData({
-        invoiceNumber: invoice.invoiceNumber,
-        reference: invoice.reference,
-        status: invoice.status,
-        dueDate: invoice.dueDate 
-          ? new Date(invoice.dueDate).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0],
-        invoiceDate: invoice.invoiceDate 
-          ? new Date(invoice.invoiceDate).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0],
-        supplierId: invoice.supplier.id,
-        notes: invoice.notes || "",
-        invoiceLines: invoice.invoiceLines,
-        currency: invoice.currency || "USD",
-        totalAmount: invoice.totalAmount || 0,
-        totalVat: invoice.totalVat || 0,
-        vat: invoice.vat || 0,
-        ocr: invoice.ocr || "",
-        source: invoice.source || undefined,
-        account: invoice.account || "",
-        vatAccount: invoice.vatAccount || "", // Ensure this is properly set
-        periodizationYear: invoice.periodizationYear || undefined,
-        periodizationMonth: invoice.periodizationMonth || undefined,
-        projectId: invoice.projectId || undefined,
-      });
-      
-      // Set the supplier search filter to match the current invoice's supplier
-      setSupplierId(invoice.supplier.id);
-    }
-  }, [invoice]);
 
   // Function to get booking number for supplier invoice line by matching with original invoice line
   const getBookingNumberForSupplierLine = (supplierLine: SupplierInvoiceLine) => {
