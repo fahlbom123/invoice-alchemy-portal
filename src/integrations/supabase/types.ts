@@ -226,6 +226,7 @@ export type Database = {
           description: string
           id: string
           invoice_line_id: string
+          supplier_invoice_id: string | null
           supplier_name: string
         }
         Insert: {
@@ -237,6 +238,7 @@ export type Database = {
           description: string
           id?: string
           invoice_line_id: string
+          supplier_invoice_id?: string | null
           supplier_name: string
         }
         Update: {
@@ -248,9 +250,17 @@ export type Database = {
           description?: string
           id?: string
           invoice_line_id?: string
+          supplier_invoice_id?: string | null
           supplier_name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_supplier_invoice_lines_invoice_id"
+            columns: ["supplier_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "supplier_invoice_lines_invoice_line_id_fkey"
             columns: ["invoice_line_id"]

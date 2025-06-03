@@ -168,7 +168,7 @@ const InvoiceView = () => {
 
       try {
         // Get supplier invoice lines that are directly linked to this supplier invoice
-        const { data: rawData, error } = await supabase
+        const { data, error } = await supabase
           .from('supplier_invoice_lines')
           .select('*')
           .eq('supplier_invoice_id', invoice.id);
@@ -178,25 +178,18 @@ const InvoiceView = () => {
           return;
         }
 
-        // Transform the data with explicit typing to avoid deep type inference
-        const transformedLines: SupplierInvoiceLine[] = [];
-        
-        if (rawData) {
-          for (let i = 0; i < rawData.length; i++) {
-            const rawLine = rawData[i];
-            transformedLines.push({
-              id: String(rawLine.id),
-              invoiceLineId: String(rawLine.invoice_line_id),
-              actualCost: Number(rawLine.actual_cost),
-              actualVat: Number(rawLine.actual_vat),
-              currency: String(rawLine.currency),
-              createdAt: String(rawLine.created_at),
-              createdBy: rawLine.created_by ? String(rawLine.created_by) : 'System',
-              description: String(rawLine.description),
-              supplierName: String(rawLine.supplier_name),
-            });
-          }
-        }
+        // Transform the data with simple type conversion
+        const transformedLines: SupplierInvoiceLine[] = (data || []).map((line: any) => ({
+          id: String(line.id),
+          invoiceLineId: String(line.invoice_line_id),
+          actualCost: Number(line.actual_cost),
+          actualVat: Number(line.actual_vat),
+          currency: String(line.currency),
+          createdAt: String(line.created_at),
+          createdBy: line.created_by ? String(line.created_by) : 'System',
+          description: String(line.description),
+          supplierName: String(line.supplier_name),
+        }));
 
         console.log('Connected supplier invoice lines for this invoice:', transformedLines);
         setConnectedSupplierInvoiceLines(transformedLines);
