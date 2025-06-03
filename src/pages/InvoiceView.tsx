@@ -463,6 +463,153 @@ const InvoiceView = () => {
     }));
   };
 
+  // Add missing search and registration functions
+  const handleClear = () => {
+    setSupplierId("all");
+    setDescription("");
+    setBookingNumber("");
+    setConfirmationNumber("");
+    setDepartureDateStart("");
+    setDepartureDateEnd("");
+    setPaymentStatus("all");
+    setSearchResults([]);
+    setHasSearched(false);
+  };
+
+  const handleSearch = () => {
+    console.log("Executing search with criteria:", {
+      supplierId,
+      description,
+      bookingNumber,
+      confirmationNumber,
+      departureDateStart,
+      departureDateEnd,
+      paymentStatus,
+      totalLines: allInvoiceLines.length
+    });
+    
+    // Filter invoice lines based on search criteria
+    const filtered = allInvoiceLines.filter(line => {
+      const matchesSupplier = supplierId === "all" || line.supplierId === supplierId;
+      const matchesDescription = !description || 
+        line.description.toLowerCase().includes(description.toLowerCase());
+      
+      const matchesBookingNumber = !bookingNumber || 
+        (line.bookingNumber && line.bookingNumber.toLowerCase().includes(bookingNumber.toLowerCase()));
+      
+      const matchesConfirmationNumber = !confirmationNumber || 
+        (line.confirmationNumber && line.confirmationNumber.toLowerCase().includes(confirmationNumber.toLowerCase()));
+      
+      // Date range check
+      let matchesDepartureDate = true;
+      if (line.departureDate) {
+        if (departureDateStart && new Date(line.departureDate) < new Date(departureDateStart)) {
+          matchesDepartureDate = false;
+        }
+        if (departureDateEnd && new Date(line.departureDate) > new Date(departureDateEnd)) {
+          matchesDepartureDate = false;
+        }
+      } else if (departureDateStart || departureDateEnd) {
+        matchesDepartureDate = false;
+      }
+
+      const matchesPaymentStatus = paymentStatus === "all" || line.paymentStatus === paymentStatus;
+      
+      return matchesSupplier && matchesDescription && 
+             matchesBookingNumber && matchesConfirmationNumber && matchesDepartureDate && 
+             matchesPaymentStatus;
+    });
+    
+    console.log("Search results:", filtered.length, "lines found from", allInvoiceLines.length, "total lines");
+    setSearchResults(filtered);
+    setHasSearched(true);
+  };
+
+  const handleRegistration = async (selectedLines: { lineId: string; actualCost: number; actualVat: number; description: string }[]) => {
+    if (!invoice) return;
+
+    try {
+      console.log("Registering lines to supplier invoice:", selectedLines);
+      
+      // Insert supplier invoice lines into Supabase
+      const linesToInsert = selectedLines.map(line => ({
+        supplier_invoice_id: invoice.id,
+        invoice_line_id: line.lineId,
+        actual_cost: line.actualCost,
+        actual_vat: line.actualVat,
+        description: line.description,
+        supplier_name: invoice.supplier.name,
+        currency: invoice.currency || 'USD',
+        created_by: 'User', // This should ideally come from auth context
+      }));
+
+      const { error } = await supabase
+        .from('supplier_invoice_lines')
+        .insert(linesToInsert);
+
+      if (error) {
+        console.error('Error registering supplier invoice lines:', error);
+        toast({
+          title: "Error",
+          description: "Failed to register invoice lines.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Lines Registered",
+        description: `Successfully registered ${selectedLines.length} invoice lines.`,
+      });
+      
+      // Refresh the data
+      await refreshInvoiceData();
+    } catch (error) {
+      console.error("Error in handleRegistration:", error);
+      toast({
+        title: "Error",
+        description: "Failed to register invoice lines.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleLineStatusUpdate = async (lineUpdates: { lineId: string; paymentStatus: "paid" | "unpaid" | "partial" }[]) => {
+    try {
+      console.log("Updating line statuses:", lineUpdates);
+      
+      // Update payment status in Supabase for each line
+      for (const update of lineUpdates) {
+        const { error } = await supabase
+          .from('invoice_lines')
+          .update({ payment_status: update.paymentStatus })
+          .eq('id', update.lineId);
+
+        if (error) {
+          console.error('Error updating line status:', error);
+          throw error;
+        }
+      }
+
+      toast({
+        title: "Status Updated",
+        description: "Invoice line payment status has been updated.",
+      });
+      
+      // Refresh search results if we have searched
+      if (hasSearched) {
+        handleSearch();
+      }
+    } catch (error) {
+      console.error("Error updating line status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update line status.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading || isLoadingInvoices || isLoadingInvoiceLines) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
