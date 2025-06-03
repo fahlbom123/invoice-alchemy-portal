@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -215,6 +214,19 @@ const InvoiceView = () => {
     
     const random = Math.abs(seed) % 90000000;
     return (10000000 + random).toString();
+  };
+
+  // Function to group supplier invoice lines by booking number
+  const groupSupplierLinesByBooking = (lines: SupplierInvoiceLine[]) => {
+    const grouped = lines.reduce((acc, line) => {
+      const bookingNumber = getBookingNumberForSupplierLine(line);
+      if (!acc[bookingNumber]) {
+        acc[bookingNumber] = [];
+      }
+      acc[bookingNumber].push(line);
+      return acc;
+    }, {} as Record<string, SupplierInvoiceLine[]>);
+    return grouped;
   };
 
   // Add function to start editing a supplier invoice line
@@ -591,6 +603,9 @@ const InvoiceView = () => {
     description: selectedProject.description
   } : null;
 
+  // Group supplier invoice lines by booking number
+  const groupedSupplierLines = invoice.supplierInvoiceLines ? groupSupplierLinesByBooking(invoice.supplierInvoiceLines) : {};
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
@@ -694,91 +709,121 @@ const InvoiceView = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {invoice.supplierInvoiceLines.map((line, index) => (
-                      <TableRow key={line.id}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>
-                          {editingLineId === line.id ? (
-                            <Input
-                              value={editingLine?.description || ""}
-                              onChange={(e) => setEditingLine(prev => prev ? { ...prev, description: e.target.value } : null)}
-                            />
-                          ) : (
-                            line.description
-                          )}
-                        </TableCell>
-                        <TableCell>{line.supplierName}</TableCell>
-                        <TableCell>{getBookingNumberForSupplierLine(line)}</TableCell>
-                        <TableCell>{line.createdBy || "Unknown"}</TableCell>
-                        <TableCell>
-                          {new Date(line.createdAt).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          {editingLineId === line.id ? (
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={editingLine?.actualCost || 0}
-                              onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualCost: parseFloat(e.target.value) || 0 } : null)}
-                            />
-                          ) : (
-                            formatCurrency(line.actualCost, line.currency)
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {editingLineId === line.id ? (
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={editingLine?.actualVat || 0}
-                              onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualVat: parseFloat(e.target.value) || 0 } : null)}
-                            />
-                          ) : (
-                            formatCurrency(line.actualVat, line.currency)
-                          )}
-                        </TableCell>
-                        {!isSentToAccounting && (
-                          <TableCell>
-                            <div className="flex gap-2">
-                              {editingLineId === line.id ? (
-                                <>
-                                  <Button
-                                    variant="default"
-                                    size="sm"
-                                    onClick={handleSaveSupplierLine}
-                                  >
-                                    <Save className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleCancelEdit}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              ) : (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleEditSupplierLine(line)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleDeleteSupplierLine(line.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
+                    {Object.entries(groupedSupplierLines).map(([bookingNumber, lines]) => (
+                      <React.Fragment key={bookingNumber}>
+                        {/* Booking Group Header */}
+                        <TableRow className="bg-blue-50 border-t-2 border-blue-200">
+                          <TableCell colSpan={!isSentToAccounting ? 9 : 8} className="font-semibold text-blue-800">
+                            Booking: {bookingNumber}
                           </TableCell>
-                        )}
-                      </TableRow>
+                        </TableRow>
+                        {/* Lines for this booking */}
+                        {lines.map((line, index) => (
+                          <TableRow key={line.id}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell>
+                              {editingLineId === line.id ? (
+                                <Input
+                                  value={editingLine?.description || ""}
+                                  onChange={(e) => setEditingLine(prev => prev ? { ...prev, description: e.target.value } : null)}
+                                />
+                              ) : (
+                                line.description
+                              )}
+                            </TableCell>
+                            <TableCell>{line.supplierName}</TableCell>
+                            <TableCell>{bookingNumber}</TableCell>
+                            <TableCell>{line.createdBy || "Unknown"}</TableCell>
+                            <TableCell>
+                              {new Date(line.createdAt).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              {editingLineId === line.id ? (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={editingLine?.actualCost || 0}
+                                  onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualCost: parseFloat(e.target.value) || 0 } : null)}
+                                />
+                              ) : (
+                                formatCurrency(line.actualCost, line.currency)
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingLineId === line.id ? (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={editingLine?.actualVat || 0}
+                                  onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualVat: parseFloat(e.target.value) || 0 } : null)}
+                                />
+                              ) : (
+                                formatCurrency(line.actualVat, line.currency)
+                              )}
+                            </TableCell>
+                            {!isSentToAccounting && (
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  {editingLineId === line.id ? (
+                                    <>
+                                      <Button
+                                        variant="default"
+                                        size="sm"
+                                        onClick={handleSaveSupplierLine}
+                                      >
+                                        <Save className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleCancelEdit}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleEditSupplierLine(line)}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleDeleteSupplierLine(line.id)}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        ))}
+                        {/* Subtotal row for this booking */}
+                        <TableRow className="bg-gray-100 font-medium border-b-2">
+                          <TableCell colSpan={6} className="text-right">
+                            Subtotal for Booking {bookingNumber}:
+                          </TableCell>
+                          <TableCell className="text-green-600">
+                            {formatCurrency(
+                              lines.reduce((sum, line) => sum + line.actualCost, 0),
+                              invoice.currency
+                            )}
+                          </TableCell>
+                          <TableCell className="text-green-600">
+                            {formatCurrency(
+                              lines.reduce((sum, line) => sum + line.actualVat, 0),
+                              invoice.currency
+                            )}
+                          </TableCell>
+                          {!isSentToAccounting && <TableCell></TableCell>}
+                        </TableRow>
+                      </React.Fragment>
                     ))}
                   </TableBody>
                 </Table>
