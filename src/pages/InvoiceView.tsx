@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -23,13 +22,6 @@ import { ArrowLeft, Edit, Trash2, Save, X, Lock, Send } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-// Define SearchResultLine interface here since it's not exported from types
-interface SearchResultLine extends InvoiceLine {
-  invoiceId?: string;
-  invoiceNumber?: string;
-  invoiceTotalAmount?: number;
-}
 
 // Define a simple interface for the raw Supabase data
 interface RawSupplierInvoiceLine {
