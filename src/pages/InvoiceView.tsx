@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -807,6 +805,7 @@ const InvoiceView = () => {
                                           variant="default"
                                           size="sm"
                                           onClick={handleSaveSupplierLine}
+                                          disabled={isFullyPaid}
                                         >
                                           <Save className="h-4 w-4" />
                                         </Button>
@@ -814,6 +813,7 @@ const InvoiceView = () => {
                                           variant="outline"
                                           size="sm"
                                           onClick={handleCancelEdit}
+                                          disabled={isFullyPaid}
                                         >
                                           <X className="h-4 w-4" />
                                         </Button>
@@ -824,6 +824,7 @@ const InvoiceView = () => {
                                           variant="outline"
                                           size="sm"
                                           onClick={() => handleEditSupplierLine(line)}
+                                          disabled={isFullyPaid}
                                         >
                                           <Edit className="h-4 w-4" />
                                         </Button>
@@ -831,6 +832,7 @@ const InvoiceView = () => {
                                           variant="outline"
                                           size="sm"
                                           onClick={() => handleDeleteSupplierLine(line.id)}
+                                          disabled={isFullyPaid}
                                         >
                                           <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -1059,4 +1061,3 @@ const InvoiceView = () => {
 };
 
 export default InvoiceView;
-
