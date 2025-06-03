@@ -86,7 +86,7 @@ const InvoiceForm = () => {
         totalVat: invoice.totalVat || 0,
         ocr: invoice.ocr || "",
         account: invoice.account || "4010",
-        vatAccount: invoice.vatAccount || "2641", // Ensure this is loaded correctly
+        vatAccount: invoice.vatAccount || "2641", // Ensure default if null
         periodizationYear: invoice.periodizationYear || new Date().getFullYear(),
         periodizationMonth: invoice.periodizationMonth || new Date().getMonth() + 1,
         projectId: invoice.projectId,
@@ -136,7 +136,7 @@ const InvoiceForm = () => {
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    console.log('handleSelectChange called:', { name, value }); // Debug log
+    console.log('handleSelectChange called:', { name, value });
     if (name === 'periodizationYear' || name === 'periodizationMonth') {
       setFormData(prev => ({ ...prev, [name]: parseInt(value) }));
     } else {
@@ -223,16 +223,13 @@ const InvoiceForm = () => {
       fullFormData: formData
     });
     
-    const completeFormData = pendingSubmitData || {
+    const submitData = {
       ...formData,
       status: isEditing ? formData.status : "unpaid",
       id: isEditing ? id! : crypto.randomUUID(),
       createdAt: isEditing ? invoice!.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       projectId: selectedProject?.id,
-      // Explicitly ensure vatAccount and account are included
-      account: formData.account,
-      vatAccount: formData.vatAccount,
       supplier: {
         id: supplier.id,
         name: supplier.name,
@@ -249,12 +246,12 @@ const InvoiceForm = () => {
     };
 
     console.log('Complete form data being saved:', {
-      account: completeFormData.account,
-      vatAccount: completeFormData.vatAccount
+      account: submitData.account,
+      vatAccount: submitData.vatAccount
     });
 
     try {
-      await saveInvoice(completeFormData);
+      await saveInvoice(submitData);
       toast.success(isEditing ? "Invoice updated successfully" : "Invoice created successfully");
       
       if (isEditing && id) {
