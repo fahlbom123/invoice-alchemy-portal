@@ -182,21 +182,21 @@ const InvoiceView = () => {
         const transformedLines: SupplierInvoiceLine[] = [];
         
         if (data && Array.isArray(data)) {
-          // Use for...of loop instead of forEach to avoid type inference issues
-          for (const rawLine of data as RawSupplierInvoiceLine[]) {
+          // Process each line individually to avoid deep type inference
+          data.forEach((rawLine: any) => {
             const transformedLine: SupplierInvoiceLine = {
-              id: rawLine.id,
-              invoiceLineId: rawLine.invoice_line_id,
-              actualCost: rawLine.actual_cost,
-              actualVat: rawLine.actual_vat,
-              currency: rawLine.currency,
-              createdAt: rawLine.created_at,
-              createdBy: rawLine.created_by || 'System',
-              description: rawLine.description,
-              supplierName: rawLine.supplier_name,
+              id: String(rawLine.id),
+              invoiceLineId: String(rawLine.invoice_line_id),
+              actualCost: Number(rawLine.actual_cost),
+              actualVat: Number(rawLine.actual_vat),
+              currency: String(rawLine.currency),
+              createdAt: String(rawLine.created_at),
+              createdBy: rawLine.created_by ? String(rawLine.created_by) : 'System',
+              description: String(rawLine.description),
+              supplierName: String(rawLine.supplier_name),
             };
             transformedLines.push(transformedLine);
-          }
+          });
         }
 
         console.log('Connected supplier invoice lines for this invoice:', transformedLines);
