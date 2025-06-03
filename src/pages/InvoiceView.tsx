@@ -17,7 +17,7 @@ import { Invoice, InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/ty
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
-import { ArrowLeft, Edit, Trash2, Save, X, Lock } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Save, X, Lock, Send } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,27 +58,36 @@ const InvoiceView = () => {
   // Check if cancel button should be enabled (no lines connected)
   const canCancelInvoice = !invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0;
 
-  const [formData, setFormData] = useState<InvoiceFormData>({
-    invoiceNumber: "",
-    reference: "",
-    status: "",
-    dueDate: "",
-    invoiceDate: "",
-    supplierId: "",
-    notes: "",
-    invoiceLines: [],
-    currency: "USD",
-    totalAmount: 0,
-    totalVat: 0,
-    vat: 0,
-    ocr: "",
-    source: undefined,
-    account: "",
-    vatAccount: "",
-    periodizationYear: undefined,
-    periodizationMonth: undefined,
-    projectId: undefined,
-  });
+  // Add function to send invoice to accounting
+  const handleSendToAccounting = async () => {
+    if (!invoice) return;
+
+    try {
+      const updatedInvoice = {
+        ...invoice,
+        status: "sent_to_accounting",
+        updatedAt: new Date().toISOString(),
+      };
+
+      await saveInvoice(updatedInvoice);
+      setIsSentToAccounting(true);
+      
+      toast({
+        title: "Invoice Sent to Accounting",
+        description: "Supplier invoice has been sent to accounting successfully.",
+      });
+      
+      // Refresh the data instead of full page reload
+      await refreshInvoiceData();
+    } catch (error) {
+      console.error("Error sending invoice to accounting:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send supplier invoice to accounting.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Add state for registered totals
   const [registeredTotals, setRegisteredTotals] = useState<{
@@ -646,6 +655,16 @@ const InvoiceView = () => {
                 disabled={isSentToAccounting}
               >
                 Undo Cancel
+              </Button>
+            )}
+            {!isCancelled && !isSentToAccounting && (
+              <Button 
+                variant="default" 
+                onClick={handleSendToAccounting}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Send className="mr-2 h-4 w-4" />
+                Send to Accounting
               </Button>
             )}
             <Button 
