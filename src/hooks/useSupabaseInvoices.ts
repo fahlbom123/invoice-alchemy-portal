@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Invoice, InvoiceLine, InvoiceLineWithReference, SupplierInvoiceLine } from "@/types/invoice";
@@ -217,17 +216,8 @@ export function useSupabaseInvoiceById(id: string) {
 
         console.log('Invoice lines for this invoice:', invoiceLinesData);
 
-        // For supplier invoice lines, we need a different approach
-        // Since supplier invoice lines can reference invoice lines from any invoice
-        // but be "registered" to this specific supplier invoice, we need to find
-        // supplier invoice lines that were created in the context of this invoice
-        // 
-        // The challenge is that the supplier_invoice_lines table doesn't have a direct
-        // reference to the supplier invoice (invoices table). However, during registration,
-        // we typically register lines from the same supplier to a supplier invoice.
-        // 
-        // For now, let's get all supplier invoice lines and then filter by looking at
-        // recent registrations that might belong to this invoice based on timing and supplier
+        // Get all supplier invoice lines - we'll show all of them for now
+        // to ensure registered lines are visible, then we can refine the filtering later
         const { data: allSupplierInvoiceData, error: supplierError } = await supabase
           .from('supplier_invoice_lines')
           .select('*')
@@ -239,10 +229,10 @@ export function useSupabaseInvoiceById(id: string) {
 
         console.log('All supplier invoice lines:', allSupplierInvoiceData);
 
-        // Filter supplier invoice lines that might belong to this invoice
-        // We'll look for lines that were created recently and reference lines from the same supplier
+        // For now, let's show all supplier invoice lines that match the supplier name
+        // This ensures we don't miss any registered lines
         const supplierInvoiceData = (allSupplierInvoiceData || []).filter((supplierLine: any) => {
-          // Check if the supplier name matches this invoice's supplier
+          // Match by supplier name to show relevant lines
           return supplierLine.supplier_name === invoiceData.suppliers.name;
         });
 
