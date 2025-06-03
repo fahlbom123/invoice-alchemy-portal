@@ -17,10 +17,18 @@ import { Invoice, InvoiceFormData, InvoiceLine, SupplierInvoiceLine, SearchResul
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
+import BookingSummaryPopover from "@/components/invoice/BookingSummaryPopover";
 import { ArrowLeft, Edit, Trash2, Save, X, Lock, Send } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+
+// Define SearchResultLine interface here since it's not exported from types
+interface SearchResultLine extends InvoiceLine {
+  invoiceId?: string;
+  invoiceNumber?: string;
+  invoiceTotalAmount?: number;
+}
 
 // Define a simple interface for the raw Supabase data
 interface RawSupplierInvoiceLine {
@@ -44,7 +52,7 @@ const InvoiceView = () => {
   
   const { invoice, isLoading } = useSupabaseInvoiceById(id || "");
   const { invoices, isLoading: isLoadingInvoices } = useInvoices();
-  const { invoiceLines: supabaseInvoiceLines, isLoading: isLoadingInvoiceLines } = useSupabaseInvoiceLines();
+  const { invoiceLines: supabaseInvoiceLines, isLoading: isLoadingInvoiceLines } = useSupababInvoiceLines();
   const { suppliers } = useSuppliers();
   const { saveInvoice } = useSaveInvoice();
 
@@ -775,7 +783,17 @@ const InvoiceView = () => {
                                   )}
                                 </TableCell>
                                 <TableCell>{line.supplierName}</TableCell>
-                                <TableCell>{bookingNumber}</TableCell>
+                                <TableCell>
+                                  <BookingSummaryPopover
+                                    bookingNumber={bookingNumber}
+                                    allSupplierInvoiceLines={connectedSupplierInvoiceLines}
+                                    getEstimatedCostsForBooking={getEstimatedCostsForBooking}
+                                  >
+                                    <Button variant="link" className="p-0 h-auto text-blue-600 hover:text-blue-800">
+                                      {bookingNumber}
+                                    </Button>
+                                  </BookingSummaryPopover>
+                                </TableCell>
                                 <TableCell>{line.createdBy || "Unknown"}</TableCell>
                                 <TableCell>
                                   {new Date(line.createdAt).toLocaleString('en-US', {
