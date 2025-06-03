@@ -115,7 +115,7 @@ const InvoiceHeaderView = ({
               <div>
                 <label className="text-sm font-medium text-gray-500">Exchange Rate</label>
                 <p className="text-sm">
-                  {currencyRate !== 1.0 ? `1 SEK = ${currencyRate} ${currency}` : 'Base currency'}
+                  {currencyRate !== 1.0 ? `1 ${currency} = ${currencyRate} SEK` : 'Base currency'}
                 </p>
               </div>
             </div>
