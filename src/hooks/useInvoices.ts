@@ -33,6 +33,9 @@ export function useSaveInvoice() {
         ocr: invoice.ocr,
         source: invoice.source,
         account: invoice.account,
+        vat_account: invoice.vatAccount,
+        periodization_year: invoice.periodizationYear,
+        periodization_month: invoice.periodizationMonth,
         supplier_id: invoice.supplier.id,
         project_id: invoice.projectId || null,
         updated_at: new Date().toISOString()
