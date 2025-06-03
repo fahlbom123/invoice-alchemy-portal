@@ -123,6 +123,22 @@ const InvoiceHeaderForm = ({
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="source">Source</Label>
+        <Select
+          value={formData.source || "Manual"}
+          onValueChange={(value) => handleSelectChange('source', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select source" />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            <SelectItem value="Manual">Manual</SelectItem>
+            <SelectItem value="Fortnox">Fortnox</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="costAccount">Cost Account</Label>
         <Select
           value={formData.account || "4010"}

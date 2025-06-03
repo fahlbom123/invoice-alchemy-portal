@@ -110,6 +110,13 @@ const InvoiceHeaderView = ({
                 <p className="text-sm capitalize">{formData.status}</p>
               </div>
               <div>
+                <label className="text-sm font-medium text-gray-500">Source</label>
+                <p className="text-sm">{formData.source || 'Manual'}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <label className="text-sm font-medium text-gray-500">Currency</label>
                 <p className="text-sm">{formData.currency || 'SEK'}</p>
               </div>
@@ -151,13 +158,6 @@ const InvoiceHeaderView = ({
                 {selectedProject ? `${selectedProject.project_number} - ${selectedProject.description}` : 'No project selected'}
               </p>
             </div>
-
-            {formData.source && (
-              <div>
-                <label className="text-sm font-medium text-gray-500">Source</label>
-                <p className="text-sm">{formData.source}</p>
-              </div>
-            )}
 
             <div>
               <label className="text-sm font-medium text-gray-500">OCR</label>
