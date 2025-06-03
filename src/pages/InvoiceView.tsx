@@ -13,7 +13,7 @@ import { useInvoiceById, useInvoices, useSaveInvoice } from "@/hooks/useInvoices
 import { useSupabaseInvoiceById, useSupabaseInvoiceLines } from "@/hooks/useSupabaseInvoices";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useSupabaseProjects } from "@/hooks/useSupabaseProjects";
-import { Invoice, InvoiceFormData, InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
+import { Invoice, InvoiceFormData, InvoiceLine, SupplierInvoiceLine, SearchResultLine } from "@/types/invoice";
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderView from "@/components/invoice/InvoiceHeaderView";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
@@ -525,18 +525,18 @@ const InvoiceView = () => {
     setHasSearched(true);
   };
 
-  const handleRegistration = async (selectedLines: { lineId: string; actualCost: number; actualVat: number; description: string }[]) => {
+  const handleRegistration = async (selectedLines: SearchResultLine[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[], allLinesPaid?: boolean) => {
     if (!invoice) return;
 
     try {
       console.log("Registering lines to supplier invoice:", selectedLines);
       
-      // Insert supplier invoice lines into Supabase
+      // Transform selectedLines to the format needed for insertion
       const linesToInsert = selectedLines.map(line => ({
         supplier_invoice_id: invoice.id,
-        invoice_line_id: line.lineId,
-        actual_cost: line.actualCost,
-        actual_vat: line.actualVat,
+        invoice_line_id: line.id, // Use 'id' from SearchResultLine
+        actual_cost: line.actualCost || 0,
+        actual_vat: line.actualVat || 0,
         description: line.description,
         supplier_name: invoice.supplier.name,
         currency: invoice.currency || 'USD',
