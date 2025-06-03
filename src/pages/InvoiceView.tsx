@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -420,12 +419,13 @@ const InvoiceView = () => {
     }
   };
 
-  // Add function to handle registration - this creates supplier invoice lines
+  // Updated function to handle registration - this creates supplier invoice lines linked to the current invoice
   const handleRegistration = async (selectedLines: any[], totals: { totalActualCost: number; totalActualVat: number; }, supplierInvoiceLines: SupplierInvoiceLine[], allLinesPaid?: boolean) => {
     if (!invoice) return;
 
     try {
-      console.log("Registering supplier invoice lines:", supplierInvoiceLines);
+      console.log("Registering supplier invoice lines to invoice:", invoice.id);
+      console.log("Supplier invoice lines to register:", supplierInvoiceLines);
       
       // Save each supplier invoice line to Supabase
       const insertPromises = supplierInvoiceLines.map(async (line) => {
@@ -464,26 +464,6 @@ const InvoiceView = () => {
 
       setRegisteredTotals(totals);
       
-      // Reload supplier invoice lines from database to get updated totals
-      const { data, error } = await supabase
-        .from('supplier_invoice_lines')
-        .select('*');
-
-      if (!error && data) {
-        const transformedLines: SupplierInvoiceLine[] = data.map(line => ({
-          id: line.id,
-          invoiceLineId: line.invoice_line_id,
-          actualCost: parseFloat(String(line.actual_cost || '0')),
-          actualVat: parseFloat(String(line.actual_vat || '0')),
-          currency: line.currency,
-          createdAt: line.created_at,
-          createdBy: line.created_by,
-          description: line.description,
-          supplierName: line.supplier_name,
-        }));
-        setAllSupplierInvoiceLines(transformedLines);
-      }
-      
       // Update the invoices in localStorage to mark selected lines as registered
       const savedInvoices = localStorage.getItem('invoices');
       let allInvoices = savedInvoices ? JSON.parse(savedInvoices) : [];
@@ -511,25 +491,25 @@ const InvoiceView = () => {
       // Dispatch custom event to notify other components of the update
       window.dispatchEvent(new CustomEvent('invoicesUpdated'));
       
+      toast({
+        title: "Invoice Lines Registered",
+        description: `Successfully registered ${supplierInvoiceLines.length} invoice lines to this supplier invoice.`,
+      });
+      
       if (allLinesPaid) {
         toast({
           title: "Invoice Status Updated",
           description: "All lines are now fully paid. Invoice status updated to 'paid'.",
         });
-      } else {
-        toast({
-          title: "Invoice Lines Registered",
-          description: "Selected invoice lines have been successfully registered to this supplier invoice.",
-        });
       }
       
-      // Refresh the page or update the local state
+      // Refresh the page to show the newly registered supplier invoice lines
       window.location.reload();
     } catch (error) {
-      console.error("Error saving invoice:", error);
+      console.error("Error registering invoice lines:", error);
       toast({
         title: "Error",
-        description: "Failed to register invoice lines.",
+        description: "Failed to register invoice lines to this supplier invoice.",
         variant: "destructive",
       });
     }
@@ -662,121 +642,141 @@ const InvoiceView = () => {
                 invoiceId={invoice.id}
                 selectedProject={transformedSelectedProject}
               />
-
-              {/* Supplier Invoice Lines */}
-              {invoice.supplierInvoiceLines && invoice.supplierInvoiceLines.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium">Supplier Invoice Lines</h3>
-                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>#</TableHead>
-                          <TableHead>Description</TableHead>
-                          <TableHead>Supplier</TableHead>
-                          <TableHead>Booking Number</TableHead>
-                          <TableHead>User</TableHead>
-                          <TableHead>Register Datetime</TableHead>
-                          <TableHead>Actual Cost</TableHead>
-                          <TableHead>Actual VAT</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {invoice.supplierInvoiceLines.map((line, index) => (
-                          <TableRow key={line.id}>
-                            <TableCell>{index + 1}</TableCell>
-                            <TableCell>
-                              {editingLineId === line.id ? (
-                                <Input
-                                  value={editingLine?.description || ""}
-                                  onChange={(e) => setEditingLine(prev => prev ? { ...prev, description: e.target.value } : null)}
-                                />
-                              ) : (
-                                line.description
-                              )}
-                            </TableCell>
-                            <TableCell>{line.supplierName}</TableCell>
-                            <TableCell>{getBookingNumberForSupplierLine(line)}</TableCell>
-                            <TableCell>{line.createdBy || "Unknown"}</TableCell>
-                            <TableCell>
-                              {new Date(line.createdAt).toLocaleString()}
-                            </TableCell>
-                            <TableCell>
-                              {editingLineId === line.id ? (
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  value={editingLine?.actualCost || 0}
-                                  onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualCost: parseFloat(e.target.value) || 0 } : null)}
-                                />
-                              ) : (
-                                formatCurrency(line.actualCost, line.currency)
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {editingLineId === line.id ? (
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  value={editingLine?.actualVat || 0}
-                                  onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualVat: parseFloat(e.target.value) || 0 } : null)}
-                                />
-                              ) : (
-                                formatCurrency(line.actualVat, line.currency)
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                {editingLineId === line.id ? (
-                                  <>
-                                    <Button
-                                      variant="default"
-                                      size="sm"
-                                      onClick={handleSaveSupplierLine}
-                                    >
-                                      <Save className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={handleCancelEdit}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleEditSupplierLine(line)}
-                                      disabled={isSentToAccounting}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleDeleteSupplierLine(line.id)}
-                                      disabled={isSentToAccounting}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
+
+        {/* Registered Supplier Invoice Lines - Show this section prominently */}
+        {invoice.supplierInvoiceLines && invoice.supplierInvoiceLines.length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg font-medium text-green-700">
+                Registered Supplier Invoice Lines ({invoice.supplierInvoiceLines.length} lines)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-green-50 p-4 rounded-md border border-green-200">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>#</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Supplier</TableHead>
+                      <TableHead>Booking Number</TableHead>
+                      <TableHead>User</TableHead>
+                      <TableHead>Register Datetime</TableHead>
+                      <TableHead>Actual Cost</TableHead>
+                      <TableHead>Actual VAT</TableHead>
+                      {!isSentToAccounting && <TableHead>Actions</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {invoice.supplierInvoiceLines.map((line, index) => (
+                      <TableRow key={line.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>
+                          {editingLineId === line.id ? (
+                            <Input
+                              value={editingLine?.description || ""}
+                              onChange={(e) => setEditingLine(prev => prev ? { ...prev, description: e.target.value } : null)}
+                            />
+                          ) : (
+                            line.description
+                          )}
+                        </TableCell>
+                        <TableCell>{line.supplierName}</TableCell>
+                        <TableCell>{getBookingNumberForSupplierLine(line)}</TableCell>
+                        <TableCell>{line.createdBy || "Unknown"}</TableCell>
+                        <TableCell>
+                          {new Date(line.createdAt).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          {editingLineId === line.id ? (
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingLine?.actualCost || 0}
+                              onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualCost: parseFloat(e.target.value) || 0 } : null)}
+                            />
+                          ) : (
+                            formatCurrency(line.actualCost, line.currency)
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingLineId === line.id ? (
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingLine?.actualVat || 0}
+                              onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualVat: parseFloat(e.target.value) || 0 } : null)}
+                            />
+                          ) : (
+                            formatCurrency(line.actualVat, line.currency)
+                          )}
+                        </TableCell>
+                        {!isSentToAccounting && (
+                          <TableCell>
+                            <div className="flex gap-2">
+                              {editingLineId === line.id ? (
+                                <>
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={handleSaveSupplierLine}
+                                  >
+                                    <Save className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleCancelEdit}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEditSupplierLine(line)}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDeleteSupplierLine(line.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="mt-4 p-3 bg-white rounded border">
+                  <div className="flex justify-between font-semibold">
+                    <span>Total Registered:</span>
+                    <span className="text-green-600">
+                      {formatCurrency(
+                        invoice.supplierInvoiceLines.reduce((sum, line) => sum + line.actualCost, 0),
+                        invoice.currency
+                      )} + {formatCurrency(
+                        invoice.supplierInvoiceLines.reduce((sum, line) => sum + line.actualVat, 0),
+                        invoice.currency
+                      )} VAT
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Only show search forms if not cancelled or sent to accounting */}
         {!isCancelled && !isSentToAccounting && (
@@ -784,7 +784,7 @@ const InvoiceView = () => {
             {/* Search Forms for Invoice lines */}
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Search Invoice Lines ({allInvoiceLines.length} total lines available)</CardTitle>
+                <CardTitle>Search Invoice Lines to Register ({allInvoiceLines.length} total lines available)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -901,7 +901,7 @@ const InvoiceView = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    Search Results
+                    Search Results - Select Lines to Register to This Supplier Invoice
                     {searchResults.length > 0 && (
                       <span className="text-sm font-normal ml-2 text-gray-500">
                         ({searchResults.length} items found)
