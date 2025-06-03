@@ -594,6 +594,9 @@ const InvoiceView = () => {
     }
   };
 
+  // Add state for tracking fully paid status for each booking
+  const [fullyPaidStatus, setFullyPaidStatus] = useState<Record<string, boolean>>({});
+
   if (isLoading || isLoadingInvoices || isLoadingInvoiceLines) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
@@ -726,6 +729,7 @@ const InvoiceView = () => {
                   <TableBody>
                     {Object.entries(groupedSupplierLines).map(([bookingNumber, lines]) => {
                       const estimatedCosts = getEstimatedCostsForBooking(bookingNumber);
+                      const isFullyPaid = fullyPaidStatus[bookingNumber] || false;
                       return (
                         <React.Fragment key={bookingNumber}>
                           {/* Booking Group Header */}
@@ -833,7 +837,18 @@ const InvoiceView = () => {
                               Subtotal for Booking {bookingNumber}:
                             </TableCell>
                             <TableCell></TableCell>
-                            <TableCell></TableCell>
+                            <TableCell>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  checked={isFullyPaid}
+                                  onCheckedChange={(checked) => handleFullyPaidChange(bookingNumber, checked as boolean)}
+                                  disabled={isSentToAccounting}
+                                />
+                                <span className="text-sm">
+                                  Fully paid: {isFullyPaid ? "Yes" : "No"}
+                                </span>
+                              </div>
+                            </TableCell>
                             <TableCell className="text-blue-600">
                               {formatCurrency(estimatedCosts.estimatedCost, invoice.currency)}
                             </TableCell>
