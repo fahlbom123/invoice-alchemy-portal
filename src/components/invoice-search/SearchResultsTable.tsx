@@ -106,7 +106,6 @@ const SearchResultsTable = ({
         Total for {supplierName}:
       </TableCell>
       <TableCell></TableCell>
-      <TableCell></TableCell>
       <TableCell className="text-right">{formatCurrency(totals.estimatedCost)}</TableCell>
       <TableCell className="text-right">{formatCurrency(totals.estimatedVat)}</TableCell>
       <TableCell className="text-right">{formatCurrency(totals.actualCost)}</TableCell>
@@ -152,8 +151,8 @@ const SearchResultsTable = ({
               <TableHead>Booking</TableHead>
               <TableHead>Confirmation</TableHead>
               <TableHead>Departure Date</TableHead>
-              <TableHead>Qty</TableHead>
-              <TableHead>Currency</TableHead>
+              <TableHead className="w-16">Qty</TableHead>
+              <TableHead className="w-16">Curr.</TableHead>
               <TableHead>Est. Cost</TableHead>
               <TableHead>Est. VAT</TableHead>
               <TableHead>Actual Cost</TableHead>
