@@ -102,11 +102,9 @@ const SearchResultsTable = ({
   }) => (
     <TableRow className="bg-gray-100 font-semibold border-t-2 border-gray-300">
       <TableCell></TableCell>
-      <TableCell colSpan={2} className="text-right">
+      <TableCell colSpan={6} className="text-right">
         Total for {supplierName}:
       </TableCell>
-      <TableCell></TableCell>
-      <TableCell></TableCell>
       <TableCell></TableCell>
       <TableCell></TableCell>
       <TableCell className="text-right">{formatCurrency(totals.estimatedCost)}</TableCell>
@@ -149,13 +147,14 @@ const SearchResultsTable = ({
                   onCheckedChange={(checked) => onSelectAll(!!checked)} 
                 />
               </TableHead>
+              <TableHead>Invoice</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead>Booking</TableHead>
               <TableHead>Confirmation</TableHead>
               <TableHead>Departure Date</TableHead>
-              <TableHead className="w-16">Qty</TableHead>
-              <TableHead className="w-16">Curr.</TableHead>
+              <TableHead>Qty</TableHead>
+              <TableHead>Currency</TableHead>
               <TableHead>Est. Cost</TableHead>
               <TableHead>Est. VAT</TableHead>
               <TableHead>Actual Cost</TableHead>
