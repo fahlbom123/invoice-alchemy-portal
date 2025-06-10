@@ -785,7 +785,7 @@ const InvoiceView = () => {
                       <TableHead>Booking Number</TableHead>
                       <TableHead>User</TableHead>
                       <TableHead>Register Datetime</TableHead>
-                      <TableHead>Currency</TableHead>
+                      <TableHead>Curr.</TableHead>
                       <TableHead>Estimated Cost</TableHead>
                       <TableHead>Estimated VAT</TableHead>
                       <TableHead>Currency</TableHead>
