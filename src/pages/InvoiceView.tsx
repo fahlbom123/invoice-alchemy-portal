@@ -788,7 +788,7 @@ const InvoiceView = () => {
                       <TableHead>Curr.</TableHead>
                       <TableHead>Estimated Cost</TableHead>
                       <TableHead>Estimated VAT</TableHead>
-                      <TableHead>Currency</TableHead>
+                      <TableHead>Actual Curr.</TableHead>
                       <TableHead>Actual Cost</TableHead>
                       <TableHead>Actual VAT</TableHead>
                       {!isSentToAccounting && <TableHead>Actions</TableHead>}
