@@ -154,7 +154,7 @@ const SearchResultsTable = ({
               <TableHead>Confirmation</TableHead>
               <TableHead>Departure Date</TableHead>
               <TableHead>Qty</TableHead>
-              <TableHead>Currency</TableHead>
+              <TableHead>Curr.</TableHead>
               <TableHead>Est. Cost</TableHead>
               <TableHead>Est. VAT</TableHead>
               <TableHead>Actual Cost</TableHead>
