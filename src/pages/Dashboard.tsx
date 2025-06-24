@@ -7,6 +7,7 @@ import InvoiceList from "@/components/InvoiceList";
 import { InvoiceSummary } from "@/components/InvoiceSummary";
 import { useInvoices } from "@/hooks/useInvoices";
 import ReportModal from "@/components/ReportModal";
+import { ProjectSummaryPDF } from "@/components/ProjectSummaryPDF";
 import { FileText } from "lucide-react";
 
 const Dashboard = () => {
@@ -27,7 +28,8 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Supplier Invoice Dashboard</h1>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <ProjectSummaryPDF />
             <ReportModal>
               <Button 
                 variant="outline"
