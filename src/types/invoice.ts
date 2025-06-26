@@ -10,6 +10,8 @@ export interface Supplier {
   zipCode?: string;
   city?: string;
   country?: string;
+  iban?: string;
+  swift?: string;
 }
 
 export interface InvoiceLine {

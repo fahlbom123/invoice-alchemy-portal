@@ -33,7 +33,9 @@ export function useSupabaseSuppliers() {
             address: supplier.address,
             zipCode: supplier.zip_code,
             city: supplier.city,
-            country: supplier.country
+            country: supplier.country,
+            iban: supplier.iban,
+            swift: supplier.swift
           }));
           setSuppliers(transformedSuppliers);
         }

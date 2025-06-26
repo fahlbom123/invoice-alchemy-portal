@@ -38,6 +38,12 @@ const SupplierDetails = ({ supplier }: SupplierDetailsProps) => {
               {supplier.country && (
                 <p><span className="font-medium">Country:</span> {supplier.country}</p>
               )}
+              {supplier.iban && (
+                <p><span className="font-medium">IBAN:</span> {supplier.iban}</p>
+              )}
+              {supplier.swift && (
+                <p><span className="font-medium">SWIFT:</span> {supplier.swift}</p>
+              )}
             </>
           ) : (
             <p className="text-gray-500 italic">No address information available</p>
