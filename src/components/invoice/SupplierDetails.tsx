@@ -9,6 +9,8 @@ interface SupplierDetailsProps {
 const SupplierDetails = ({ supplier }: SupplierDetailsProps) => {
   if (!supplier) return null;
   
+  console.log('Supplier data in SupplierDetails:', supplier); // Debug log to check if IBAN/SWIFT are present
+  
   return (
     <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
       <h3 className="font-medium mb-3">Supplier Details</h3>
