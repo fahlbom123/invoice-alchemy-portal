@@ -25,7 +25,7 @@ const SupplierDetails = ({ supplier }: SupplierDetailsProps) => {
         <div className="space-y-2">
           <h4 className="font-medium text-gray-700 mb-2">Address</h4>
           {supplier.address ? (
-            <>
+            <div className="space-y-1">
               <p><span className="font-medium">Street:</span> {supplier.address}</p>
               <div className="flex gap-4">
                 {supplier.zipCode && (
@@ -38,17 +38,25 @@ const SupplierDetails = ({ supplier }: SupplierDetailsProps) => {
               {supplier.country && (
                 <p><span className="font-medium">Country:</span> {supplier.country}</p>
               )}
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">No address information available</p>
+          )}
+        </div>
+        
+        {(supplier.iban || supplier.swift) && (
+          <div className="space-y-2 md:col-span-2">
+            <h4 className="font-medium text-gray-700 mb-2">Banking Information</h4>
+            <div className="flex gap-6">
               {supplier.iban && (
                 <p><span className="font-medium">IBAN:</span> {supplier.iban}</p>
               )}
               {supplier.swift && (
                 <p><span className="font-medium">SWIFT:</span> {supplier.swift}</p>
               )}
-            </>
-          ) : (
-            <p className="text-gray-500 italic">No address information available</p>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
         
         {(supplier.defaultCurrency || supplier.currencyRate) && (
           <div className="space-y-2 md:col-span-2">
