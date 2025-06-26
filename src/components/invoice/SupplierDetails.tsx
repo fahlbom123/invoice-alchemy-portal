@@ -22,6 +22,18 @@ const SupplierDetails = ({ supplier }: SupplierDetailsProps) => {
           {supplier.accountNumber && (
             <p><span className="font-medium">Account Number:</span> {supplier.accountNumber}</p>
           )}
+          
+          {(supplier.defaultCurrency || supplier.currencyRate) && (
+            <div className="space-y-1 pt-2">
+              <h5 className="font-medium text-gray-600">Currency Information</h5>
+              {supplier.defaultCurrency && (
+                <p><span className="font-medium">Default Currency:</span> {supplier.defaultCurrency}</p>
+              )}
+              {supplier.currencyRate && (
+                <p><span className="font-medium">Currency Rate:</span> {supplier.currencyRate}</p>
+              )}
+            </div>
+          )}
         </div>
         
         <div className="space-y-4">
@@ -59,20 +71,6 @@ const SupplierDetails = ({ supplier }: SupplierDetailsProps) => {
             </div>
           </div>
         </div>
-        
-        {(supplier.defaultCurrency || supplier.currencyRate) && (
-          <div className="space-y-2 md:col-span-2">
-            <h4 className="font-medium text-gray-700 mb-2">Currency Information</h4>
-            <div className="flex gap-6">
-              {supplier.defaultCurrency && (
-                <p><span className="font-medium">Default Currency:</span> {supplier.defaultCurrency}</p>
-              )}
-              {supplier.currencyRate && (
-                <p><span className="font-medium">Currency Rate:</span> {supplier.currencyRate}</p>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
