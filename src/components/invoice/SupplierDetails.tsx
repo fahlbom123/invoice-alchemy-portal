@@ -46,19 +46,17 @@ const SupplierDetails = ({ supplier }: SupplierDetailsProps) => {
           )}
         </div>
         
-        {(supplier.iban || supplier.swift) && (
-          <div className="space-y-2 md:col-span-2">
-            <h4 className="font-medium text-gray-700 mb-2">Banking Information</h4>
-            <div className="flex gap-6">
-              {supplier.iban && (
-                <p><span className="font-medium">IBAN:</span> {supplier.iban}</p>
-              )}
-              {supplier.swift && (
-                <p><span className="font-medium">SWIFT:</span> {supplier.swift}</p>
-              )}
-            </div>
+        <div className="space-y-2 md:col-span-2">
+          <h4 className="font-medium text-gray-700 mb-2">Banking Information</h4>
+          <div className="flex gap-6">
+            <p>
+              <span className="font-medium">IBAN:</span> {supplier.iban || <span className="text-gray-500 italic">Not provided</span>}
+            </p>
+            <p>
+              <span className="font-medium">SWIFT:</span> {supplier.swift || <span className="text-gray-500 italic">Not provided</span>}
+            </p>
           </div>
-        )}
+        </div>
         
         {(supplier.defaultCurrency || supplier.currencyRate) && (
           <div className="space-y-2 md:col-span-2">
