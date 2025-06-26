@@ -10,12 +10,28 @@ export function useSupabaseInvoices() {
     setIsLoading(true);
     
     try {
-      // First fetch invoices with suppliers and projects
+      // First fetch invoices with suppliers and projects - make sure to include all supplier fields including iban and swift
       const { data: invoicesData, error: invoicesError } = await supabase
         .from('invoices')
         .select(`
           *,
-          suppliers (*),
+          suppliers (
+            id,
+            name,
+            email,
+            phone,
+            account_number,
+            default_currency,
+            currency_rate,
+            address,
+            zip_code,
+            city,
+            country,
+            iban,
+            swift,
+            created_at,
+            updated_at
+          ),
           projects (*)
         `)
         .order('created_at', { ascending: false });
@@ -141,7 +157,9 @@ export function useSupabaseInvoices() {
             address: invoice.suppliers.address,
             zipCode: invoice.suppliers.zip_code,
             city: invoice.suppliers.city,
-            country: invoice.suppliers.country
+            country: invoice.suppliers.country,
+            iban: invoice.suppliers.iban,
+            swift: invoice.suppliers.swift
           },
           invoiceLines: invoiceLines,
           supplierInvoiceLines: relatedSupplierLines
@@ -181,12 +199,28 @@ export function useSupabaseInvoiceById(id: string) {
       try {
         console.log('Fetching invoice with ID:', id);
         
-        // Fetch the invoice with supplier and project
+        // Fetch the invoice with supplier and project - make sure to include all supplier fields including iban and swift
         const { data: invoiceData, error: invoiceError } = await supabase
           .from('invoices')
           .select(`
             *,
-            suppliers (*),
+            suppliers (
+              id,
+              name,
+              email,
+              phone,
+              account_number,
+              default_currency,
+              currency_rate,
+              address,
+              zip_code,
+              city,
+              country,
+              iban,
+              swift,
+              created_at,
+              updated_at
+            ),
             projects (*)
           `)
           .eq('id', id)
@@ -199,10 +233,7 @@ export function useSupabaseInvoiceById(id: string) {
         }
 
         console.log('Fetched invoice data:', invoiceData);
-        console.log('Periodization fields from DB:', {
-          periodization_year: invoiceData.periodization_year,
-          periodization_month: invoiceData.periodization_month
-        });
+        console.log('Supplier data with IBAN/SWIFT:', invoiceData.suppliers);
 
         // Fetch ALL invoice lines (not just for this invoice) to check for any that might be registered
         const { data: allInvoiceLinesData, error: linesError } = await supabase
@@ -316,19 +347,15 @@ export function useSupabaseInvoiceById(id: string) {
             address: invoiceData.suppliers.address,
             zipCode: invoiceData.suppliers.zip_code,
             city: invoiceData.suppliers.city,
-            country: invoiceData.suppliers.country
+            country: invoiceData.suppliers.country,
+            iban: invoiceData.suppliers.iban,
+            swift: invoiceData.suppliers.swift
           },
           invoiceLines: invoiceLines,
           supplierInvoiceLines: supplierInvoiceLines
         };
 
-        console.log('Transformed single invoice with supplier lines:', {
-          invoiceId: transformedInvoice.id,
-          supplierInvoiceLinesCount: transformedInvoice.supplierInvoiceLines.length,
-          supplierInvoiceLines: transformedInvoice.supplierInvoiceLines,
-          periodizationYear: transformedInvoice.periodizationYear,
-          periodizationMonth: transformedInvoice.periodizationMonth
-        });
+        console.log('Transformed single invoice with supplier including IBAN/SWIFT:', transformedInvoice.supplier);
         setInvoice(transformedInvoice);
       } catch (error) {
         console.error('Error fetching invoice:', error);
