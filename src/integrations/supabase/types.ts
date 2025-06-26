@@ -280,9 +280,11 @@ export type Database = {
           currency_rate: number | null
           default_currency: string | null
           email: string
+          iban: string | null
           id: string
           name: string
           phone: string
+          swift: string | null
           updated_at: string | null
           zip_code: string | null
         }
@@ -295,9 +297,11 @@ export type Database = {
           currency_rate?: number | null
           default_currency?: string | null
           email: string
+          iban?: string | null
           id?: string
           name: string
           phone: string
+          swift?: string | null
           updated_at?: string | null
           zip_code?: string | null
         }
@@ -310,9 +314,11 @@ export type Database = {
           currency_rate?: number | null
           default_currency?: string | null
           email?: string
+          iban?: string | null
           id?: string
           name?: string
           phone?: string
+          swift?: string | null
           updated_at?: string | null
           zip_code?: string | null
         }
