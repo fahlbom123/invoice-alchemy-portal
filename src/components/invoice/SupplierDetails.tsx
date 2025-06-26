@@ -24,37 +24,39 @@ const SupplierDetails = ({ supplier }: SupplierDetailsProps) => {
           )}
         </div>
         
-        <div className="space-y-2">
-          <h4 className="font-medium text-gray-700 mb-2">Address</h4>
-          {supplier.address ? (
-            <div className="space-y-1">
-              <p><span className="font-medium">Street:</span> {supplier.address}</p>
-              <div className="flex gap-4">
-                {supplier.zipCode && (
-                  <p><span className="font-medium">Zip:</span> {supplier.zipCode}</p>
-                )}
-                {supplier.city && (
-                  <p><span className="font-medium">City:</span> {supplier.city}</p>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h4 className="font-medium text-gray-700 mb-2">Address</h4>
+            {supplier.address ? (
+              <div className="space-y-1">
+                <p><span className="font-medium">Street:</span> {supplier.address}</p>
+                <div className="flex gap-4">
+                  {supplier.zipCode && (
+                    <p><span className="font-medium">Zip:</span> {supplier.zipCode}</p>
+                  )}
+                  {supplier.city && (
+                    <p><span className="font-medium">City:</span> {supplier.city}</p>
+                  )}
+                </div>
+                {supplier.country && (
+                  <p><span className="font-medium">Country:</span> {supplier.country}</p>
                 )}
               </div>
-              {supplier.country && (
-                <p><span className="font-medium">Country:</span> {supplier.country}</p>
-              )}
+            ) : (
+              <p className="text-gray-500 italic">No address information available</p>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <h4 className="font-medium text-gray-700 mb-2">Banking Information</h4>
+            <div className="space-y-1">
+              <p>
+                <span className="font-medium">IBAN:</span> {supplier.iban || <span className="text-gray-500 italic">Not provided</span>}
+              </p>
+              <p>
+                <span className="font-medium">SWIFT:</span> {supplier.swift || <span className="text-gray-500 italic">Not provided</span>}
+              </p>
             </div>
-          ) : (
-            <p className="text-gray-500 italic">No address information available</p>
-          )}
-        </div>
-        
-        <div className="space-y-2 md:col-span-2">
-          <h4 className="font-medium text-gray-700 mb-2">Banking Information</h4>
-          <div className="flex gap-6">
-            <p>
-              <span className="font-medium">IBAN:</span> {supplier.iban || <span className="text-gray-500 italic">Not provided</span>}
-            </p>
-            <p>
-              <span className="font-medium">SWIFT:</span> {supplier.swift || <span className="text-gray-500 italic">Not provided</span>}
-            </p>
           </div>
         </div>
         
