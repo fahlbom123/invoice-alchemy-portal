@@ -107,6 +107,126 @@ export const mockBookings: Booking[] = [
     lastName: "Martinez",
     departureDate: "2024-03-10",
     confirmationNumber: "CNF010"
+  },
+  {
+    id: "booking-11",
+    bookingNumber: "BK011",
+    firstName: "James",
+    lastName: "Anderson",
+    departureDate: "2024-04-18",
+    confirmationNumber: "CNF011"
+  },
+  {
+    id: "booking-12",
+    bookingNumber: "BK012",
+    firstName: "Jessica",
+    lastName: "Taylor",
+    departureDate: "2024-05-22",
+    confirmationNumber: "CNF012"
+  },
+  {
+    id: "booking-13",
+    bookingNumber: "BK013",
+    firstName: "William",
+    lastName: "Thomas",
+    departureDate: "2024-06-14",
+    confirmationNumber: "CNF013"
+  },
+  {
+    id: "booking-14",
+    bookingNumber: "BK014",
+    firstName: "Ashley",
+    lastName: "Jackson",
+    departureDate: "2024-07-09",
+    confirmationNumber: "CNF014"
+  },
+  {
+    id: "booking-15",
+    bookingNumber: "BK015",
+    firstName: "Daniel",
+    lastName: "White",
+    departureDate: "2024-08-16",
+    confirmationNumber: "CNF015"
+  },
+  {
+    id: "booking-16",
+    bookingNumber: "BK016",
+    firstName: "Stephanie",
+    lastName: "Harris",
+    departureDate: "2024-09-23",
+    confirmationNumber: "CNF016"
+  },
+  {
+    id: "booking-17",
+    bookingNumber: "BK017",
+    firstName: "Matthew",
+    lastName: "Martin",
+    departureDate: "2024-10-11",
+    confirmationNumber: "CNF017"
+  },
+  {
+    id: "booking-18",
+    bookingNumber: "BK018",
+    firstName: "Nicole",
+    lastName: "Thompson",
+    departureDate: "2024-11-07",
+    confirmationNumber: "CNF018"
+  },
+  {
+    id: "booking-19",
+    bookingNumber: "BK019",
+    firstName: "Kevin",
+    lastName: "Clark",
+    departureDate: "2024-12-19",
+    confirmationNumber: "CNF019"
+  },
+  {
+    id: "booking-20",
+    bookingNumber: "BK020",
+    firstName: "Rachel",
+    lastName: "Lewis",
+    departureDate: "2025-01-25",
+    confirmationNumber: "CNF020"
+  },
+  {
+    id: "booking-21",
+    bookingNumber: "BK021",
+    firstName: "Brandon",
+    lastName: "Lee",
+    departureDate: "2025-02-14",
+    confirmationNumber: "CNF021"
+  },
+  {
+    id: "booking-22",
+    bookingNumber: "BK022",
+    firstName: "Megan",
+    lastName: "Walker",
+    departureDate: "2025-03-08",
+    confirmationNumber: "CNF022"
+  },
+  {
+    id: "booking-23",
+    bookingNumber: "BK023",
+    firstName: "Tyler",
+    lastName: "Hall",
+    departureDate: "2025-04-12",
+    confirmationNumber: "CNF023"
+  },
+  {
+    id: "booking-24",
+    bookingNumber: "BK024",
+    firstName: "Samantha",
+    lastName: "Allen",
+    departureDate: "2025-05-17",
+    confirmationNumber: "CNF024"
+  },
+  {
+    id: "booking-25",
+    bookingNumber: "BK025",
+    firstName: "Jonathan",
+    lastName: "Young",
+    departureDate: "2025-06-21",
+    confirmationNumber: "CNF025"
   }
 ];
 
