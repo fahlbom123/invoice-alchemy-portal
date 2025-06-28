@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
@@ -19,6 +20,16 @@ interface AccountingFormProps {
   disabled?: boolean;
   defaultAccount?: string;
 }
+
+const costAccounts = [
+  { code: "4010", description: "Purchase of goods" },
+  { code: "4020", description: "Domestic purchase of goods" },
+  { code: "4050", description: "Purchase of goods from EU" },
+  { code: "4531", description: "Purchase of services outside EU" },
+  { code: "5460", description: "Consumables / Supplies" },
+  { code: "6110", description: "Office supplies" },
+  { code: "6540", description: "IT services" },
+];
 
 const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, defaultAccount = '' }: AccountingFormProps) => {
   const [entries, setEntries] = useState<AccountingEntry[]>([
@@ -110,13 +121,22 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         {entries.map((entry, index) => (
           <div key={entry.id} className="grid grid-cols-12 gap-2">
             <div className="col-span-6">
-              <Input
+              <Select
                 value={entry.account}
-                onChange={(e) => updateEntry(entry.id, 'account', e.target.value)}
-                placeholder="Account number or name"
+                onValueChange={(value) => updateEntry(entry.id, 'account', value)}
                 disabled={disabled}
-                className="text-sm"
-              />
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {costAccounts.map((account) => (
+                    <SelectItem key={account.code} value={account.code}>
+                      {account.code} - {account.description}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="col-span-5">
               <Input
