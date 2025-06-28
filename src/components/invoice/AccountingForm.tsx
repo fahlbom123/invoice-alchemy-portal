@@ -10,13 +10,9 @@ import { formatCurrency } from "@/lib/formatters";
 interface AccountingEntry {
   id: string;
   account: string;
-  amount: number;
-}
-
-interface VatEntry {
-  id: string;
   vatAccount: string;
   amount: number;
+  vatAmount: number;
 }
 
 interface AccountingFormProps {
@@ -48,74 +44,43 @@ const vatAccounts = [
 
 const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, defaultAccount = '' }: AccountingFormProps) => {
   const [entries, setEntries] = useState<AccountingEntry[]>([
-    { id: '1', account: defaultAccount, amount: totalAmount }
+    { id: '1', account: defaultAccount, vatAccount: '', amount: totalAmount, vatAmount: totalVat }
   ]);
 
-  const [vatEntries, setVatEntries] = useState<VatEntry[]>([
-    { id: '1', vatAccount: '', amount: totalVat }
-  ]);
-
-  // Update the first entry when defaultAccount or totalAmount changes
+  // Update the first entry when defaults change
   useEffect(() => {
     setEntries(prevEntries => {
       if (prevEntries.length === 0) {
-        return [{ id: '1', account: defaultAccount, amount: totalAmount }];
+        return [{ id: '1', account: defaultAccount, vatAccount: '', amount: totalAmount, vatAmount: totalVat }];
       }
       
-      // Update the first entry with new defaults
       const updatedEntries = [...prevEntries];
       if (updatedEntries[0]) {
         updatedEntries[0] = {
           ...updatedEntries[0],
           account: defaultAccount,
-          amount: totalAmount
+          amount: totalAmount,
+          vatAmount: totalVat
         };
       }
       return updatedEntries;
     });
-  }, [defaultAccount, totalAmount]);
-
-  // Update the first VAT entry when totalVat changes
-  useEffect(() => {
-    setVatEntries(prevEntries => {
-      if (prevEntries.length === 0) {
-        return [{ id: '1', vatAccount: '', amount: totalVat }];
-      }
-      
-      // Update the first entry with new defaults
-      const updatedEntries = [...prevEntries];
-      if (updatedEntries[0]) {
-        updatedEntries[0] = {
-          ...updatedEntries[0],
-          amount: totalVat
-        };
-      }
-      return updatedEntries;
-    });
-  }, [totalVat]);
+  }, [defaultAccount, totalAmount, totalVat]);
 
   const totalEntryAmount = entries.reduce((sum, entry) => sum + entry.amount, 0);
+  const totalVatAmount = entries.reduce((sum, entry) => sum + entry.vatAmount, 0);
   const remainingAmount = totalAmount - totalEntryAmount;
-
-  const totalVatEntryAmount = vatEntries.reduce((sum, entry) => sum + entry.amount, 0);
-  const remainingVatAmount = totalVat - totalVatEntryAmount;
+  const remainingVat = totalVat - totalVatAmount;
 
   const addEntry = () => {
     const newEntry: AccountingEntry = {
       id: Date.now().toString(),
       account: '',
-      amount: 0
+      vatAccount: '',
+      amount: 0,
+      vatAmount: 0
     };
     setEntries([...entries, newEntry]);
-  };
-
-  const addVatEntry = () => {
-    const newEntry: VatEntry = {
-      id: Date.now().toString(),
-      vatAccount: '',
-      amount: 0
-    };
-    setVatEntries([...vatEntries, newEntry]);
   };
 
   const removeEntry = (id: string) => {
@@ -124,40 +89,20 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
     }
   };
 
-  const removeVatEntry = (id: string) => {
-    if (vatEntries.length > 1) {
-      setVatEntries(vatEntries.filter(entry => entry.id !== id));
-    }
-  };
-
-  const updateEntry = (id: string, field: 'account' | 'amount', value: string | number) => {
+  const updateEntry = (id: string, field: keyof AccountingEntry, value: string | number) => {
     setEntries(entries.map(entry => {
       if (entry.id === id) {
         if (field === 'amount') {
           const numValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
-          // Prevent individual entry from exceeding total amount
           const maxAmount = totalAmount - (totalEntryAmount - entry.amount);
           const clampedAmount = Math.min(Math.max(0, numValue), maxAmount);
           return { ...entry, [field]: clampedAmount };
-        }
-        // Ensure account field is always a string
-        return { ...entry, [field]: String(value) };
-      }
-      return entry;
-    }));
-  };
-
-  const updateVatEntry = (id: string, field: 'vatAccount' | 'amount', value: string | number) => {
-    setVatEntries(vatEntries.map(entry => {
-      if (entry.id === id) {
-        if (field === 'amount') {
+        } else if (field === 'vatAmount') {
           const numValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
-          // Prevent individual entry from exceeding total VAT amount
-          const maxAmount = totalVat - (totalVatEntryAmount - entry.amount);
+          const maxAmount = totalVat - (totalVatAmount - entry.vatAmount);
           const clampedAmount = Math.min(Math.max(0, numValue), maxAmount);
           return { ...entry, [field]: clampedAmount };
         }
-        // Ensure vatAccount field is always a string
         return { ...entry, [field]: String(value) };
       }
       return entry;
@@ -165,7 +110,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
   };
 
   const isAmountValid = totalEntryAmount <= totalAmount;
-  const isVatAmountValid = totalVatEntryAmount <= totalVat;
+  const isVatAmountValid = totalVatAmount <= totalVat;
 
   return (
     <div className="bg-gray-50 p-4 rounded-md">
@@ -184,17 +129,19 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         <Separator />
       </div>
 
-      {/* Account Entries */}
-      <div className="space-y-3 mb-6">
+      {/* Combined Account and VAT Entries */}
+      <div className="space-y-3 mb-4">
         <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-600">
-          <div className="col-span-6">Account</div>
-          <div className="col-span-5">Amount</div>
-          <div className="col-span-1"></div>
+          <div className="col-span-3">Account</div>
+          <div className="col-span-2">Amount</div>
+          <div className="col-span-3">VAT Account</div>
+          <div className="col-span-2">VAT Amount</div>
+          <div className="col-span-2">Total</div>
         </div>
         
         {entries.map((entry, index) => (
-          <div key={entry.id} className="grid grid-cols-12 gap-2">
-            <div className="col-span-6">
+          <div key={entry.id} className="grid grid-cols-12 gap-2 items-center">
+            <div className="col-span-3">
               <Select
                 value={entry.account}
                 onValueChange={(value) => updateEntry(entry.id, 'account', value)}
@@ -203,7 +150,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                 <SelectTrigger className="text-sm">
                   <SelectValue placeholder="Select account" />
                 </SelectTrigger>
-                <SelectContent className="bg-white">
+                <SelectContent className="bg-white z-50">
                   {costAccounts.map((account) => (
                     <SelectItem key={account.code} value={account.code}>
                       {account.code} - {account.description}
@@ -212,7 +159,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                 </SelectContent>
               </Select>
             </div>
-            <div className="col-span-5">
+            <div className="col-span-2">
               <Input
                 type="number"
                 value={entry.amount}
@@ -224,6 +171,40 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                 max={totalAmount}
                 step="0.01"
               />
+            </div>
+            <div className="col-span-3">
+              <Select
+                value={entry.vatAccount}
+                onValueChange={(value) => updateEntry(entry.id, 'vatAccount', value)}
+                disabled={disabled}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Select VAT account" />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-50">
+                  {vatAccounts.map((account) => (
+                    <SelectItem key={account.code} value={account.code}>
+                      {account.code} - {account.description}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2">
+              <Input
+                type="number"
+                value={entry.vatAmount}
+                onChange={(e) => updateEntry(entry.id, 'vatAmount', e.target.value)}
+                placeholder="0.00"
+                disabled={disabled}
+                className="text-sm"
+                min="0"
+                max={totalVat}
+                step="0.01"
+              />
+            </div>
+            <div className="col-span-1 text-sm font-medium">
+              {formatCurrency(entry.amount + entry.vatAmount)}
             </div>
             <div className="col-span-1">
               {entries.length > 1 && !disabled && (
@@ -248,120 +229,46 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
             className="mt-2"
           >
             <Plus className="mr-1 h-3 w-3" />
-            Add Account
+            Add Entry
           </Button>
         )}
 
-        {/* Totals for Accounts */}
+        {/* Totals */}
         <Separator className="my-3" />
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between font-medium">
-            <span>Total Allocated:</span>
-            <span className={isAmountValid ? "text-green-600" : "text-red-600"}>
+          <div className="grid grid-cols-12 gap-2">
+            <div className="col-span-3 font-medium">Total Allocated:</div>
+            <div className={`col-span-2 font-medium ${isAmountValid ? "text-green-600" : "text-red-600"}`}>
               {formatCurrency(totalEntryAmount)}
-            </span>
+            </div>
+            <div className="col-span-3 text-gray-600"></div>
+            <div className={`col-span-2 font-medium ${isVatAmountValid ? "text-green-600" : "text-red-600"}`}>
+              {formatCurrency(totalVatAmount)}
+            </div>
+            <div className="col-span-1 font-medium text-green-600">
+              {formatCurrency(totalEntryAmount + totalVatAmount)}
+            </div>
+            <div className="col-span-1"></div>
           </div>
-          <div className="flex justify-between font-medium">
-            <span>Remaining:</span>
-            <span className={remainingAmount >= 0 ? "text-gray-600" : "text-red-600"}>
+          
+          <div className="grid grid-cols-12 gap-2">
+            <div className="col-span-3 font-medium">Remaining:</div>
+            <div className={`col-span-2 font-medium ${remainingAmount >= 0 ? "text-gray-600" : "text-red-600"}`}>
               {formatCurrency(remainingAmount)}
-            </span>
+            </div>
+            <div className="col-span-3 text-gray-600"></div>
+            <div className={`col-span-2 font-medium ${remainingVat >= 0 ? "text-gray-600" : "text-red-600"}`}>
+              {formatCurrency(remainingVat)}
+            </div>
+            <div className="col-span-1 font-medium text-gray-600">
+              {formatCurrency(remainingAmount + remainingVat)}
+            </div>
+            <div className="col-span-1"></div>
           </div>
-          {!isAmountValid && (
+          
+          {(!isAmountValid || !isVatAmountValid) && (
             <div className="text-xs text-red-600 mt-1">
-              Total allocated amount cannot exceed the invoice total
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* VAT Entries */}
-      <div className="space-y-3">
-        <h5 className="font-medium text-sm">VAT Allocation</h5>
-        <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-600">
-          <div className="col-span-6">VAT Account</div>
-          <div className="col-span-5">VAT Amount</div>
-          <div className="col-span-1"></div>
-        </div>
-        
-        {vatEntries.map((entry, index) => (
-          <div key={entry.id} className="grid grid-cols-12 gap-2">
-            <div className="col-span-6">
-              <Select
-                value={entry.vatAccount}
-                onValueChange={(value) => updateVatEntry(entry.id, 'vatAccount', value)}
-                disabled={disabled}
-              >
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Select VAT account" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {vatAccounts.map((account) => (
-                    <SelectItem key={account.code} value={account.code}>
-                      {account.code} - {account.description}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-5">
-              <Input
-                type="number"
-                value={entry.amount}
-                onChange={(e) => updateVatEntry(entry.id, 'amount', e.target.value)}
-                placeholder="0.00"
-                disabled={disabled}
-                className="text-sm"
-                min="0"
-                max={totalVat}
-                step="0.01"
-              />
-            </div>
-            <div className="col-span-1">
-              {vatEntries.length > 1 && !disabled && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => removeVatEntry(entry.id)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
-          </div>
-        ))}
-        
-        {!disabled && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addVatEntry}
-            className="mt-2"
-          >
-            <Plus className="mr-1 h-3 w-3" />
-            Add VAT Account
-          </Button>
-        )}
-
-        {/* Totals for VAT */}
-        <Separator className="my-3" />
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between font-medium">
-            <span>Total VAT Allocated:</span>
-            <span className={isVatAmountValid ? "text-green-600" : "text-red-600"}>
-              {formatCurrency(totalVatEntryAmount)}
-            </span>
-          </div>
-          <div className="flex justify-between font-medium">
-            <span>Remaining VAT:</span>
-            <span className={remainingVatAmount >= 0 ? "text-gray-600" : "text-red-600"}>
-              {formatCurrency(remainingVatAmount)}
-            </span>
-          </div>
-          {!isVatAmountValid && (
-            <div className="text-xs text-red-600 mt-1">
-              Total allocated VAT amount cannot exceed the invoice VAT total
+              Total allocated amounts cannot exceed invoice totals
             </div>
           )}
         </div>
