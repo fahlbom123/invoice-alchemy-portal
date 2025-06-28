@@ -996,7 +996,7 @@ const InvoiceView = () => {
             {/* Search Forms for Invoice lines */}
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Search Invoice Lines to Register ({allInvoiceLines.length} total lines available)</CardTitle>
+                <CardTitle>Search bookings ({allInvoiceLines.length} total lines available)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
