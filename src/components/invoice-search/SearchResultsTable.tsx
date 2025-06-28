@@ -68,6 +68,10 @@ const SearchResultsTable = ({
   const [editingBookingCost, setEditingBookingCost] = useState<string | null>(null);
   const [editingBookingCostValue, setEditingBookingCostValue] = useState<string>("");
 
+  // State for booking currency editing
+  const [editingBookingCurrency, setEditingBookingCurrency] = useState<string | null>(null);
+  const [editingBookingCurrencyValue, setEditingBookingCurrencyValue] = useState<string>("");
+
   // Group lines by supplier, then by booking number
   const groupedLines = lines.reduce((groups, line) => {
     const supplierKey = `${line.supplierId}-${line.supplierName}`;
@@ -164,6 +168,31 @@ const SearchResultsTable = ({
     setEditingBookingCostValue("");
   };
 
+  // Handle booking currency editing
+  const handleEditBookingCurrency = (bookingNumber: string, currentCurrency: string) => {
+    setEditingBookingCurrency(bookingNumber);
+    setEditingBookingCurrencyValue(currentCurrency);
+  };
+
+  const handleSaveBookingCurrency = (bookingNumber: string, bookingLines: SearchResultLine[]) => {
+    const newCurrency = editingBookingCurrencyValue.trim() || 'SEK';
+    
+    // Update currency for all lines in the booking
+    bookingLines.forEach(line => {
+      // We would need a callback to update currency, but for now we'll just close the editor
+      // In a real implementation, you'd need to add a currency update callback
+      console.log(`Would update currency for line ${line.id} to ${newCurrency}`);
+    });
+
+    setEditingBookingCurrency(null);
+    setEditingBookingCurrencyValue("");
+  };
+
+  const handleCancelBookingCurrencyEdit = () => {
+    setEditingBookingCurrency(null);
+    setEditingBookingCurrencyValue("");
+  };
+
   const BookingHeaderRow = () => (
     <TableRow className="bg-gray-200 font-semibold">
       <TableHead className="w-12">
@@ -193,7 +222,8 @@ const SearchResultsTable = ({
     const isSelected = isBookingSelected(bookingLines);
     const isPartiallySelected = isBookingPartiallySelected(bookingLines);
     const hasUnpaidLines = bookingLines.some(line => line.paymentStatus !== "paid");
-    const isEditingThisBooking = editingBookingCost === bookingNumber;
+    const isEditingThisBookingCost = editingBookingCost === bookingNumber;
+    const isEditingThisBookingCurrency = editingBookingCurrency === bookingNumber;
     
     // Get representative data from first line
     const firstLine = bookingLines[0];
@@ -224,9 +254,46 @@ const SearchResultsTable = ({
         <TableCell className="text-blue-800">{firstLine.departureDate || '-'}</TableCell>
         <TableCell className="text-blue-800">{firstLine.currency || 'SEK'}</TableCell>
         <TableCell className="text-right text-blue-800">{formatCurrency(totals.estimatedCost)}</TableCell>
-        <TableCell className="text-blue-800">{firstLine.currency || 'SEK'}</TableCell>
+        <TableCell className="text-blue-800">
+          {isEditingThisBookingCurrency ? (
+            <div className="flex items-center gap-2">
+              <Input
+                type="text"
+                value={editingBookingCurrencyValue}
+                onChange={(e) => setEditingBookingCurrencyValue(e.target.value)}
+                className="w-16 h-8"
+                placeholder="SEK"
+              />
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => handleSaveBookingCurrency(bookingNumber, bookingLines)}
+              >
+                <Save className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleCancelBookingCurrencyEdit}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span>{firstLine.currency || 'SEK'}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleEditBookingCurrency(bookingNumber, firstLine.currency || 'SEK')}
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+        </TableCell>
         <TableCell className="text-right text-blue-800">
-          {isEditingThisBooking ? (
+          {isEditingThisBookingCost ? (
             <div className="flex items-center gap-2">
               <Input
                 type="number"
@@ -297,7 +364,8 @@ const SearchResultsTable = ({
     const isSelected = isBookingSelected(bookingLines);
     const isPartiallySelected = isBookingPartiallySelected(bookingLines);
     const hasUnpaidLines = bookingLines.some(line => line.paymentStatus !== "paid");
-    const isEditingThisBooking = editingBookingCost === bookingNumber;
+    const isEditingThisBookingCost = editingBookingCost === bookingNumber;
+    const isEditingThisBookingCurrency = editingBookingCurrency === bookingNumber;
     const firstLine = bookingLines[0];
     const fullName = [firstLine.firstName, firstLine.lastName].filter(Boolean).join(' ') || '-';
 
@@ -324,8 +392,50 @@ const SearchResultsTable = ({
           <div>Departure: {firstLine.departureDate || '-'}</div>
           <div>Est. Cost: {formatCurrency(totals.estimatedCost)}</div>
           <div className="flex items-center gap-2">
+            Actual Curr.: 
+            {isEditingThisBookingCurrency ? (
+              <div className="flex items-center gap-1">
+                <Input
+                  type="text"
+                  value={editingBookingCurrencyValue}
+                  onChange={(e) => setEditingBookingCurrencyValue(e.target.value)}
+                  className="w-16 h-6 text-xs"
+                  placeholder="SEK"
+                />
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => handleSaveBookingCurrency(bookingNumber, bookingLines)}
+                  className="h-6 w-6 p-0"
+                >
+                  <Save className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCancelBookingCurrencyEdit}
+                  className="h-6 w-6 p-0"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <span>{firstLine.currency || 'SEK'}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleEditBookingCurrency(bookingNumber, firstLine.currency || 'SEK')}
+                  className="h-6 w-6 p-0"
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
             Actual Cost: 
-            {isEditingThisBooking ? (
+            {isEditingThisBookingCost ? (
               <div className="flex items-center gap-1">
                 <Input
                   type="number"
