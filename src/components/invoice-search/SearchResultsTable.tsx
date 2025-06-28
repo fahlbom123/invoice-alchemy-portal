@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -378,6 +379,7 @@ const SearchResultsTable = ({
     const isEditingThisBookingCurrency = editingBookingCurrency === bookingNumber;
     const bookingDetails = getBookingDetails(bookingNumber);
     const fullName = [bookingDetails.firstName, bookingDetails.lastName].filter(Boolean).join(' ') || '-';
+    const firstLine = bookingLines[0];
 
     return (
       <div className="bg-blue-50 p-3 rounded-md border border-blue-200 mt-2">
