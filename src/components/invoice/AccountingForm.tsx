@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -316,7 +314,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         <div className="grid grid-cols-12 gap-1">
           <div className="col-span-6 font-medium">Remaining:</div>
           <div className="col-span-1"></div>
-          <div className={`col-span-4 font-medium text-right ${remainingAmount >= 0 ? "text-gray-600" : "text-red-600"}`}>
+          <div className={`col-span-4 font-medium text-right ${remainingAmount === 0 ? "text-gray-600" : "text-red-600"}`}>
             {formatCurrency(remainingAmount)}
           </div>
           <div className="col-span-1"></div>
@@ -325,7 +323,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         <div className="grid grid-cols-12 gap-1">
           <div className="col-span-6 font-medium">Remaining VAT:</div>
           <div className="col-span-1"></div>
-          <div className={`col-span-4 font-medium text-right ${remainingVat >= 0 ? "text-gray-600" : "text-red-600"}`}>
+          <div className={`col-span-4 font-medium text-right ${remainingVat === 0 ? "text-gray-600" : "text-red-600"}`}>
             {formatCurrency(remainingVat)}
           </div>
           <div className="col-span-1"></div>
@@ -342,4 +340,3 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
 };
 
 export default AccountingForm;
-
