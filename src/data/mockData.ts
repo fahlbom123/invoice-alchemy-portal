@@ -1,4 +1,3 @@
-
 import { Invoice, Supplier, Booking } from "@/types/invoice";
 
 export const mockSuppliers: Supplier[] = [
@@ -664,5 +663,341 @@ export const mockInvoices: Invoice[] = [
       }
     ],
     updatedAt: "2023-06-30T12:00:00Z"
+  },
+  {
+    id: "invoice-11",
+    invoiceNumber: "INV-2023-011",
+    reference: "PO-123456",
+    createdAt: "2023-07-05T12:00:00Z",
+    dueDate: "2023-08-05T12:00:00Z",
+    status: "pending",
+    totalAmount: 1950.00,
+    notes: "",
+    supplier: mockSuppliers[0],
+    source: "Manual",
+    bookings: [mockBookings[10], mockBookings[11]],
+    invoiceLines: [
+      {
+        id: "line-11-1",
+        description: "Advanced Analytics Package",
+        quantity: 1,
+        unitPrice: 1200.00,
+        estimatedCost: 1200.00,
+        supplierId: mockSuppliers[0].id,
+        supplierName: mockSuppliers[0].name,
+        supplierPartNumber: "AAP-PRO-001",
+        bookingNumber: "BK011",
+        departureDate: "2024-04-18",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-11-2",
+        description: "Data Migration Service",
+        quantity: 1,
+        unitPrice: 750.00,
+        estimatedCost: 750.00,
+        supplierId: mockSuppliers[0].id,
+        supplierName: mockSuppliers[0].name,
+        supplierPartNumber: "DMS-STD-001",
+        bookingNumber: "BK012",
+        departureDate: "2024-05-22",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-07-05T12:00:00Z"
+  },
+  {
+    id: "invoice-12",
+    invoiceNumber: "INV-2023-012",
+    reference: "PO-234567",
+    createdAt: "2023-07-10T12:00:00Z",
+    dueDate: "2023-08-10T12:00:00Z",
+    status: "pending",
+    totalAmount: 2650.00,
+    notes: "",
+    supplier: mockSuppliers[1],
+    source: "Manual",
+    bookings: [mockBookings[12], mockBookings[13]],
+    invoiceLines: [
+      {
+        id: "line-12-1",
+        description: "Executive Office Furniture Set",
+        quantity: 1,
+        unitPrice: 1800.00,
+        estimatedCost: 1800.00,
+        supplierId: mockSuppliers[1].id,
+        supplierName: mockSuppliers[1].name,
+        supplierPartNumber: "EOF-LUX-001",
+        bookingNumber: "BK013",
+        departureDate: "2024-06-14",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-12-2",
+        description: "Reception Area Setup",
+        quantity: 1,
+        unitPrice: 850.00,
+        estimatedCost: 850.00,
+        supplierId: mockSuppliers[1].id,
+        supplierName: mockSuppliers[1].name,
+        supplierPartNumber: "RAS-MOD-001",
+        bookingNumber: "BK014",
+        departureDate: "2024-07-09",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-07-10T12:00:00Z"
+  },
+  {
+    id: "invoice-13",
+    invoiceNumber: "INV-2023-013",
+    reference: "PO-345678",
+    createdAt: "2023-07-15T12:00:00Z",
+    dueDate: "2023-08-15T12:00:00Z",
+    status: "pending",
+    totalAmount: 3750.00,
+    notes: "",
+    supplier: mockSuppliers[2],
+    source: "Manual",
+    bookings: [mockBookings[14], mockBookings[15]],
+    invoiceLines: [
+      {
+        id: "line-13-1",
+        description: "Precision Manufacturing Tools",
+        quantity: 10,
+        unitPrice: 250.00,
+        estimatedCost: 2500.00,
+        supplierId: mockSuppliers[2].id,
+        supplierName: mockSuppliers[2].name,
+        supplierPartNumber: "PMT-PRE-250",
+        bookingNumber: "BK015",
+        departureDate: "2024-08-16",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-13-2",
+        description: "Quality Assurance Testing Kit",
+        quantity: 5,
+        unitPrice: 250.00,
+        estimatedCost: 1250.00,
+        supplierId: mockSuppliers[2].id,
+        supplierName: mockSuppliers[2].name,
+        supplierPartNumber: "QAT-KIT-250",
+        bookingNumber: "BK016",
+        departureDate: "2024-09-23",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-07-15T12:00:00Z"
+  },
+  {
+    id: "invoice-14",
+    invoiceNumber: "INV-2023-014",
+    reference: "PO-456789",
+    createdAt: "2023-07-20T12:00:00Z",
+    dueDate: "2023-08-20T12:00:00Z",
+    status: "pending",
+    totalAmount: 4100.00,
+    notes: "",
+    supplier: mockSuppliers[3],
+    source: "Manual",
+    bookings: [mockBookings[16], mockBookings[17]],
+    invoiceLines: [
+      {
+        id: "line-14-1",
+        description: "Enterprise Network Infrastructure",
+        quantity: 1,
+        unitPrice: 2800.00,
+        estimatedCost: 2800.00,
+        supplierId: mockSuppliers[3].id,
+        supplierName: mockSuppliers[3].name,
+        supplierPartNumber: "ENI-ENT-001",
+        bookingNumber: "BK017",
+        departureDate: "2024-10-11",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-14-2",
+        description: "Network Security Appliances",
+        quantity: 1,
+        unitPrice: 1300.00,
+        estimatedCost: 1300.00,
+        supplierId: mockSuppliers[3].id,
+        supplierName: mockSuppliers[3].name,
+        supplierPartNumber: "NSA-SEC-001",
+        bookingNumber: "BK018",
+        departureDate: "2024-11-07",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-07-20T12:00:00Z"
+  },
+  {
+    id: "invoice-15",
+    invoiceNumber: "INV-2023-015",
+    reference: "PO-567890",
+    createdAt: "2023-07-25T12:00:00Z",
+    dueDate: "2023-08-25T12:00:00Z",
+    status: "pending",
+    totalAmount: 2900.00,
+    notes: "",
+    supplier: mockSuppliers[0],
+    source: "Manual",
+    bookings: [mockBookings[18], mockBookings[19]],
+    invoiceLines: [
+      {
+        id: "line-15-1",
+        description: "Cloud Infrastructure Management",
+        quantity: 1,
+        unitPrice: 1600.00,
+        estimatedCost: 1600.00,
+        supplierId: mockSuppliers[0].id,
+        supplierName: mockSuppliers[0].name,
+        supplierPartNumber: "CIM-PRO-001",
+        bookingNumber: "BK019",
+        departureDate: "2024-12-19",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-15-2",
+        description: "API Integration Services",
+        quantity: 1,
+        unitPrice: 1300.00,
+        estimatedCost: 1300.00,
+        supplierId: mockSuppliers[0].id,
+        supplierName: mockSuppliers[0].name,
+        supplierPartNumber: "AIS-ENT-001",
+        bookingNumber: "BK020",
+        departureDate: "2025-01-25",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-07-25T12:00:00Z"
+  },
+  {
+    id: "invoice-16",
+    invoiceNumber: "INV-2023-016",
+    reference: "PO-678901",
+    createdAt: "2023-07-30T12:00:00Z",
+    dueDate: "2023-08-30T12:00:00Z",
+    status: "pending",
+    totalAmount: 3200.00,
+    notes: "",
+    supplier: mockSuppliers[1],
+    source: "Manual",
+    bookings: [mockBookings[20], mockBookings[21]],
+    invoiceLines: [
+      {
+        id: "line-16-1",
+        description: "Modern Workspace Design",
+        quantity: 1,
+        unitPrice: 2000.00,
+        estimatedCost: 2000.00,
+        supplierId: mockSuppliers[1].id,
+        supplierName: mockSuppliers[1].name,
+        supplierPartNumber: "MWD-DES-001",
+        bookingNumber: "BK021",
+        departureDate: "2025-02-14",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-16-2",
+        description: "Collaborative Workspace Tools",
+        quantity: 1,
+        unitPrice: 1200.00,
+        estimatedCost: 1200.00,
+        supplierId: mockSuppliers[1].id,
+        supplierName: mockSuppliers[1].name,
+        supplierPartNumber: "CWT-COL-001",
+        bookingNumber: "BK022",
+        departureDate: "2025-03-08",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-07-30T12:00:00Z"
+  },
+  {
+    id: "invoice-17",
+    invoiceNumber: "INV-2023-017",
+    reference: "PO-789012",
+    createdAt: "2023-08-05T12:00:00Z",
+    dueDate: "2023-09-05T12:00:00Z",
+    status: "pending",
+    totalAmount: 4500.00,
+    notes: "",
+    supplier: mockSuppliers[2],
+    source: "Manual",
+    bookings: [mockBookings[22], mockBookings[23]],
+    invoiceLines: [
+      {
+        id: "line-17-1",
+        description: "Advanced Production Line Setup",
+        quantity: 1,
+        unitPrice: 3000.00,
+        estimatedCost: 3000.00,
+        supplierId: mockSuppliers[2].id,
+        supplierName: mockSuppliers[2].name,
+        supplierPartNumber: "APL-ADV-001",
+        bookingNumber: "BK023",
+        departureDate: "2025-04-12",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-17-2",
+        description: "Automation Control Systems",
+        quantity: 1,
+        unitPrice: 1500.00,
+        estimatedCost: 1500.00,
+        supplierId: mockSuppliers[2].id,
+        supplierName: mockSuppliers[2].name,
+        supplierPartNumber: "ACS-AUTO-001",
+        bookingNumber: "BK024",
+        departureDate: "2025-05-17",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-08-05T12:00:00Z"
+  },
+  {
+    id: "invoice-18",
+    invoiceNumber: "INV-2023-018",
+    reference: "PO-890123",
+    createdAt: "2023-08-10T12:00:00Z",
+    dueDate: "2023-09-10T12:00:00Z",
+    status: "pending",
+    totalAmount: 3800.00,
+    notes: "",
+    supplier: mockSuppliers[3],
+    source: "Manual",
+    bookings: [mockBookings[24]],
+    invoiceLines: [
+      {
+        id: "line-18-1",
+        description: "Enterprise Server Cluster",
+        quantity: 1,
+        unitPrice: 2500.00,
+        estimatedCost: 2500.00,
+        supplierId: mockSuppliers[3].id,
+        supplierName: mockSuppliers[3].name,
+        supplierPartNumber: "ESC-ENT-001",
+        bookingNumber: "BK025",
+        departureDate: "2025-06-21",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-18-2",
+        description: "Backup and Recovery Solution",
+        quantity: 1,
+        unitPrice: 1300.00,
+        estimatedCost: 1300.00,
+        supplierId: mockSuppliers[3].id,
+        supplierName: mockSuppliers[3].name,
+        supplierPartNumber: "BRS-ENT-001",
+        bookingNumber: "BK025",
+        departureDate: "2025-06-21",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-08-10T12:00:00Z"
   }
 ];
