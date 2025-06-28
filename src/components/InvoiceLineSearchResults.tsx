@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
@@ -482,7 +481,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
         onSelectLine={handleSelectLine}
         onSelectAll={handleSelectAll}
         onEditActualCost={handleEditActualCost}
-        onSaveActualCost={onSaveActualCost}
+        onSaveActualCost={handleSaveActualCost}
         onCancelEdit={handleCancelEdit}
         onToggleFullyPaid={handleToggleFullyPaid}
         setEditingCost={setEditingCost}
