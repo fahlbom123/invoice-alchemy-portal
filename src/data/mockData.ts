@@ -1,5 +1,3 @@
-
-
 import { Invoice, Supplier, Booking } from "@/types/invoice";
 
 export const mockSuppliers: Supplier[] = [
@@ -77,6 +75,38 @@ export const mockBookings: Booking[] = [
     lastName: "Davis",
     departureDate: "2023-11-25",
     confirmationNumber: "CNF006"
+  },
+  {
+    id: "booking-7",
+    bookingNumber: "BK007",
+    firstName: "Robert",
+    lastName: "Miller",
+    departureDate: "2023-12-08",
+    confirmationNumber: "CNF007"
+  },
+  {
+    id: "booking-8",
+    bookingNumber: "BK008",
+    firstName: "Emily",
+    lastName: "Wilson",
+    departureDate: "2024-01-15",
+    confirmationNumber: "CNF008"
+  },
+  {
+    id: "booking-9",
+    bookingNumber: "BK009",
+    firstName: "Christopher",
+    lastName: "Garcia",
+    departureDate: "2024-02-22",
+    confirmationNumber: "CNF009"
+  },
+  {
+    id: "booking-10",
+    bookingNumber: "BK010",
+    firstName: "Amanda",
+    lastName: "Martinez",
+    departureDate: "2024-03-10",
+    confirmationNumber: "CNF010"
   }
 ];
 
@@ -250,4 +280,3 @@ export const mockInvoices: Invoice[] = [
     updatedAt: "2023-05-20T12:00:00Z"
   }
 ];
-
