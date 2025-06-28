@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -201,7 +202,7 @@ const InvoiceLineSearch = () => {
             <CardTitle>Search Bookings ({allInvoiceLines.length} total bookings available)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
               <div className="space-y-2">
                 <Label htmlFor="supplier">Supplier</Label>
                 <Select
@@ -292,10 +293,10 @@ const InvoiceLineSearch = () => {
                 />
               </div>
 
-              <div className="space-y-3 col-span-2">
+              <div className="space-y-3">
                 <Label>Payment Status</Label>
                 <RadioGroup 
-                  className="flex space-x-4"
+                  className="flex flex-col space-y-2"
                   value={paymentStatus}
                   onValueChange={setPaymentStatus}
                 >
