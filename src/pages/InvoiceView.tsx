@@ -499,34 +499,92 @@ const InvoiceView = () => {
     try {
       console.log("Registering lines to supplier invoice:", selectedLines);
       
-      const linesToInsert = selectedLines.map(line => ({
-        supplier_invoice_id: invoice.id,
-        invoice_line_id: line.id,
-        actual_cost: line.actualCost || 0,
-        actual_vat: line.actualVat || 0,
-        description: line.description,
-        supplier_name: invoice.supplier.name,
-        currency: invoice.currency || 'USD',
-        created_by: 'User',
-      }));
+      // Group selected lines by booking number to handle multiple registrations
+      const linesByBooking = selectedLines.reduce((acc, line) => {
+        const bookingNumber = line.bookingNumber || getBookingNumberForSupplierLine({ id: line.id } as SupplierInvoiceLine);
+        if (!acc[bookingNumber]) {
+          acc[bookingNumber] = [];
+        }
+        acc[bookingNumber].push(line);
+        return acc;
+      }, {} as Record<string, SearchResultLine[]>);
 
-      const { error } = await supabase
-        .from('supplier_invoice_lines')
-        .insert(linesToInsert);
+      for (const [bookingNumber, bookingLines] of Object.entries(linesByBooking)) {
+        // Check if this booking already has registered lines for this supplier invoice
+        const existingSupplierLines = connectedSupplierInvoiceLines.filter(line => 
+          getBookingNumberForSupplierLine(line) === bookingNumber
+        );
 
-      if (error) {
-        console.error('Error registering supplier invoice lines:', error);
-        toast({
-          title: "Error",
-          description: "Failed to register invoice lines.",
-          variant: "destructive",
-        });
-        return;
+        if (existingSupplierLines.length > 0) {
+          // Update existing supplier invoice lines with new actual costs
+          for (const bookingLine of bookingLines) {
+            const matchingSupplierLine = existingSupplierLines.find(sl => 
+              sl.invoiceLineId === bookingLine.id
+            );
+
+            if (matchingSupplierLine) {
+              // Update existing supplier invoice line
+              const { error } = await supabase
+                .from('supplier_invoice_lines')
+                .update({
+                  actual_cost: bookingLine.actualCost || 0,
+                  actual_vat: bookingLine.actualVat || 0,
+                  description: bookingLine.description,
+                })
+                .eq('id', matchingSupplierLine.id);
+
+              if (error) {
+                console.error('Error updating supplier invoice line:', error);
+                throw error;
+              }
+            } else {
+              // Create new supplier invoice line for this booking line
+              const { error } = await supabase
+                .from('supplier_invoice_lines')
+                .insert({
+                  supplier_invoice_id: invoice.id,
+                  invoice_line_id: bookingLine.id,
+                  actual_cost: bookingLine.actualCost || 0,
+                  actual_vat: bookingLine.actualVat || 0,
+                  description: bookingLine.description,
+                  supplier_name: invoice.supplier.name,
+                  currency: invoice.currency || 'USD',
+                  created_by: 'User',
+                });
+
+              if (error) {
+                console.error('Error creating supplier invoice line:', error);
+                throw error;
+              }
+            }
+          }
+        } else {
+          // Create new supplier invoice lines for this booking
+          const linesToInsert = bookingLines.map(line => ({
+            supplier_invoice_id: invoice.id,
+            invoice_line_id: line.id,
+            actual_cost: line.actualCost || 0,
+            actual_vat: line.actualVat || 0,
+            description: line.description,
+            supplier_name: invoice.supplier.name,
+            currency: invoice.currency || 'USD',
+            created_by: 'User',
+          }));
+
+          const { error } = await supabase
+            .from('supplier_invoice_lines')
+            .insert(linesToInsert);
+
+          if (error) {
+            console.error('Error creating supplier invoice lines:', error);
+            throw error;
+          }
+        }
       }
 
       toast({
         title: "Lines Registered",
-        description: `Successfully registered ${selectedLines.length} invoice lines.`,
+        description: `Successfully registered/updated ${selectedLines.length} invoice lines.`,
       });
       
       await refreshInvoiceData();
