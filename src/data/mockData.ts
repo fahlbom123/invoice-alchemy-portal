@@ -1,3 +1,4 @@
+
 import { Invoice, Supplier, Booking } from "@/types/invoice";
 
 export const mockSuppliers: Supplier[] = [
@@ -398,5 +399,270 @@ export const mockInvoices: Invoice[] = [
       }
     ],
     updatedAt: "2023-05-20T12:00:00Z"
+  },
+  {
+    id: "invoice-5",
+    invoiceNumber: "INV-2023-005",
+    reference: "PO-567890",
+    createdAt: "2023-06-01T12:00:00Z",
+    dueDate: "2023-07-01T12:00:00Z",
+    status: "pending",
+    totalAmount: 1850.00,
+    notes: "",
+    supplier: mockSuppliers[0],
+    source: "Manual",
+    bookings: [mockBookings[6], mockBookings[7]],
+    invoiceLines: [
+      {
+        id: "line-5-1",
+        description: "Cloud Storage (Premium)",
+        quantity: 1,
+        unitPrice: 950.00,
+        estimatedCost: 950.00,
+        supplierId: mockSuppliers[0].id,
+        supplierName: mockSuppliers[0].name,
+        supplierPartNumber: "CS-PREM-001",
+        bookingNumber: "BK007",
+        departureDate: "2023-12-08",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-5-2",
+        description: "Technical Support Package",
+        quantity: 1,
+        unitPrice: 900.00,
+        estimatedCost: 900.00,
+        supplierId: mockSuppliers[0].id,
+        supplierName: mockSuppliers[0].name,
+        supplierPartNumber: "TS-PKG-001",
+        bookingNumber: "BK008",
+        departureDate: "2024-01-15",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-06-01T12:00:00Z"
+  },
+  {
+    id: "invoice-6",
+    invoiceNumber: "INV-2023-006",
+    reference: "PO-678901",
+    createdAt: "2023-06-10T12:00:00Z",
+    dueDate: "2023-07-10T12:00:00Z",
+    status: "pending",
+    totalAmount: 2200.00,
+    notes: "",
+    supplier: mockSuppliers[1],
+    source: "Manual",
+    bookings: [mockBookings[8], mockBookings[9]],
+    invoiceLines: [
+      {
+        id: "line-6-1",
+        description: "Ergonomic Office Chairs",
+        quantity: 8,
+        unitPrice: 175.00,
+        estimatedCost: 1400.00,
+        supplierId: mockSuppliers[1].id,
+        supplierName: mockSuppliers[1].name,
+        supplierPartNumber: "EOC-STD-175",
+        bookingNumber: "BK009",
+        departureDate: "2024-02-22",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-6-2",
+        description: "Standing Desks",
+        quantity: 4,
+        unitPrice: 200.00,
+        estimatedCost: 800.00,
+        supplierId: mockSuppliers[1].id,
+        supplierName: mockSuppliers[1].name,
+        supplierPartNumber: "SD-ADJ-200",
+        bookingNumber: "BK010",
+        departureDate: "2024-03-10",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-06-10T12:00:00Z"
+  },
+  {
+    id: "invoice-7",
+    invoiceNumber: "INV-2023-007",
+    reference: "PO-789012",
+    createdAt: "2023-06-15T12:00:00Z",
+    dueDate: "2023-07-15T12:00:00Z",
+    status: "pending",
+    totalAmount: 3600.00,
+    notes: "",
+    supplier: mockSuppliers[2],
+    source: "Manual",
+    bookings: [mockBookings[10], mockBookings[11]],
+    invoiceLines: [
+      {
+        id: "line-7-1",
+        description: "Industrial Equipment Maintenance",
+        quantity: 1,
+        unitPrice: 2400.00,
+        estimatedCost: 2400.00,
+        supplierId: mockSuppliers[2].id,
+        supplierName: mockSuppliers[2].name,
+        supplierPartNumber: "IEM-MAIN-001",
+        bookingNumber: "BK011",
+        departureDate: "2024-04-18",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-7-2",
+        description: "Safety Equipment Upgrade",
+        quantity: 1,
+        unitPrice: 1200.00,
+        estimatedCost: 1200.00,
+        supplierId: mockSuppliers[2].id,
+        supplierName: mockSuppliers[2].name,
+        supplierPartNumber: "SEU-UPG-001",
+        bookingNumber: "BK012",
+        departureDate: "2024-05-22",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-06-15T12:00:00Z"
+  },
+  {
+    id: "invoice-8",
+    invoiceNumber: "INV-2023-008",
+    reference: "PO-890123",
+    createdAt: "2023-06-20T12:00:00Z",
+    dueDate: "2023-07-20T12:00:00Z",
+    status: "pending",
+    totalAmount: 4200.00,
+    notes: "",
+    supplier: mockSuppliers[3],
+    source: "Manual",
+    bookings: [mockBookings[12], mockBookings[13]],
+    invoiceLines: [
+      {
+        id: "line-8-1",
+        description: "High-Performance Workstations",
+        quantity: 3,
+        unitPrice: 1000.00,
+        estimatedCost: 3000.00,
+        supplierId: mockSuppliers[3].id,
+        supplierName: mockSuppliers[3].name,
+        supplierPartNumber: "HPW-DEV-1000",
+        bookingNumber: "BK013",
+        departureDate: "2024-06-14",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-8-2",
+        description: "Professional Monitors",
+        quantity: 6,
+        unitPrice: 200.00,
+        estimatedCost: 1200.00,
+        supplierId: mockSuppliers[3].id,
+        supplierName: mockSuppliers[3].name,
+        supplierPartNumber: "PM-27-200",
+        bookingNumber: "BK014",
+        departureDate: "2024-07-09",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-06-20T12:00:00Z"
+  },
+  {
+    id: "invoice-9",
+    invoiceNumber: "INV-2023-009",
+    reference: "PO-901234",
+    createdAt: "2023-06-25T12:00:00Z",
+    dueDate: "2023-07-25T12:00:00Z",
+    status: "pending",
+    totalAmount: 2800.00,
+    notes: "",
+    supplier: mockSuppliers[0],
+    source: "Manual",
+    bookings: [mockBookings[14], mockBookings[15]],
+    invoiceLines: [
+      {
+        id: "line-9-1",
+        description: "Database Backup Solution",
+        quantity: 1,
+        unitPrice: 1800.00,
+        estimatedCost: 1800.00,
+        supplierId: mockSuppliers[0].id,
+        supplierName: mockSuppliers[0].name,
+        supplierPartNumber: "DBS-ENT-001",
+        bookingNumber: "BK015",
+        departureDate: "2024-08-16",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-9-2",
+        description: "Network Security Upgrade",
+        quantity: 1,
+        unitPrice: 1000.00,
+        estimatedCost: 1000.00,
+        supplierId: mockSuppliers[0].id,
+        supplierName: mockSuppliers[0].name,
+        supplierPartNumber: "NSU-PRO-001",
+        bookingNumber: "BK016",
+        departureDate: "2024-09-23",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-06-25T12:00:00Z"
+  },
+  {
+    id: "invoice-10",
+    invoiceNumber: "INV-2023-010",
+    reference: "PO-012345",
+    createdAt: "2023-06-30T12:00:00Z",
+    dueDate: "2023-07-30T12:00:00Z",
+    status: "pending",
+    totalAmount: 3500.00,
+    notes: "",
+    supplier: mockSuppliers[1],
+    source: "Manual",
+    bookings: [mockBookings[16], mockBookings[17], mockBookings[18]],
+    invoiceLines: [
+      {
+        id: "line-10-1",
+        description: "Conference Room Equipment",
+        quantity: 1,
+        unitPrice: 1500.00,
+        estimatedCost: 1500.00,
+        supplierId: mockSuppliers[1].id,
+        supplierName: mockSuppliers[1].name,
+        supplierPartNumber: "CRE-FULL-001",
+        bookingNumber: "BK017",
+        departureDate: "2024-10-11",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-10-2",
+        description: "Presentation Systems",
+        quantity: 2,
+        unitPrice: 750.00,
+        estimatedCost: 1500.00,
+        supplierId: mockSuppliers[1].id,
+        supplierName: mockSuppliers[1].name,
+        supplierPartNumber: "PS-HD-750",
+        bookingNumber: "BK018",
+        departureDate: "2024-11-07",
+        paymentStatus: "unpaid"
+      },
+      {
+        id: "line-10-3",
+        description: "Audio Equipment",
+        quantity: 1,
+        unitPrice: 500.00,
+        estimatedCost: 500.00,
+        supplierId: mockSuppliers[1].id,
+        supplierName: mockSuppliers[1].name,
+        supplierPartNumber: "AE-PRO-500",
+        bookingNumber: "BK019",
+        departureDate: "2024-12-19",
+        paymentStatus: "unpaid"
+      }
+    ],
+    updatedAt: "2023-06-30T12:00:00Z"
   }
 ];
