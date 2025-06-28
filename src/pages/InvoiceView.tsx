@@ -238,7 +238,7 @@ const InvoiceView = () => {
     const originalLines = allInvoiceLines.filter(line => {
       const matches = line.bookingNumber === bookingNumber && line.supplierId === invoice?.supplier.id;
       if (matches) {
-        console.log('Found matching line:', line.id, line.description, 'estimated:', line.estimatedCost);
+        console.log('Found matching line:', line.id, line.description, 'estimated:', line.estimatedCost, 'estimatedVat:', line.estimatedVat);
       }
       return matches;
     });
@@ -734,6 +734,8 @@ const InvoiceView = () => {
   } : null;
 
   const groupSupplierLinesByBookingWithTotals = (lines: SupplierInvoiceLine[]) => {
+    console.log('Grouping supplier lines by booking, input lines:', lines.map(l => ({ id: l.id, actualCost: l.actualCost, actualVat: l.actualVat })));
+    
     const grouped = lines.reduce((acc, line) => {
       const bookingNumber = getBookingNumberForSupplierLine(line);
       if (!acc[bookingNumber]) {
@@ -756,6 +758,8 @@ const InvoiceView = () => {
       acc[bookingNumber].lines.push(line);
       acc[bookingNumber].totalActualCost += line.actualCost;
       acc[bookingNumber].totalActualVat += line.actualVat;
+      
+      console.log('Added line to booking', bookingNumber, '- actualCost:', line.actualCost, 'running total:', acc[bookingNumber].totalActualCost);
       
       // Set registered datetime from the earliest supplier invoice line creation date
       if (!acc[bookingNumber].registeredAt || line.createdAt < acc[bookingNumber].registeredAt) {
