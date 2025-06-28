@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -659,6 +658,9 @@ const InvoiceView = () => {
     return lineNumbers;
   };
 
+  // Generate internal supplier invoice ID from the invoice ID (first 8 characters)
+  const internalSupplierInvoiceId = invoice ? `SI-${invoice.id.substring(0, 8).toUpperCase()}` : '';
+
   if (isLoading || isLoadingInvoices || isLoadingInvoiceLines) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
@@ -725,7 +727,7 @@ const InvoiceView = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>
-                {isCancelled || isSentToAccounting ? "Supplier Invoice Details" : `Supplier Invoice - ${formData.invoiceNumber}`}
+                {isCancelled || isSentToAccounting ? "Supplier Invoice Details" : `Supplier Invoice ${formData.invoiceNumber} (${internalSupplierInvoiceId})`}
                 {isCancelled && (
                   <span className="ml-2 text-sm font-normal text-red-600">
                     (Status: Cancelled)
