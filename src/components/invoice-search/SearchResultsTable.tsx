@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -74,11 +73,15 @@ const SearchResultsTable = ({
 
   // Helper function to get booking details from booking number
   const getBookingDetails = (bookingNumber?: string) => {
-    if (!bookingNumber) return { firstName: '', lastName: '' };
+    if (!bookingNumber) return { firstName: '', lastName: '', fullName: '-' };
     const booking = mockBookings.find(b => b.bookingNumber === bookingNumber);
+    if (!booking) return { firstName: '', lastName: '', fullName: '-' };
+    
+    const fullName = [booking.firstName, booking.lastName].filter(Boolean).join(' ') || '-';
     return {
-      firstName: booking?.firstName || '',
-      lastName: booking?.lastName || ''
+      firstName: booking.firstName || '',
+      lastName: booking.lastName || '',
+      fullName
     };
   };
 
@@ -237,7 +240,6 @@ const SearchResultsTable = ({
     
     // Get booking details from the bookings array
     const bookingDetails = getBookingDetails(bookingNumber);
-    const fullName = [bookingDetails.firstName, bookingDetails.lastName].filter(Boolean).join(' ') || '-';
     const firstLine = bookingLines[0];
     const isPaid = bookingLines.every(line => line.paymentStatus === "paid");
     const status = isPaid ? "Paid" : bookingLines.some(line => line.paymentStatus === "paid") ? "Partial" : "Unpaid";
@@ -260,7 +262,7 @@ const SearchResultsTable = ({
           )}
         </TableCell>
         <TableCell className="text-blue-800 font-medium">{bookingNumber}</TableCell>
-        <TableCell className="text-blue-800">{fullName}</TableCell>
+        <TableCell className="text-blue-800">{bookingDetails.fullName}</TableCell>
         <TableCell className="text-blue-800">{firstLine.supplierName}</TableCell>
         <TableCell className="text-blue-800">{firstLine.departureDate || '-'}</TableCell>
         <TableCell className="text-blue-800">{firstLine.currency || 'SEK'}</TableCell>
@@ -378,7 +380,6 @@ const SearchResultsTable = ({
     const isEditingThisBookingCost = editingBookingCost === bookingNumber;
     const isEditingThisBookingCurrency = editingBookingCurrency === bookingNumber;
     const bookingDetails = getBookingDetails(bookingNumber);
-    const fullName = [bookingDetails.firstName, bookingDetails.lastName].filter(Boolean).join(' ') || '-';
     const firstLine = bookingLines[0];
 
     return (
@@ -397,7 +398,7 @@ const SearchResultsTable = ({
               disabled={!hasUnpaidLines}
             />
           )}
-          <h5 className="font-medium text-blue-800">Booking {bookingNumber} - {fullName}</h5>
+          <h5 className="font-medium text-blue-800">Booking {bookingNumber} - {bookingDetails.fullName}</h5>
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div>Supplier: {firstLine.supplierName}</div>
