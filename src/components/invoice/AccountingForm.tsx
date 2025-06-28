@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,7 +193,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                 onValueChange={(value) => updateAccountEntry(entry.id, 'account', value)}
                 disabled={disabled}
               >
-                <SelectTrigger className="text-sm bg-transparent border-gray-300">
+                <SelectTrigger className="text-sm bg-white border-gray-300">
                   <SelectValue placeholder="Select account" />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-50">
@@ -211,7 +212,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                 onChange={(e) => updateAccountEntry(entry.id, 'amount', e.target.value)}
                 placeholder="0.00"
                 disabled={disabled}
-                className="text-sm text-right bg-transparent border-gray-300"
+                className="text-sm text-right bg-white border-gray-300"
                 min="0"
                 max={totalAmount}
                 step="0.01"
@@ -250,7 +251,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                 onValueChange={(value) => updateVatAccountEntry(entry.id, 'vatAccount', value)}
                 disabled={disabled}
               >
-                <SelectTrigger className="text-sm bg-transparent border-gray-300">
+                <SelectTrigger className="text-sm bg-white border-gray-300">
                   <SelectValue placeholder="Select VAT account" />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-50">
@@ -269,7 +270,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                 onChange={(e) => updateVatAccountEntry(entry.id, 'vatAmount', e.target.value)}
                 placeholder="0.00"
                 disabled={disabled}
-                className="text-sm text-right bg-transparent border-gray-300"
+                className="text-sm text-right bg-white border-gray-300"
                 min="0"
                 max={totalVat}
                 step="0.01"
@@ -341,3 +342,4 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
 };
 
 export default AccountingForm;
+
