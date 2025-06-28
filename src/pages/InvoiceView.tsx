@@ -757,13 +757,25 @@ const InvoiceView = () => {
       registeredAt: string;
     }>);
     
-    // Now calculate estimated costs for each booking group (filtered by current supplier)
+    // Now calculate estimated costs for each booking group using the same method as search results
     Object.keys(grouped).forEach(bookingNumber => {
       const booking = grouped[bookingNumber];
-      const estimatedCosts = getEstimatedCostsForBooking(bookingNumber);
-      booking.estimatedCost = estimatedCosts.estimatedCost;
-      booking.estimatedVat = estimatedCosts.estimatedVat;
-      booking.currency = estimatedCosts.currency;
+      
+      // Use the same calculation method as in search results - sum all lines for this booking and supplier
+      const estimatedLines = allInvoiceLines.filter(line => 
+        (line.bookingNumber === bookingNumber || 
+         (!line.bookingNumber && getBookingNumberForSupplierLine({ id: line.id } as SupplierInvoiceLine) === bookingNumber)) &&
+        line.supplierId === invoice?.supplier.id
+      );
+      
+      const estimatedTotals = estimatedLines.reduce((acc, line) => ({
+        estimatedCost: acc.estimatedCost + (line.estimatedCost || 0),
+        estimatedVat: acc.estimatedVat + (line.estimatedVat || 0),
+      }), { estimatedCost: 0, estimatedVat: 0 });
+      
+      booking.estimatedCost = estimatedTotals.estimatedCost;
+      booking.estimatedVat = estimatedTotals.estimatedVat;
+      booking.currency = estimatedLines.length > 0 ? estimatedLines[0].currency || 'USD' : 'USD';
       
       // Get additional booking details from the first original line (from current supplier)
       const originalLine = allInvoiceLines.find(line => 
