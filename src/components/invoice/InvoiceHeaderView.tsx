@@ -213,6 +213,7 @@ const InvoiceHeaderView = ({
               currency={currency}
               disabled={isCancelled || isSentToAccounting}
               defaultAccount={formData.account || ''}
+              defaultVatAccount={formData.vatAccount || ''}
             />
           </div>
         </div>
