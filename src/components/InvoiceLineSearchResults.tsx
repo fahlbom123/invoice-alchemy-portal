@@ -5,6 +5,7 @@ import SearchResultsTable from "./invoice-search/SearchResultsTable";
 import SelectedLinesSummary from "./invoice-search/SelectedLinesSummary";
 import CostRegistrationModal from "./invoice-search/CostRegistrationModal";
 import { supabase } from "@/integrations/supabase/client";
+import { mockBookings } from "@/data/mockData";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,17 +44,33 @@ interface InvoiceLineSearchResultsProps {
 }
 
 const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplierInvoiceLines = [], onRegister, onLineStatusUpdate }: InvoiceLineSearchResultsProps) => {
+  // Helper function to get booking details from booking number
+  const getBookingDetails = (bookingNumber?: string) => {
+    if (!bookingNumber) return { firstName: '', lastName: '' };
+    const booking = mockBookings.find(b => b.bookingNumber === bookingNumber);
+    return {
+      firstName: booking?.firstName || '',
+      lastName: booking?.lastName || ''
+    };
+  };
+
   // Calculate registered amounts for each line
   const calculateLinesWithRegistered = (lines: SearchResultLine[]) => {
     return lines.map(line => {
       const registeredLines = allSupplierInvoiceLines.filter(sil => sil.invoiceLineId === line.id);
       const registeredActualCost = registeredLines.reduce((sum, sil) => sum + sil.actualCost, 0);
       
+      // Get booking details and add them to the line for compatibility
+      const bookingDetails = getBookingDetails(line.bookingNumber);
+      
       return {
         ...line,
         registeredActualCost,
         // Ensure actualVat is always a number, never undefined
-        actualVat: line.actualVat || 0
+        actualVat: line.actualVat || 0,
+        // Add booking details for backward compatibility with existing components
+        firstName: bookingDetails.firstName,
+        lastName: bookingDetails.lastName
       };
     });
   };

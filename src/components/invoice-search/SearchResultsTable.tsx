@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import SearchResultRow from "./SearchResultRow";
 import { formatCurrency } from "@/lib/formatters";
 import { Edit, Save, X } from "lucide-react";
+import { mockBookings } from "@/data/mockData";
 
 interface SearchResultLine {
   id: string;
@@ -31,8 +32,6 @@ interface SearchResultLine {
   selected?: boolean;
   currency?: string;
   registeredActualCost?: number;
-  firstName?: string;
-  lastName?: string;
 }
 
 interface SearchResultsTableProps {
@@ -71,6 +70,16 @@ const SearchResultsTable = ({
   // State for booking currency editing
   const [editingBookingCurrency, setEditingBookingCurrency] = useState<string | null>(null);
   const [editingBookingCurrencyValue, setEditingBookingCurrencyValue] = useState<string>("");
+
+  // Helper function to get booking details from booking number
+  const getBookingDetails = (bookingNumber?: string) => {
+    if (!bookingNumber) return { firstName: '', lastName: '' };
+    const booking = mockBookings.find(b => b.bookingNumber === bookingNumber);
+    return {
+      firstName: booking?.firstName || '',
+      lastName: booking?.lastName || ''
+    };
+  };
 
   // Group lines by supplier, then by booking number
   const groupedLines = lines.reduce((groups, line) => {
@@ -225,9 +234,10 @@ const SearchResultsTable = ({
     const isEditingThisBookingCost = editingBookingCost === bookingNumber;
     const isEditingThisBookingCurrency = editingBookingCurrency === bookingNumber;
     
-    // Get representative data from first line
+    // Get booking details from the bookings array
+    const bookingDetails = getBookingDetails(bookingNumber);
+    const fullName = [bookingDetails.firstName, bookingDetails.lastName].filter(Boolean).join(' ') || '-';
     const firstLine = bookingLines[0];
-    const fullName = [firstLine.firstName, firstLine.lastName].filter(Boolean).join(' ') || '-';
     const isPaid = bookingLines.every(line => line.paymentStatus === "paid");
     const status = isPaid ? "Paid" : bookingLines.some(line => line.paymentStatus === "paid") ? "Partial" : "Unpaid";
 
@@ -366,8 +376,8 @@ const SearchResultsTable = ({
     const hasUnpaidLines = bookingLines.some(line => line.paymentStatus !== "paid");
     const isEditingThisBookingCost = editingBookingCost === bookingNumber;
     const isEditingThisBookingCurrency = editingBookingCurrency === bookingNumber;
-    const firstLine = bookingLines[0];
-    const fullName = [firstLine.firstName, firstLine.lastName].filter(Boolean).join(' ') || '-';
+    const bookingDetails = getBookingDetails(bookingNumber);
+    const fullName = [bookingDetails.firstName, bookingDetails.lastName].filter(Boolean).join(' ') || '-';
 
     return (
       <div className="bg-blue-50 p-3 rounded-md border border-blue-200 mt-2">

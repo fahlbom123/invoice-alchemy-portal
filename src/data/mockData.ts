@@ -1,5 +1,6 @@
 
-import { Invoice, Supplier } from "@/types/invoice";
+
+import { Invoice, Supplier, Booking } from "@/types/invoice";
 
 export const mockSuppliers: Supplier[] = [
   {
@@ -28,6 +29,57 @@ export const mockSuppliers: Supplier[] = [
   }
 ];
 
+export const mockBookings: Booking[] = [
+  {
+    id: "booking-1",
+    bookingNumber: "BK001",
+    firstName: "John",
+    lastName: "Doe",
+    departureDate: "2023-07-15",
+    confirmationNumber: "CNF001"
+  },
+  {
+    id: "booking-2",
+    bookingNumber: "BK002",
+    firstName: "Jane",
+    lastName: "Smith",
+    departureDate: "2023-08-20",
+    confirmationNumber: "CNF002"
+  },
+  {
+    id: "booking-3",
+    bookingNumber: "BK003",
+    firstName: "Michael",
+    lastName: "Johnson",
+    departureDate: "2023-09-10",
+    confirmationNumber: "CNF003"
+  },
+  {
+    id: "booking-4",
+    bookingNumber: "BK004",
+    firstName: "Sarah",
+    lastName: "Williams",
+    departureDate: "2023-06-05",
+    confirmationNumber: "CNF004"
+  },
+  {
+    id: "booking-5",
+    bookingNumber: "BK005",
+    firstName: "David",
+    lastName: "Brown",
+    departureDate: "2023-10-12",
+    confirmationNumber: "CNF005"
+  },
+  {
+    id: "booking-6",
+    bookingNumber: "BK006",
+    firstName: "Lisa",
+    lastName: "Davis",
+    departureDate: "2023-11-25",
+    confirmationNumber: "CNF006"
+  }
+];
+
 export const mockInvoices: Invoice[] = [
   {
     id: "invoice-1",
@@ -40,6 +92,7 @@ export const mockInvoices: Invoice[] = [
     notes: "Payment received on time",
     supplier: mockSuppliers[0],
     source: "Fortnox",
+    bookings: [mockBookings[0]],
     invoiceLines: [
       {
         id: "line-1-1",
@@ -51,8 +104,6 @@ export const mockInvoices: Invoice[] = [
         supplierName: mockSuppliers[0].name,
         supplierPartNumber: "SRV-PREM-001",
         bookingNumber: "BK001",
-        firstName: "John",
-        lastName: "Doe",
         departureDate: "2023-07-15",
         paymentStatus: "paid"
       },
@@ -66,8 +117,6 @@ export const mockInvoices: Invoice[] = [
         supplierName: mockSuppliers[0].name,
         supplierPartNumber: "SSL-STD-002",
         bookingNumber: "BK001",
-        firstName: "John",
-        lastName: "Doe",
         departureDate: "2023-07-15",
         paymentStatus: "paid"
       }
@@ -85,6 +134,7 @@ export const mockInvoices: Invoice[] = [
     notes: "",
     supplier: mockSuppliers[1],
     source: "Manual",
+    bookings: [mockBookings[1], mockBookings[2]],
     invoiceLines: [
       {
         id: "line-2-1",
@@ -96,8 +146,6 @@ export const mockInvoices: Invoice[] = [
         supplierName: mockSuppliers[1].name,
         supplierPartNumber: "OS-BDL-100",
         bookingNumber: "BK002",
-        firstName: "Jane",
-        lastName: "Smith",
         departureDate: "2023-08-20",
         paymentStatus: "unpaid"
       },
@@ -111,8 +159,6 @@ export const mockInvoices: Invoice[] = [
         supplierName: mockSuppliers[1].name,
         supplierPartNumber: "PPR-A4-PRE",
         bookingNumber: "BK003",
-        firstName: "Michael",
-        lastName: "Johnson",
         departureDate: "2023-09-10",
         paymentStatus: "unpaid"
       }
@@ -130,6 +176,7 @@ export const mockInvoices: Invoice[] = [
     notes: "Second reminder sent",
     supplier: mockSuppliers[2],
     source: "Manual",
+    bookings: [mockBookings[3]],
     invoiceLines: [
       {
         id: "line-3-1",
@@ -141,8 +188,6 @@ export const mockInvoices: Invoice[] = [
         supplierName: mockSuppliers[2].name,
         supplierPartNumber: "CPM-XYZ-50",
         bookingNumber: "BK004",
-        firstName: "Sarah",
-        lastName: "Williams",
         departureDate: "2023-06-05",
         paymentStatus: "partial"
       },
@@ -156,8 +201,6 @@ export const mockInvoices: Invoice[] = [
         supplierName: mockSuppliers[2].name,
         supplierPartNumber: "FEE-RUSH",
         bookingNumber: "BK004",
-        firstName: "Sarah",
-        lastName: "Williams",
         departureDate: "2023-06-05",
         paymentStatus: "partial"
       }
@@ -175,6 +218,7 @@ export const mockInvoices: Invoice[] = [
     notes: "",
     supplier: mockSuppliers[3],
     source: "Manual",
+    bookings: [mockBookings[4], mockBookings[5]],
     invoiceLines: [
       {
         id: "line-4-1",
@@ -186,8 +230,6 @@ export const mockInvoices: Invoice[] = [
         supplierName: mockSuppliers[3].name,
         supplierPartNumber: "HDT-PR200",
         bookingNumber: "BK005",
-        firstName: "David",
-        lastName: "Brown",
         departureDate: "2023-10-12",
         paymentStatus: "unpaid"
       },
@@ -201,8 +243,6 @@ export const mockInvoices: Invoice[] = [
         supplierName: mockSuppliers[3].name,
         supplierPartNumber: "WAR-3YR",
         bookingNumber: "BK006",
-        firstName: "Lisa",
-        lastName: "Davis",
         departureDate: "2023-11-25",
         paymentStatus: "unpaid"
       }
@@ -210,3 +250,4 @@ export const mockInvoices: Invoice[] = [
     updatedAt: "2023-05-20T12:00:00Z"
   }
 ];
+

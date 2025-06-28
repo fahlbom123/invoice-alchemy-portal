@@ -14,6 +14,15 @@ export interface Supplier {
   swift?: string;
 }
 
+export interface Booking {
+  id: string;
+  bookingNumber: string;
+  firstName?: string;
+  lastName?: string;
+  departureDate?: string;
+  confirmationNumber?: string;
+}
+
 export interface InvoiceLine {
   id: string;
   description: string;
@@ -26,8 +35,6 @@ export interface InvoiceLine {
   supplierPartNumber: string;
   bookingNumber?: string;
   confirmationNumber?: string;
-  firstName?: string;
-  lastName?: string;
   departureDate?: string;
   paymentStatus?: "paid" | "unpaid" | "partial";
   fullyInvoiced?: boolean;
@@ -81,6 +88,7 @@ export interface Invoice {
   periodizationYear?: number;
   periodizationMonth?: number;
   projectId?: string;
+  bookings?: Booking[];
 }
 
 export interface InvoiceFormData {
