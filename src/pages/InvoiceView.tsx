@@ -168,6 +168,8 @@ const InvoiceView = () => {
   const [description, setDescription] = useState<string>("");
   const [bookingNumber, setBookingNumber] = useState<string>("");
   const [confirmationNumber, setConfirmationNumber] = useState<string>("");
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
   const [departureDateStart, setDepartureDateStart] = useState<string>("");
   const [departureDateEnd, setDepartureDateEnd] = useState<string>("");
   const [paymentStatus, setPaymentStatus] = useState<string>("all");
@@ -491,6 +493,8 @@ const InvoiceView = () => {
     setDescription("");
     setBookingNumber("");
     setConfirmationNumber("");
+    setFirstName("");
+    setLastName("");
     setDepartureDateStart("");
     setDepartureDateEnd("");
     setPaymentStatus("all");
@@ -504,6 +508,8 @@ const InvoiceView = () => {
       description,
       bookingNumber,
       confirmationNumber,
+      firstName,
+      lastName,
       departureDateStart,
       departureDateEnd,
       paymentStatus,
@@ -522,6 +528,13 @@ const InvoiceView = () => {
       const matchesConfirmationNumber = !confirmationNumber || 
         (line.confirmationNumber && line.confirmationNumber.toLowerCase().includes(confirmationNumber.toLowerCase()));
       
+      // First name and last name search
+      const matchesFirstName = !firstName || 
+        (line.firstName && line.firstName.toLowerCase().includes(firstName.toLowerCase()));
+      
+      const matchesLastName = !lastName || 
+        (line.lastName && line.lastName.toLowerCase().includes(lastName.toLowerCase()));
+      
       // Date range check
       let matchesDepartureDate = true;
       if (line.departureDate) {
@@ -538,7 +551,8 @@ const InvoiceView = () => {
       const matchesPaymentStatus = paymentStatus === "all" || line.paymentStatus === paymentStatus;
       
       return matchesSupplier && matchesDescription && 
-             matchesBookingNumber && matchesConfirmationNumber && matchesDepartureDate && 
+             matchesBookingNumber && matchesConfirmationNumber && 
+             matchesFirstName && matchesLastName && matchesDepartureDate && 
              matchesPaymentStatus;
     });
     
@@ -974,7 +988,7 @@ const InvoiceView = () => {
                 <CardTitle>Search bookings ({allInvoiceLines.length} total lines available)</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                   <div className="space-y-2">
                     <Label htmlFor="supplier">Supplier</Label>
                     <Select
@@ -1026,6 +1040,26 @@ const InvoiceView = () => {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Search by first name..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Search by last name..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="departureDateStart">Departure Date (From)</Label>
                     <Input
                       id="departureDateStart"
@@ -1045,10 +1079,10 @@ const InvoiceView = () => {
                     />
                   </div>
 
-                  <div className="space-y-3 col-span-2">
+                  <div className="space-y-3">
                     <Label>Payment Status</Label>
                     <RadioGroup 
-                      className="flex space-x-4"
+                      className="flex flex-col space-y-2"
                       value={paymentStatus}
                       onValueChange={setPaymentStatus}
                     >
