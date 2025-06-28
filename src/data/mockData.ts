@@ -1,3 +1,4 @@
+
 import { Invoice, Supplier } from "@/types/invoice";
 
 export const mockSuppliers: Supplier[] = [
@@ -48,7 +49,12 @@ export const mockInvoices: Invoice[] = [
         estimatedCost: 2000.00,
         supplierId: mockSuppliers[0].id,
         supplierName: mockSuppliers[0].name,
-        supplierPartNumber: "SRV-PREM-001"
+        supplierPartNumber: "SRV-PREM-001",
+        bookingNumber: "BK001",
+        firstName: "John",
+        lastName: "Doe",
+        departureDate: "2023-07-15",
+        paymentStatus: "paid"
       },
       {
         id: "line-1-2",
@@ -58,7 +64,12 @@ export const mockInvoices: Invoice[] = [
         estimatedCost: 500.00,
         supplierId: mockSuppliers[0].id,
         supplierName: mockSuppliers[0].name,
-        supplierPartNumber: "SSL-STD-002"
+        supplierPartNumber: "SSL-STD-002",
+        bookingNumber: "BK001",
+        firstName: "John",
+        lastName: "Doe",
+        departureDate: "2023-07-15",
+        paymentStatus: "paid"
       }
     ],
     updatedAt: "2023-05-10T12:00:00Z"
@@ -83,7 +94,12 @@ export const mockInvoices: Invoice[] = [
         estimatedCost: 750.50,
         supplierId: mockSuppliers[1].id,
         supplierName: mockSuppliers[1].name,
-        supplierPartNumber: "OS-BDL-100"
+        supplierPartNumber: "OS-BDL-100",
+        bookingNumber: "BK002",
+        firstName: "Jane",
+        lastName: "Smith",
+        departureDate: "2023-08-20",
+        paymentStatus: "unpaid"
       },
       {
         id: "line-2-2",
@@ -93,7 +109,12 @@ export const mockInvoices: Invoice[] = [
         estimatedCost: 450.00,
         supplierId: mockSuppliers[1].id,
         supplierName: mockSuppliers[1].name,
-        supplierPartNumber: "PPR-A4-PRE"
+        supplierPartNumber: "PPR-A4-PRE",
+        bookingNumber: "BK003",
+        firstName: "Michael",
+        lastName: "Johnson",
+        departureDate: "2023-09-10",
+        paymentStatus: "unpaid"
       }
     ],
     updatedAt: "2023-05-15T12:00:00Z"
@@ -118,7 +139,12 @@ export const mockInvoices: Invoice[] = [
         estimatedCost: 4750.00,
         supplierId: mockSuppliers[2].id,
         supplierName: mockSuppliers[2].name,
-        supplierPartNumber: "CPM-XYZ-50"
+        supplierPartNumber: "CPM-XYZ-50",
+        bookingNumber: "BK004",
+        firstName: "Sarah",
+        lastName: "Williams",
+        departureDate: "2023-06-05",
+        paymentStatus: "partial"
       },
       {
         id: "line-3-2",
@@ -128,7 +154,12 @@ export const mockInvoices: Invoice[] = [
         estimatedCost: 0.75,
         supplierId: mockSuppliers[2].id,
         supplierName: mockSuppliers[2].name,
-        supplierPartNumber: "FEE-RUSH"
+        supplierPartNumber: "FEE-RUSH",
+        bookingNumber: "BK004",
+        firstName: "Sarah",
+        lastName: "Williams",
+        departureDate: "2023-06-05",
+        paymentStatus: "partial"
       }
     ],
     updatedAt: "2023-05-01T12:00:00Z"
@@ -153,7 +184,12 @@ export const mockInvoices: Invoice[] = [
         estimatedCost: 2700.00,
         supplierId: mockSuppliers[3].id,
         supplierName: mockSuppliers[3].name,
-        supplierPartNumber: "HDT-PR200"
+        supplierPartNumber: "HDT-PR200",
+        bookingNumber: "BK005",
+        firstName: "David",
+        lastName: "Brown",
+        departureDate: "2023-10-12",
+        paymentStatus: "unpaid"
       },
       {
         id: "line-4-2",
@@ -163,7 +199,12 @@ export const mockInvoices: Invoice[] = [
         estimatedCost: 500.00,
         supplierId: mockSuppliers[3].id,
         supplierName: mockSuppliers[3].name,
-        supplierPartNumber: "WAR-3YR"
+        supplierPartNumber: "WAR-3YR",
+        bookingNumber: "BK006",
+        firstName: "Lisa",
+        lastName: "Davis",
+        departureDate: "2023-11-25",
+        paymentStatus: "unpaid"
       }
     ],
     updatedAt: "2023-05-20T12:00:00Z"
