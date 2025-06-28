@@ -22,6 +22,8 @@ interface ExtendedInvoiceLine extends InvoiceLine {
   departureDate: string;
   paymentStatus: "paid" | "unpaid" | "partial";
   invoiceTotalAmount: number;
+  firstName?: string;
+  lastName?: string;
 }
 
 const InvoiceLineSearch = () => {
@@ -51,7 +53,9 @@ const InvoiceLineSearch = () => {
     confirmationNumber: line.confirmationNumber || "",
     departureDate: line.departureDate || "",
     paymentStatus: line.paymentStatus || "unpaid",
-    invoiceTotalAmount: 0 // Will be calculated if needed
+    invoiceTotalAmount: 0, // Will be calculated if needed
+    firstName: line.firstName || "",
+    lastName: line.lastName || ""
   }));
 
   // Memoized search function

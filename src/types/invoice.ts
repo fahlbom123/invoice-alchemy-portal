@@ -43,6 +43,8 @@ export interface InvoiceLine {
   estimatedVat?: number;
   actualVat?: number;
   selected?: boolean;
+  firstName?: string;
+  lastName?: string;
 }
 
 // Extended invoice line with invoice reference
