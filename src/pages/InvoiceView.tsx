@@ -599,6 +599,35 @@ const InvoiceView = () => {
 
   const internalSupplierInvoiceId = invoice ? `SI-${invoice.id.substring(0, 8).toUpperCase()}` : '';
 
+  const handleSendToAccounting = async () => {
+    if (!invoice) return;
+
+    try {
+      const updatedInvoice = {
+        ...invoice,
+        status: "sent_to_accounting",
+        updatedAt: new Date().toISOString(),
+      };
+
+      await saveInvoice(updatedInvoice);
+      setIsSentToAccounting(true);
+      
+      toast({
+        title: "Invoice Sent to Accounting",
+        description: "Supplier invoice has been sent to accounting successfully.",
+      });
+      
+      await refreshInvoiceData();
+    } catch (error) {
+      console.error("Error sending invoice to accounting:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send supplier invoice to accounting.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading || isLoadingInvoices || isLoadingInvoiceLines) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
