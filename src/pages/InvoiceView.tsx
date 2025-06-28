@@ -809,17 +809,15 @@ const InvoiceView = () => {
                         />
                       </TableHead>
                       <TableHead>Booking Number</TableHead>
-                      <TableHead>Description</TableHead>
                       <TableHead>Supplier</TableHead>
                       <TableHead>First Name</TableHead>
                       <TableHead>Last Name</TableHead>
-                      <TableHead>Confirmation Number</TableHead>
                       <TableHead>Departure Date</TableHead>
                       <TableHead>Payment Status</TableHead>
-                      <TableHead>Estimated Cost</TableHead>
-                      <TableHead>Estimated VAT</TableHead>
+                      <TableHead>Est. Curr.</TableHead>
+                      <TableHead>Est. Cost</TableHead>
+                      <TableHead>Actual Curr.</TableHead>
                       <TableHead>Actual Cost</TableHead>
-                      <TableHead>Actual VAT</TableHead>
                       {!isSentToAccounting && <TableHead>Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
@@ -846,11 +844,9 @@ const InvoiceView = () => {
                               </Button>
                             </BookingSummaryPopover>
                           </TableCell>
-                          <TableCell>{booking.description}</TableCell>
                           <TableCell>{booking.supplierName}</TableCell>
                           <TableCell>{booking.firstName}</TableCell>
                           <TableCell>{booking.lastName}</TableCell>
-                          <TableCell>{booking.confirmationNumber}</TableCell>
                           <TableCell>
                             {booking.departureDate ? new Date(booking.departureDate).toLocaleDateString() : ''}
                           </TableCell>
@@ -867,16 +863,16 @@ const InvoiceView = () => {
                             </span>
                           </TableCell>
                           <TableCell className="text-blue-600">
-                            {formatCurrency(booking.estimatedCost)}
+                            {booking.currency}
                           </TableCell>
                           <TableCell className="text-blue-600">
-                            {formatCurrency(booking.estimatedVat)}
+                            {formatCurrency(booking.estimatedCost)}
+                          </TableCell>
+                          <TableCell className="text-green-600">
+                            {booking.currency}
                           </TableCell>
                           <TableCell className="text-green-600">
                             {formatCurrency(booking.totalActualCost)}
-                          </TableCell>
-                          <TableCell className="text-green-600">
-                            {formatCurrency(booking.totalActualVat)}
                           </TableCell>
                           {!isSentToAccounting && (
                             <TableCell>
@@ -905,9 +901,7 @@ const InvoiceView = () => {
                     <span className="text-green-600">
                       {currency} {formatCurrency(
                         groupedBookingTotals.reduce((sum, booking) => sum + booking.totalActualCost, 0)
-                      )} + {formatCurrency(
-                        groupedBookingTotals.reduce((sum, booking) => sum + booking.totalActualVat, 0)
-                      )} VAT
+                      )}
                     </span>
                   </div>
                 </div>
