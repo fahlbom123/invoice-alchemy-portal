@@ -168,7 +168,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                   onClick={addVatAccountEntry}
                 >
                   <Plus className="mr-1 h-3 w-3" />
-                  Add VAT
+                  Add VAT Account
                 </Button>
               </>
             )}
