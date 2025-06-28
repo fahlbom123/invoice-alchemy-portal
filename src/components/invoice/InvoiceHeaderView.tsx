@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -83,7 +82,7 @@ const InvoiceHeaderView = ({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-500">Internal Supplier Invoice ID</label>
+                <label className="text-sm font-medium text-gray-500">Invoice ID</label>
                 <p className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{internalSupplierInvoiceId}</p>
               </div>
               <div>
