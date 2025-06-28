@@ -183,7 +183,7 @@ const InvoiceLineSearch = () => {
         
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Search Invoice Lines ({allInvoiceLines.length} total lines available)</CardTitle>
+            <CardTitle>Search Bookings ({allInvoiceLines.length} total bookings available)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -322,7 +322,7 @@ const InvoiceLineSearch = () => {
                 Search Results
                 {searchResults.length > 0 && (
                   <span className="text-sm font-normal ml-2 text-gray-500">
-                    ({searchResults.length} items found)
+                    ({searchResults.length} bookings found)
                   </span>
                 )}
               </CardTitle>
@@ -337,7 +337,7 @@ const InvoiceLineSearch = () => {
                 />
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  No invoice lines found matching your criteria.
+                  No bookings found matching your criteria.
                 </div>
               )}
             </CardContent>
