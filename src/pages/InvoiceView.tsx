@@ -484,11 +484,18 @@ const InvoiceView = () => {
       departureDateStart,
       departureDateEnd,
       paymentStatus,
-      totalLines: allInvoiceLines.length
+      totalLines: allInvoiceLines.length,
+      currentInvoiceSupplier: invoice?.supplier.id
     });
     
     const filtered = allInvoiceLines.filter(line => {
-      const matchesSupplier = supplierId === "all" || line.supplierId === supplierId;
+      // Fix supplier filtering logic
+      let matchesSupplier = true;
+      if (supplierId !== "all") {
+        matchesSupplier = line.supplierId === supplierId;
+        console.log(`Line ${line.id} supplier check: ${line.supplierId} === ${supplierId} = ${matchesSupplier}`);
+      }
+      
       const matchesDescription = !description || 
         line.description.toLowerCase().includes(description.toLowerCase());
       
@@ -518,13 +525,20 @@ const InvoiceView = () => {
 
       const matchesPaymentStatus = paymentStatus === "all" || line.paymentStatus === paymentStatus;
       
-      return matchesSupplier && matchesDescription && 
+      const result = matchesSupplier && matchesDescription && 
              matchesBookingNumber && matchesConfirmationNumber && 
              matchesFirstName && matchesLastName && matchesDepartureDate && 
              matchesPaymentStatus;
+      
+      if (!result && supplierId !== "all") {
+        console.log(`Line ${line.id} filtered out - supplier: ${line.supplierId}, expected: ${supplierId}`);
+      }
+      
+      return result;
     });
     
     console.log("Search results:", filtered.length, "lines found from", allInvoiceLines.length, "total lines");
+    console.log("Filtered lines by supplier:", filtered.map(line => ({ id: line.id, supplierId: line.supplierId, supplierName: line.supplierName })));
     setSearchResults(filtered);
     setHasSearched(true);
   };
