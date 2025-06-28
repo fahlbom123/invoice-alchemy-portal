@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -303,7 +304,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         </div>
         
         <div className="grid grid-cols-12 gap-1">
-          <div className="col-span-6"></div>
+          <div className="col-span-6 font-medium">Total Allocated VAT:</div>
           <div className="col-span-1"></div>
           <div className={`col-span-4 font-medium text-right ${isVatAmountValid ? "text-green-600" : "text-red-600"}`}>
             {formatCurrency(totalVatAmount)}
@@ -321,7 +322,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         </div>
         
         <div className="grid grid-cols-12 gap-1">
-          <div className="col-span-6"></div>
+          <div className="col-span-6 font-medium">Remaining VAT:</div>
           <div className="col-span-1"></div>
           <div className={`col-span-4 font-medium text-right ${remainingVat >= 0 ? "text-gray-600" : "text-red-600"}`}>
             {formatCurrency(remainingVat)}
