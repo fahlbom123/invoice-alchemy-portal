@@ -12,6 +12,7 @@ import { useSuppliers } from "@/hooks/useSuppliers";
 import InvoiceLineSearchResults from "@/components/InvoiceLineSearchResults";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "sonner";
+import { mockBookings } from "@/data/mockData";
 
 // Extended type for invoice lines with additional properties
 interface ExtendedInvoiceLine extends InvoiceLine {
@@ -44,19 +45,33 @@ const InvoiceLineSearch = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchKey, setSearchKey] = useState(0);
 
-  // Transform invoice lines to extended format
-  const allInvoiceLines: ExtendedInvoiceLine[] = invoiceLines.map(line => ({
-    ...line,
-    invoiceId: line.invoiceId || '',
-    invoiceNumber: line.invoiceNumber || '',
-    bookingNumber: line.bookingNumber || "",
-    confirmationNumber: line.confirmationNumber || "",
-    departureDate: line.departureDate || "",
-    paymentStatus: line.paymentStatus || "unpaid",
-    invoiceTotalAmount: 0, // Will be calculated if needed
-    firstName: line.firstName || "",
-    lastName: line.lastName || ""
-  }));
+  // Helper function to get booking details from booking number
+  const getBookingDetails = (bookingNumber?: string) => {
+    if (!bookingNumber) return { firstName: '', lastName: '' };
+    const booking = mockBookings.find(b => b.bookingNumber === bookingNumber);
+    return {
+      firstName: booking?.firstName || '',
+      lastName: booking?.lastName || ''
+    };
+  };
+
+  // Transform invoice lines to extended format with booking details
+  const allInvoiceLines: ExtendedInvoiceLine[] = invoiceLines.map(line => {
+    const bookingDetails = getBookingDetails(line.bookingNumber);
+    
+    return {
+      ...line,
+      invoiceId: line.invoiceId || '',
+      invoiceNumber: line.invoiceNumber || '',
+      bookingNumber: line.bookingNumber || "",
+      confirmationNumber: line.confirmationNumber || "",
+      departureDate: line.departureDate || "",
+      paymentStatus: line.paymentStatus || "unpaid",
+      invoiceTotalAmount: 0, // Will be calculated if needed
+      firstName: bookingDetails.firstName,
+      lastName: bookingDetails.lastName
+    };
+  });
 
   // Memoized search function
   const performSearch = useCallback(() => {
@@ -86,7 +101,7 @@ const InvoiceLineSearch = () => {
       const matchesConfirmationNumber = !confirmationNumber || 
         (line.confirmationNumber && line.confirmationNumber.toLowerCase().includes(confirmationNumber.toLowerCase()));
       
-      // New first name and last name search parameters
+      // First name and last name search - now properly implemented
       const matchesFirstName = !firstName || 
         (line.firstName && line.firstName.toLowerCase().includes(firstName.toLowerCase()));
       
