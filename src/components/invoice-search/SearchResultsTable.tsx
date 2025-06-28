@@ -73,11 +73,18 @@ const SearchResultsTable = ({
 
   // Helper function to get booking details from booking number
   const getBookingDetails = (bookingNumber?: string) => {
+    console.log('Getting booking details for:', bookingNumber);
+    console.log('Available bookings:', mockBookings.map(b => ({ number: b.bookingNumber, firstName: b.firstName, lastName: b.lastName })));
+    
     if (!bookingNumber) return { firstName: '', lastName: '', fullName: '-' };
     const booking = mockBookings.find(b => b.bookingNumber === bookingNumber);
-    if (!booking) return { firstName: '', lastName: '', fullName: '-' };
+    if (!booking) {
+      console.log('No booking found for number:', bookingNumber);
+      return { firstName: '', lastName: '', fullName: '-' };
+    }
     
     const fullName = [booking.firstName, booking.lastName].filter(Boolean).join(' ') || '-';
+    console.log('Found booking:', { bookingNumber, firstName: booking.firstName, lastName: booking.lastName, fullName });
     return {
       firstName: booking.firstName || '',
       lastName: booking.lastName || '',
@@ -528,14 +535,12 @@ const SearchResultsTable = ({
                     const bookingTotals = calculateTotals(bookingLines);
                     
                     return (
-                      <React.Fragment key={`${supplierKey}-${bookingNumber}`}>
-                        {/* Hide individual invoice lines, just show booking total */}
-                        <BookingSubtotalRow 
-                          bookingNumber={bookingNumber} 
-                          bookingLines={bookingLines}
-                          totals={bookingTotals} 
-                        />
-                      </React.Fragment>
+                      <BookingSubtotalRow 
+                        key={`${supplierKey}-${bookingNumber}`}
+                        bookingNumber={bookingNumber} 
+                        bookingLines={bookingLines}
+                        totals={bookingTotals} 
+                      />
                     );
                   })}
                   <SupplierSubtotalRow 
@@ -569,13 +574,12 @@ const SearchResultsTable = ({
                 const bookingTotals = calculateTotals(bookingLines);
                 
                 return (
-                  <div key={`${supplierKey}-${bookingNumber}`} className="space-y-2">
-                    <MobileBookingSubtotal 
-                      bookingNumber={bookingNumber} 
-                      bookingLines={bookingLines}
-                      totals={bookingTotals} 
-                    />
-                  </div>
+                  <MobileBookingSubtotal 
+                    key={`${supplierKey}-${bookingNumber}`}
+                    bookingNumber={bookingNumber} 
+                    bookingLines={bookingLines}
+                    totals={bookingTotals} 
+                  />
                 );
               })}
               <MobileSupplierSubtotal 
