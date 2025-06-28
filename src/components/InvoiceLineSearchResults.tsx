@@ -122,7 +122,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
     // Don't allow selection of paid lines
     const line = lines.find(l => l.id === id);
     if (line?.paymentStatus === "paid" && checked) {
-      toast.error("Cannot select paid invoice lines");
+      toast.error("Cannot select paid booking lines");
       return;
     }
 
@@ -296,7 +296,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
 
   const handleRegisterMultipleInvoices = () => {
     if (selectedLines.length === 0) {
-      toast.error("Please select at least one invoice line");
+      toast.error("Please select at least one booking line");
       return;
     }
     
@@ -384,15 +384,15 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
         .insert(supplierInvoiceLineData);
 
       if (insertError) {
-        console.error('Error saving supplier invoice lines:', insertError);
-        toast.error("Failed to save supplier invoice lines to database");
+        console.error('Error saving registered bookings to database:', insertError);
+        toast.error("Failed to save registered bookings to database");
         return;
       }
 
-      console.log("Successfully saved supplier invoice lines to database");
+      console.log("Successfully saved registered bookings to database");
     } catch (error) {
       console.error('Error in database operation:', error);
-      toast.error("Failed to save supplier invoice lines");
+      toast.error("Failed to save registered bookings");
       return;
     }
     
@@ -407,7 +407,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
       onRegister(selectedLines, { totalActualCost, totalActualVat: 0 }, supplierInvoiceLines, allInvoiceLinesPaid);
     }
     
-    toast.success(`Registered ${selectedLines.length} invoice lines to supplier invoice`);
+    toast.success(`Registered ${selectedLines.length} booking lines`);
   };
 
   const handleToggleFullyPaid = (lineId: string, isPaid: boolean) => {
@@ -463,7 +463,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
           <AlertDialogHeader>
             <AlertDialogTitle>Payment Status Confirmation</AlertDialogTitle>
             <AlertDialogDescription>
-              Are all selected invoice lines fully paid? This will mark all selected lines as "fully paid" and may update the invoice status.
+              Are all selected booking lines fully paid? This will mark all selected lines as "fully paid" and may update the booking status.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

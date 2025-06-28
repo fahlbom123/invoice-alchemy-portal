@@ -31,7 +31,7 @@ const SelectedLinesSummary = ({
     <div className="mb-4 p-4 bg-blue-50 rounded-md border border-blue-200">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <span className="font-medium block">{count} lines selected</span>
+          <span className="font-medium block">{count} bookings selected</span>
           <div className="text-sm space-y-2">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="space-y-3">
@@ -78,7 +78,7 @@ const SelectedLinesSummary = ({
           </div>
         </div>
         <Button onClick={onRegisterMultipleInvoices}>
-          Register Supplier Invoice
+          Register Bookings
         </Button>
       </div>
     </div>
