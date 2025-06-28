@@ -734,7 +734,13 @@ const InvoiceView = () => {
   } : null;
 
   const groupSupplierLinesByBookingWithTotals = (lines: SupplierInvoiceLine[]) => {
-    console.log('Grouping supplier lines by booking, input lines:', lines.map(l => ({ id: l.id, actualCost: l.actualCost, actualVat: l.actualVat })));
+    console.log('Grouping supplier lines by booking, input lines:', lines.map(l => ({ 
+      id: l.id, 
+      invoiceLineId: l.invoiceLineId,
+      actualCost: l.actualCost, 
+      actualVat: l.actualVat,
+      description: l.description
+    })));
     
     const grouped = lines.reduce((acc, line) => {
       const bookingNumber = getBookingNumberForSupplierLine(line);
@@ -756,10 +762,15 @@ const InvoiceView = () => {
         };
       }
       acc[bookingNumber].lines.push(line);
-      acc[bookingNumber].totalActualCost += line.actualCost;
-      acc[bookingNumber].totalActualVat += line.actualVat;
       
-      console.log('Added line to booking', bookingNumber, '- actualCost:', line.actualCost, 'running total:', acc[bookingNumber].totalActualCost);
+      // Make sure we're adding the actual costs from the supplier invoice lines
+      const actualCost = Number(line.actualCost) || 0;
+      const actualVat = Number(line.actualVat) || 0;
+      
+      acc[bookingNumber].totalActualCost += actualCost;
+      acc[bookingNumber].totalActualVat += actualVat;
+      
+      console.log('Added line to booking', bookingNumber, '- line actualCost:', actualCost, 'line actualVat:', actualVat, 'running actualCost total:', acc[bookingNumber].totalActualCost, 'running actualVat total:', acc[bookingNumber].totalActualVat);
       
       // Set registered datetime from the earliest supplier invoice line creation date
       if (!acc[bookingNumber].registeredAt || line.createdAt < acc[bookingNumber].registeredAt) {
@@ -783,19 +794,19 @@ const InvoiceView = () => {
       registeredAt: string;
     }>);
     
-    // Now calculate estimated costs for each booking group using the booking number (same as search)
+    // Now calculate estimated costs for each booking group
     Object.keys(grouped).forEach(bookingNumber => {
       const booking = grouped[bookingNumber];
       
-      console.log('Calculating estimated costs for registered booking:', bookingNumber, 'using booking number to match search results');
+      console.log('Calculating estimated costs for registered booking:', bookingNumber);
       
-      // Use the same method as search results - get estimated costs by booking number and supplier
+      // Get estimated costs from original invoice lines that match this booking
       const estimatedCosts = getEstimatedCostsForBooking(bookingNumber);
       booking.estimatedCost = estimatedCosts.estimatedCost;
       booking.estimatedVat = estimatedCosts.estimatedVat;
       booking.currency = estimatedCosts.currency;
       
-      console.log('Set estimated costs for booking', bookingNumber, ':', estimatedCosts);
+      console.log('Set estimated costs for booking', bookingNumber, '- estimatedCost:', booking.estimatedCost, 'estimatedVat:', booking.estimatedVat, 'actualCost:', booking.totalActualCost, 'actualVat:', booking.totalActualVat);
       
       // Get additional booking details from the first invoice line that matches the booking number and supplier
       const originalLine = allInvoiceLines.find(line => 
@@ -809,10 +820,31 @@ const InvoiceView = () => {
         booking.supplierName = originalLine.supplierName;
         booking.confirmationNumber = originalLine.confirmationNumber || '';
         booking.paymentStatus = originalLine.paymentStatus || 'unpaid';
+        console.log('Set booking details for', bookingNumber, '- supplier:', booking.supplierName, 'description:', booking.description);
+      } else {
+        console.log('No original line found for booking', bookingNumber, 'with supplier', invoice?.supplier.id);
+        // Set fallback values from supplier invoice line
+        if (booking.lines.length > 0) {
+          const firstLine = booking.lines[0];
+          booking.supplierName = firstLine.supplierName;
+          booking.description = firstLine.description;
+          booking.currency = firstLine.currency;
+          console.log('Used fallback values from supplier line for booking', bookingNumber);
+        }
       }
     });
     
-    return Object.values(grouped);
+    const result = Object.values(grouped);
+    console.log('Final grouped booking totals:', result.map(b => ({
+      bookingNumber: b.bookingNumber,
+      totalActualCost: b.totalActualCost,
+      totalActualVat: b.totalActualVat,
+      estimatedCost: b.estimatedCost,
+      estimatedVat: b.estimatedVat,
+      supplierName: b.supplierName
+    })));
+    
+    return result;
   };
 
   const groupedBookingTotals = groupSupplierLinesByBookingWithTotals(connectedSupplierInvoiceLines);
