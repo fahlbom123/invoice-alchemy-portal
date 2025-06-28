@@ -779,24 +779,25 @@ const InvoiceView = () => {
       registeredAt: string;
     }>);
     
-    // Now calculate estimated costs for each booking group using the actual booking number
+    // Now calculate estimated costs for each booking group using the actual invoice line IDs
     Object.keys(grouped).forEach(bookingNumber => {
       const booking = grouped[bookingNumber];
       
-      console.log('Calculating estimated costs for registered booking:', bookingNumber);
+      console.log('Calculating estimated costs for registered booking:', bookingNumber, 'using invoice line IDs:', booking.lines.map(l => l.invoiceLineId));
       
-      // Use the booking number directly to get estimated costs for current supplier only
-      const estimatedCosts = getEstimatedCostsForBooking(bookingNumber);
+      // Use the supplier lines to get estimated costs based on actual invoice line IDs
+      const estimatedCosts = getEstimatedCostsForSupplierLinesInBooking(booking.lines);
       booking.estimatedCost = estimatedCosts.estimatedCost;
       booking.estimatedVat = estimatedCosts.estimatedVat;
       booking.currency = estimatedCosts.currency;
       
       console.log('Set estimated costs for booking', bookingNumber, ':', estimatedCosts);
       
-      // Get additional booking details from the first original line (from current supplier)
+      // Get additional booking details from the first invoice line that matches the supplier lines
+      const firstInvoiceLineId = booking.lines[0]?.invoiceLineId;
       const originalLine = allInvoiceLines.find(line => 
-        line.bookingNumber === bookingNumber &&
-        line.supplierId === invoice?.supplier.id // Only get details from current supplier
+        line.id === firstInvoiceLineId &&
+        line.supplierId === invoice?.supplier.id
       );
       
       if (originalLine) {
