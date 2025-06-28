@@ -683,8 +683,70 @@ const InvoiceView = () => {
     description: selectedProject.description
   } : null;
 
+  // Function to group supplier invoice lines by booking number and calculate totals
+  const groupSupplierLinesByBookingWithTotals = (lines: SupplierInvoiceLine[]) => {
+    const grouped = lines.reduce((acc, line) => {
+      const bookingNumber = getBookingNumberForSupplierLine(line);
+      if (!acc[bookingNumber]) {
+        acc[bookingNumber] = {
+          bookingNumber,
+          lines: [],
+          totalActualCost: 0,
+          totalActualVat: 0,
+          estimatedCost: 0,
+          estimatedVat: 0,
+          currency: 'USD',
+          firstName: '',
+          lastName: '',
+          departureDate: '',
+          description: '',
+          supplierName: '',
+          confirmationNumber: '',
+          paymentStatus: 'unpaid' as const
+        };
+      }
+      acc[bookingNumber].lines.push(line);
+      acc[bookingNumber].totalActualCost += line.actualCost;
+      acc[bookingNumber].totalActualVat += line.actualVat;
+      
+      // Get details from the first original line for this booking
+      const originalLine = allInvoiceLines.find(origLine => origLine.id === line.invoiceLineId);
+      if (originalLine && acc[bookingNumber].description === '') {
+        acc[bookingNumber].estimatedCost += originalLine.estimatedCost || 0;
+        acc[bookingNumber].estimatedVat += originalLine.estimatedVat || 0;
+        acc[bookingNumber].currency = originalLine.currency || 'USD';
+        acc[bookingNumber].firstName = originalLine.firstName || '';
+        acc[bookingNumber].lastName = originalLine.lastName || '';
+        acc[bookingNumber].departureDate = originalLine.departureDate || '';
+        acc[bookingNumber].description = originalLine.description;
+        acc[bookingNumber].supplierName = originalLine.supplierName;
+        acc[bookingNumber].confirmationNumber = originalLine.confirmationNumber || '';
+        acc[bookingNumber].paymentStatus = originalLine.paymentStatus || 'unpaid';
+      }
+      
+      return acc;
+    }, {} as Record<string, {
+      bookingNumber: string;
+      lines: SupplierInvoiceLine[];
+      totalActualCost: number;
+      totalActualVat: number;
+      estimatedCost: number;
+      estimatedVat: number;
+      currency: string;
+      firstName: string;
+      lastName: string;
+      departureDate: string;
+      description: string;
+      supplierName: string;
+      confirmationNumber: string;
+      paymentStatus: 'paid' | 'unpaid' | 'partial';
+    }>);
+    
+    return Object.values(grouped);
+  };
+
   // Use the connected supplier invoice lines instead of all supplier invoice lines
-  const groupedSupplierLines = groupSupplierLinesByBooking(connectedSupplierInvoiceLines);
+  const groupedBookingTotals = groupSupplierLinesByBookingWithTotals(connectedSupplierInvoiceLines);
 
   const currency = invoice.currency || 'USD';
 
@@ -769,12 +831,12 @@ const InvoiceView = () => {
           </CardContent>
         </Card>
 
-        {/* Registered Supplier Invoice Lines - Show this section prominently */}
+        {/* Registered Bookings - Show booking totals instead of individual lines */}
         {connectedSupplierInvoiceLines && connectedSupplierInvoiceLines.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="text-lg font-medium text-green-700">
-                Registered Supplier Invoice Lines ({connectedSupplierInvoiceLines.length} lines)
+                Registered Bookings ({groupedBookingTotals.length} bookings)
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -782,193 +844,106 @@ const InvoiceView = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>#</TableHead>
+                      <TableHead>
+                        <Checkbox
+                          checked={groupedBookingTotals.length > 0 && groupedBookingTotals.every(booking => fullyPaidStatus[booking.bookingNumber])}
+                          onCheckedChange={(checked) => {
+                            const newStatus = Object.fromEntries(
+                              groupedBookingTotals.map(booking => [booking.bookingNumber, checked as boolean])
+                            );
+                            setFullyPaidStatus(newStatus);
+                          }}
+                          disabled={isSentToAccounting}
+                        />
+                      </TableHead>
+                      <TableHead>Booking Number</TableHead>
                       <TableHead>Description</TableHead>
                       <TableHead>Supplier</TableHead>
-                      <TableHead>Booking Number</TableHead>
-                      <TableHead>User</TableHead>
-                      <TableHead>Register Datetime</TableHead>
-                      <TableHead>Estimated Curr.</TableHead>
+                      <TableHead>First Name</TableHead>
+                      <TableHead>Last Name</TableHead>
+                      <TableHead>Confirmation Number</TableHead>
+                      <TableHead>Departure Date</TableHead>
+                      <TableHead>Payment Status</TableHead>
                       <TableHead>Estimated Cost</TableHead>
                       <TableHead>Estimated VAT</TableHead>
-                      <TableHead>Actual Curr.</TableHead>
                       <TableHead>Actual Cost</TableHead>
                       <TableHead>Actual VAT</TableHead>
                       {!isSentToAccounting && <TableHead>Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Object.entries(groupedSupplierLines).map(([bookingNumber, lines]) => {
-                      const estimatedCostsForSubtotal = getEstimatedCostsForSupplierLinesInBooking(lines);
-                      const isFullyPaid = fullyPaidStatus[bookingNumber] || false;
-                      const lineNumbers = generateLineNumbers(lines);
+                    {groupedBookingTotals.map((booking) => {
+                      const isFullyPaid = fullyPaidStatus[booking.bookingNumber] || false;
                       return (
-                        <React.Fragment key={bookingNumber}>
-                          {/* Booking Group Header */}
-                          <TableRow className="bg-blue-50 border-t-2 border-blue-200">
-                            <TableCell colSpan={!isSentToAccounting ? 13 : 12} className="font-semibold text-blue-800">
-                              Booking: {bookingNumber}
+                        <TableRow key={booking.bookingNumber}>
+                          <TableCell>
+                            <Checkbox
+                              checked={isFullyPaid}
+                              onCheckedChange={(checked) => handleFullyPaidChange(booking.bookingNumber, checked as boolean)}
+                              disabled={isSentToAccounting}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <BookingSummaryPopover
+                              bookingNumber={booking.bookingNumber}
+                              allSupplierInvoiceLines={connectedSupplierInvoiceLines}
+                              getEstimatedCostsForBooking={getEstimatedCostsForBooking}
+                            >
+                              <Button variant="link" className="p-0 h-auto text-blue-600 hover:text-blue-800">
+                                {booking.bookingNumber}
+                              </Button>
+                            </BookingSummaryPopover>
+                          </TableCell>
+                          <TableCell>{booking.description}</TableCell>
+                          <TableCell>{booking.supplierName}</TableCell>
+                          <TableCell>{booking.firstName}</TableCell>
+                          <TableCell>{booking.lastName}</TableCell>
+                          <TableCell>{booking.confirmationNumber}</TableCell>
+                          <TableCell>
+                            {booking.departureDate ? new Date(booking.departureDate).toLocaleDateString() : ''}
+                          </TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              booking.paymentStatus === 'paid' 
+                                ? 'bg-green-100 text-green-800' 
+                                : booking.paymentStatus === 'partial'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {booking.paymentStatus === 'paid' ? 'Paid' : 
+                               booking.paymentStatus === 'partial' ? 'Partial' : 'Unpaid'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-blue-600">
+                            {formatCurrency(booking.estimatedCost)}
+                          </TableCell>
+                          <TableCell className="text-blue-600">
+                            {formatCurrency(booking.estimatedVat)}
+                          </TableCell>
+                          <TableCell className="text-green-600">
+                            {formatCurrency(booking.totalActualCost)}
+                          </TableCell>
+                          <TableCell className="text-green-600">
+                            {formatCurrency(booking.totalActualVat)}
+                          </TableCell>
+                          {!isSentToAccounting && (
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    // Delete all supplier invoice lines for this booking
+                                    booking.lines.forEach(line => handleDeleteSupplierLine(line.id));
+                                  }}
+                                  disabled={isFullyPaid}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </TableCell>
-                          </TableRow>
-                          {/* Lines for this booking */}
-                          {lines.map((line, index) => {
-                            const isFirstOccurrence = isFirstOccurrenceOfInvoiceLine(lines, line, index);
-                            const originalLine = allInvoiceLines.find(origLine => origLine.id === line.invoiceLineId);
-                            return (
-                              <TableRow key={line.id}>
-                                <TableCell>{lineNumbers[line.id]}</TableCell>
-                                <TableCell>
-                                  {editingLineId === line.id ? (
-                                    <Input
-                                      value={editingLine?.description || ""}
-                                      onChange={(e) => setEditingLine(prev => prev ? { ...prev, description: e.target.value } : null)}
-                                    />
-                                  ) : (
-                                    line.description
-                                  )}
-                                </TableCell>
-                                <TableCell>{line.supplierName}</TableCell>
-                                <TableCell>
-                                  <BookingSummaryPopover
-                                    bookingNumber={bookingNumber}
-                                    allSupplierInvoiceLines={connectedSupplierInvoiceLines}
-                                    getEstimatedCostsForBooking={getEstimatedCostsForBooking}
-                                  >
-                                    <Button variant="link" className="p-0 h-auto text-blue-600 hover:text-blue-800">
-                                      {bookingNumber}
-                                    </Button>
-                                  </BookingSummaryPopover>
-                                </TableCell>
-                                <TableCell>{line.createdBy || "Unknown"}</TableCell>
-                                <TableCell>
-                                  {new Date(line.createdAt).toLocaleString('en-US', {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    hour12: false
-                                  })}
-                                </TableCell>
-                                <TableCell className="text-blue-600">{originalLine?.currency || 'USD'}</TableCell>
-                                <TableCell className="text-blue-600">
-                                  {isFirstOccurrence ? formatCurrency(originalLine?.estimatedCost || 0) : formatCurrency(0)}
-                                </TableCell>
-                                <TableCell className="text-blue-600">
-                                  {isFirstOccurrence ? formatCurrency(originalLine?.estimatedVat || 0) : formatCurrency(0)}
-                                </TableCell>
-                                <TableCell className="text-green-600">{currency}</TableCell>
-                                <TableCell>
-                                  {editingLineId === line.id ? (
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      value={editingLine?.actualCost || 0}
-                                      onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualCost: parseFloat(e.target.value) || 0 } : null)}
-                                    />
-                                  ) : (
-                                    formatCurrency(line.actualCost)
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  {editingLineId === line.id ? (
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      value={editingLine?.actualVat || 0}
-                                      onChange={(e) => setEditingLine(prev => prev ? { ...prev, actualVat: parseFloat(e.target.value) || 0 } : null)}
-                                    />
-                                  ) : (
-                                    formatCurrency(line.actualVat)
-                                  )}
-                                </TableCell>
-                                {!isSentToAccounting && (
-                                  <TableCell>
-                                    <div className="flex gap-2">
-                                      {editingLineId === line.id ? (
-                                        <>
-                                          <Button
-                                            variant="default"
-                                            size="sm"
-                                            onClick={handleSaveSupplierLine}
-                                            disabled={isFullyPaid}
-                                          >
-                                            <Save className="h-4 w-4" />
-                                          </Button>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleCancelEdit}
-                                            disabled={isFullyPaid}
-                                          >
-                                            <X className="h-4 w-4" />
-                                          </Button>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleEditSupplierLine(line)}
-                                            disabled={isFullyPaid}
-                                          >
-                                            <Edit className="h-4 w-4" />
-                                          </Button>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleDeleteSupplierLine(line.id)}
-                                            disabled={isFullyPaid}
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </>
-                                      )}
-                                    </div>
-                                  </TableCell>
-                                )}
-                              </TableRow>
-                            );
-                          })}
-                          {/* Subtotal row for this booking */}
-                          <TableRow className="bg-gray-100 font-medium border-b-2">
-                            <TableCell colSpan={6} className="text-right">
-                              Subtotal for Booking {bookingNumber}:
-                            </TableCell>
-                            <TableCell className="text-blue-600">{estimatedCostsForSubtotal.currency}</TableCell>
-                            <TableCell className="text-blue-600">
-                              {formatCurrency(estimatedCostsForSubtotal.estimatedCost)}
-                            </TableCell>
-                            <TableCell className="text-blue-600">
-                              {formatCurrency(estimatedCostsForSubtotal.estimatedVat)}
-                            </TableCell>
-                            <TableCell className="text-green-600">{currency}</TableCell>
-                            <TableCell className="text-green-600">
-                              {formatCurrency(
-                                lines.reduce((sum, line) => sum + line.actualCost, 0)
-                              )}
-                            </TableCell>
-                            <TableCell className="text-green-600">
-                              {formatCurrency(
-                                lines.reduce((sum, line) => sum + line.actualVat, 0)
-                              )}
-                            </TableCell>
-                            {!isSentToAccounting && (
-                              <TableCell>
-                                <div className="flex items-center space-x-2">
-                                  <Checkbox
-                                    checked={isFullyPaid}
-                                    onCheckedChange={(checked) => handleFullyPaidChange(bookingNumber, checked as boolean)}
-                                    disabled={isSentToAccounting}
-                                  />
-                                  <span className="text-sm">
-                                    Fully paid: {isFullyPaid ? "Yes" : "No"}
-                                  </span>
-                                </div>
-                              </TableCell>
-                            )}
-                          </TableRow>
-                        </React.Fragment>
+                          )}
+                        </TableRow>
                       );
                     })}
                   </TableBody>
@@ -978,9 +953,9 @@ const InvoiceView = () => {
                     <span>Total Registered:</span>
                     <span className="text-green-600">
                       {currency} {formatCurrency(
-                        connectedSupplierInvoiceLines.reduce((sum, line) => sum + line.actualCost, 0)
+                        groupedBookingTotals.reduce((sum, booking) => sum + booking.totalActualCost, 0)
                       )} + {formatCurrency(
-                        connectedSupplierInvoiceLines.reduce((sum, line) => sum + line.actualVat, 0)
+                        groupedBookingTotals.reduce((sum, booking) => sum + booking.totalActualVat, 0)
                       )} VAT
                     </span>
                   </div>
