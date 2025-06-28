@@ -187,17 +187,27 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
           </div>
         </div>
         
+        {/* Headers - only show once at the top */}
+        {(accountEntries.length > 0 || vatAccountEntries.length > 0) && (
+          <div className="grid grid-cols-12 gap-2 items-center text-xs font-medium text-gray-500 pb-1">
+            <div className="col-span-6">Account</div>
+            <div className="col-span-1"></div>
+            <div className="col-span-3 text-right">Amount</div>
+            <div className="col-span-1"></div>
+            <div className="col-span-1"></div>
+          </div>
+        )}
+        
         {/* Regular Account Entries */}
         {accountEntries.map((entry) => (
           <div key={entry.id} className="grid grid-cols-12 gap-2 items-center py-2">
             <div className="col-span-6">
-              <label className="text-xs font-medium text-gray-500 mb-1 block">Account</label>
               <Select
                 value={entry.account}
                 onValueChange={(value) => updateAccountEntry(entry.id, 'account', value)}
                 disabled={disabled}
               >
-                <SelectTrigger className="text-sm">
+                <SelectTrigger className="text-sm bg-transparent border-gray-300">
                   <SelectValue placeholder="Select account" />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-50">
@@ -211,14 +221,13 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
             </div>
             <div className="col-span-1"></div>
             <div className="col-span-3">
-              <label className="text-xs font-medium text-gray-500 mb-1 block">Amount</label>
               <Input
                 type="number"
                 value={entry.amount}
                 onChange={(e) => updateAccountEntry(entry.id, 'amount', e.target.value)}
                 placeholder="0.00"
                 disabled={disabled}
-                className="text-sm text-right"
+                className="text-sm text-right bg-transparent border-gray-300"
                 min="0"
                 max={totalAmount}
                 step="0.01"
@@ -244,13 +253,12 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         {vatAccountEntries.map((entry) => (
           <div key={entry.id} className="grid grid-cols-12 gap-2 items-center py-2">
             <div className="col-span-6">
-              <label className="text-xs font-medium text-gray-500 mb-1 block">VAT Account</label>
               <Select
                 value={entry.vatAccount}
                 onValueChange={(value) => updateVatAccountEntry(entry.id, 'vatAccount', value)}
                 disabled={disabled}
               >
-                <SelectTrigger className="text-sm">
+                <SelectTrigger className="text-sm bg-transparent border-gray-300">
                   <SelectValue placeholder="Select VAT account" />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-50">
@@ -264,14 +272,13 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
             </div>
             <div className="col-span-1"></div>
             <div className="col-span-3">
-              <label className="text-xs font-medium text-gray-500 mb-1 block">VAT Amount</label>
               <Input
                 type="number"
                 value={entry.vatAmount}
                 onChange={(e) => updateVatAccountEntry(entry.id, 'vatAmount', e.target.value)}
                 placeholder="0.00"
                 disabled={disabled}
-                className="text-sm text-right"
+                className="text-sm text-right bg-transparent border-gray-300"
                 min="0"
                 max={totalVat}
                 step="0.01"
