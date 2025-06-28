@@ -1,4 +1,5 @@
 
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -161,7 +162,7 @@ const InvoiceHeaderView = ({
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">OCR</label>
+                <label className="text-sm font-medium text-gray-500">Payment reference</label>
                 <p className="text-sm">{formData.ocr || 'Not set'}</p>
               </div>
             </div>
@@ -227,3 +228,4 @@ const InvoiceHeaderView = ({
 };
 
 export default InvoiceHeaderView;
+
