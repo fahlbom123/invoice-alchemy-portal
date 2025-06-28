@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -310,12 +311,12 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         </div>
         
         <div className="grid grid-cols-12 gap-2">
-          <div className="col-span-6"></div>
+          <div className="col-span-6 text-xs text-gray-500">Account Amount</div>
           <div className="col-span-1"></div>
           <div className={`col-span-3 font-medium text-right ${isVatAmountValid ? "text-green-600" : "text-red-600"}`}>
             {formatCurrency(totalVatAmount)}
           </div>
-          <div className="col-span-2"></div>
+          <div className="col-span-2 text-xs text-gray-500">VAT Amount</div>
         </div>
         
         <div className="grid grid-cols-12 gap-2">
@@ -328,12 +329,12 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         </div>
         
         <div className="grid grid-cols-12 gap-2">
-          <div className="col-span-6"></div>
+          <div className="col-span-6 text-xs text-gray-500">Account Amount</div>
           <div className="col-span-1"></div>
           <div className={`col-span-3 font-medium text-right ${remainingVat >= 0 ? "text-gray-600" : "text-red-600"}`}>
             {formatCurrency(remainingVat)}
           </div>
-          <div className="col-span-2"></div>
+          <div className="col-span-2 text-xs text-gray-500">VAT Amount</div>
         </div>
         
         {(!isAmountValid || !isVatAmountValid) && (
