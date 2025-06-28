@@ -159,7 +159,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
       </div>
 
       {/* Account Entries - Single Header for all entries */}
-      <div className="space-y-3 mb-4">
+      <div className="space-y-2 mb-4">
         <div className="flex justify-between items-center">
           <h5 className="font-medium text-sm">Account Entries</h5>
           <div className="flex gap-2">
@@ -188,18 +188,17 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         
         {/* Headers - only show once at the top */}
         {accountEntries.length > 0 && (
-          <div className="grid grid-cols-12 gap-2 items-center text-xs font-medium text-gray-500 pb-1">
-            <div className="col-span-4">Account</div>
-            <div className="col-span-4"></div>
-            <div className="col-span-3 text-right">Amount</div>
+          <div className="grid grid-cols-12 gap-1 items-center text-xs font-medium text-gray-500 pb-1">
+            <div className="col-span-6">Account</div>
+            <div className="col-span-5 text-right">Amount</div>
             <div className="col-span-1"></div>
           </div>
         )}
         
         {/* Regular Account Entries */}
         {accountEntries.map((entry) => (
-          <div key={entry.id} className="grid grid-cols-12 gap-2 items-center py-2">
-            <div className="col-span-4">
+          <div key={entry.id} className="grid grid-cols-12 gap-1 items-center py-1">
+            <div className="col-span-6">
               <Select
                 value={entry.account}
                 onValueChange={(value) => updateAccountEntry(entry.id, 'account', value)}
@@ -217,8 +216,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                 </SelectContent>
               </Select>
             </div>
-            <div className="col-span-4"></div>
-            <div className="col-span-3">
+            <div className="col-span-5">
               <Input
                 type="number"
                 value={entry.amount}
@@ -248,18 +246,17 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
 
         {/* VAT Amount Header - only show when there are VAT entries */}
         {vatAccountEntries.length > 0 && (
-          <div className="grid grid-cols-12 gap-2 items-center text-xs font-medium text-gray-500 pb-1 mt-4">
-            <div className="col-span-4">VAT Account</div>
-            <div className="col-span-4"></div>
-            <div className="col-span-3 text-right">VAT Amount</div>
+          <div className="grid grid-cols-12 gap-1 items-center text-xs font-medium text-gray-500 pb-1 mt-2">
+            <div className="col-span-6">VAT Account</div>
+            <div className="col-span-5 text-right">VAT Amount</div>
             <div className="col-span-1"></div>
           </div>
         )}
 
         {/* VAT Account Entries */}
         {vatAccountEntries.map((entry) => (
-          <div key={entry.id} className="grid grid-cols-12 gap-2 items-center py-2">
-            <div className="col-span-4">
+          <div key={entry.id} className="grid grid-cols-12 gap-1 items-center py-1">
+            <div className="col-span-6">
               <Select
                 value={entry.vatAccount}
                 onValueChange={(value) => updateVatAccountEntry(entry.id, 'vatAccount', value)}
@@ -277,8 +274,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                 </SelectContent>
               </Select>
             </div>
-            <div className="col-span-4"></div>
-            <div className="col-span-3">
+            <div className="col-span-5">
               <Input
                 type="number"
                 value={entry.vatAmount}
@@ -310,41 +306,41 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
       {/* Totals */}
       <Separator className="my-3" />
       <div className="space-y-2 text-sm">
-        <div className="grid grid-cols-12 gap-2">
+        <div className="grid grid-cols-12 gap-1">
           <div className="col-span-4 font-medium">Total Allocated:</div>
           <div className="col-span-2 text-xs font-medium text-gray-500">Account Amount</div>
-          <div className="col-span-2"></div>
-          <div className={`col-span-3 font-medium text-right ${isAmountValid ? "text-green-600" : "text-red-600"}`}>
+          <div className="col-span-1"></div>
+          <div className={`col-span-4 font-medium text-right ${isAmountValid ? "text-green-600" : "text-red-600"}`}>
             {formatCurrency(totalEntryAmount)}
           </div>
           <div className="col-span-1"></div>
         </div>
         
-        <div className="grid grid-cols-12 gap-2">
+        <div className="grid grid-cols-12 gap-1">
           <div className="col-span-4"></div>
           <div className="col-span-2 text-xs font-medium text-gray-500">VAT Amount</div>
-          <div className="col-span-2"></div>
-          <div className={`col-span-3 font-medium text-right ${isVatAmountValid ? "text-green-600" : "text-red-600"}`}>
+          <div className="col-span-1"></div>
+          <div className={`col-span-4 font-medium text-right ${isVatAmountValid ? "text-green-600" : "text-red-600"}`}>
             {formatCurrency(totalVatAmount)}
           </div>
           <div className="col-span-1"></div>
         </div>
         
-        <div className="grid grid-cols-12 gap-2">
+        <div className="grid grid-cols-12 gap-1">
           <div className="col-span-4 font-medium">Remaining:</div>
           <div className="col-span-2 text-xs font-medium text-gray-500">Account Amount</div>
-          <div className="col-span-2"></div>
-          <div className={`col-span-3 font-medium text-right ${remainingAmount >= 0 ? "text-gray-600" : "text-red-600"}`}>
+          <div className="col-span-1"></div>
+          <div className={`col-span-4 font-medium text-right ${remainingAmount >= 0 ? "text-gray-600" : "text-red-600"}`}>
             {formatCurrency(remainingAmount)}
           </div>
           <div className="col-span-1"></div>
         </div>
         
-        <div className="grid grid-cols-12 gap-2">
+        <div className="grid grid-cols-12 gap-1">
           <div className="col-span-4"></div>
           <div className="col-span-2 text-xs font-medium text-gray-500">VAT Amount</div>
-          <div className="col-span-2"></div>
-          <div className={`col-span-3 font-medium text-right ${remainingVat >= 0 ? "text-gray-600" : "text-red-600"}`}>
+          <div className="col-span-1"></div>
+          <div className={`col-span-4 font-medium text-right ${remainingVat >= 0 ? "text-gray-600" : "text-red-600"}`}>
             {formatCurrency(remainingVat)}
           </div>
           <div className="col-span-1"></div>
