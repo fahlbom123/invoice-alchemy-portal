@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -53,6 +52,7 @@ interface SearchResultRowProps {
   setEditingCost: (cost: string) => void;
   setEditingVat: (vat: string) => void;
   isMobile?: boolean;
+  hideCheckbox?: boolean;
 }
 
 const SearchResultRow = ({
@@ -68,6 +68,7 @@ const SearchResultRow = ({
   setEditingCost,
   setEditingVat,
   isMobile = false,
+  hideCheckbox = false,
 }: SearchResultRowProps) => {
   const navigate = useNavigate();
   
@@ -179,11 +180,13 @@ const SearchResultRow = ({
       <div className="border rounded-lg p-4 bg-white shadow-sm">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Checkbox 
-              checked={line.selected} 
-              onCheckedChange={(checked) => onSelectLine(line.id, !!checked)} 
-              disabled={isPaid}
-            />
+            {!hideCheckbox && (
+              <Checkbox 
+                checked={line.selected} 
+                onCheckedChange={(checked) => onSelectLine(line.id, !!checked)} 
+                disabled={isPaid}
+              />
+            )}
             <div>
               <div className="font-medium text-sm">{line.invoiceNumber}</div>
               <div className="text-xs text-gray-500">{line.supplierName}</div>
@@ -352,11 +355,13 @@ const SearchResultRow = ({
   return (
     <TableRow>
       <TableCell>
-        <Checkbox 
-          checked={line.selected} 
-          onCheckedChange={(checked) => onSelectLine(line.id, !!checked)} 
-          disabled={isPaid}
-        />
+        {!hideCheckbox && (
+          <Checkbox 
+            checked={line.selected} 
+            onCheckedChange={(checked) => onSelectLine(line.id, !!checked)} 
+            disabled={isPaid}
+          />
+        )}
       </TableCell>
       <TableCell>{line.invoiceNumber}</TableCell>
       <TableCell>{line.description}</TableCell>

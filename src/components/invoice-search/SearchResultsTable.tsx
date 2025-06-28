@@ -131,7 +131,10 @@ const SearchResultsTable = ({
             <Checkbox 
               checked={isSelected}
               ref={(el) => {
-                if (el) el.indeterminate = isPartiallySelected && !isSelected;
+                if (el) {
+                  const checkboxEl = el as any;
+                  checkboxEl.indeterminate = isPartiallySelected && !isSelected;
+                }
               }}
               onCheckedChange={(checked) => handleBookingSelection(bookingLines, !!checked)}
               disabled={!hasUnpaidLines}
@@ -187,7 +190,10 @@ const SearchResultsTable = ({
             <Checkbox 
               checked={isSelected}
               ref={(el) => {
-                if (el) el.indeterminate = isPartiallySelected && !isSelected;
+                if (el) {
+                  const checkboxEl = el as any;
+                  checkboxEl.indeterminate = isPartiallySelected && !isSelected;
+                }
               }}
               onCheckedChange={(checked) => handleBookingSelection(bookingLines, !!checked)}
               disabled={!hasUnpaidLines}
