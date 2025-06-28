@@ -161,22 +161,35 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         <Separator />
       </div>
 
-      {/* Account Entries */}
+      {/* Account Entries - Single Header for all entries */}
       <div className="space-y-3 mb-4">
         <div className="flex justify-between items-center">
           <h5 className="font-medium text-sm">Account Entries</h5>
-          {!disabled && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={addAccountEntry}
-            >
-              <Plus className="mr-1 h-3 w-3" />
-              Add Account Entry
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {!disabled && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={addAccountEntry}
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  Add Account
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={addVatAccountEntry}
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  Add VAT
+                </Button>
+              </>
+            )}
+          </div>
         </div>
         
+        {/* Regular Account Entries */}
         {accountEntries.map((entry) => (
           <div key={entry.id} className="bg-white p-3 rounded border">
             <div className="grid grid-cols-12 gap-2 items-center">
@@ -230,24 +243,8 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
             </div>
           </div>
         ))}
-      </div>
 
-      {/* VAT Account Entries */}
-      <div className="space-y-3 mb-4">
-        <div className="flex justify-between items-center">
-          <h5 className="font-medium text-sm">VAT Account Entries</h5>
-          {!disabled && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={addVatAccountEntry}
-            >
-              <Plus className="mr-1 h-3 w-3" />
-              Add VAT Entry
-            </Button>
-          )}
-        </div>
-        
+        {/* VAT Account Entries */}
         {vatAccountEntries.map((entry) => (
           <div key={entry.id} className="bg-white p-3 rounded border">
             <div className="grid grid-cols-12 gap-2 items-center">
