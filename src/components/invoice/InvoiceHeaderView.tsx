@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatCurrency, formatCurrencyWithRate, getCurrencyRate } from "@/lib/formatters";
 import { InvoiceFormData, SupplierInvoiceLine } from "@/types/invoice";
 import { Send } from "lucide-react";
+import AccountingForm from "./AccountingForm";
 
 interface InvoiceHeaderViewProps {
   formData: InvoiceFormData;
@@ -205,6 +206,13 @@ const InvoiceHeaderView = ({
                 </div>
               </div>
             </div>
+
+            <AccountingForm
+              totalAmount={formData.totalAmount || 0}
+              totalVat={formData.totalVat || 0}
+              currency={currency}
+              disabled={isCancelled || isSentToAccounting}
+            />
           </div>
         </div>
       </CardContent>
