@@ -725,7 +725,7 @@ const InvoiceView = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>
-                {isCancelled || isSentToAccounting ? "Invoice Details" : "View Supplier Invoice"}
+                {isCancelled || isSentToAccounting ? "Supplier Invoice Details" : `Supplier Invoice - ${formData.invoiceNumber}`}
                 {isCancelled && (
                   <span className="ml-2 text-sm font-normal text-red-600">
                     (Status: Cancelled)
