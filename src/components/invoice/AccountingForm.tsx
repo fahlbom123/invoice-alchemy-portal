@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -188,111 +189,107 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         
         {/* Regular Account Entries */}
         {accountEntries.map((entry) => (
-          <div key={entry.id} className="bg-white p-3 rounded border">
-            <div className="grid grid-cols-12 gap-2 items-center">
-              <div className="col-span-6">
-                <label className="text-xs font-medium text-gray-500 mb-1 block">Account</label>
-                <Select
-                  value={entry.account}
-                  onValueChange={(value) => updateAccountEntry(entry.id, 'account', value)}
-                  disabled={disabled}
-                >
-                  <SelectTrigger className="text-sm">
-                    <SelectValue placeholder="Select account" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
-                    {costAccounts.map((account) => (
-                      <SelectItem key={account.code} value={account.code}>
-                        {account.code} - {account.description}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-1"></div>
-              <div className="col-span-3">
-                <label className="text-xs font-medium text-gray-500 mb-1 block">Amount</label>
-                <Input
-                  type="number"
-                  value={entry.amount}
-                  onChange={(e) => updateAccountEntry(entry.id, 'amount', e.target.value)}
-                  placeholder="0.00"
-                  disabled={disabled}
-                  className="text-sm text-right"
-                  min="0"
-                  max={totalAmount}
-                  step="0.01"
-                />
-              </div>
-              <div className="col-span-1 flex justify-center">
-                {!disabled && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeEntry(entry.id)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-              <div className="col-span-1"></div>
+          <div key={entry.id} className="grid grid-cols-12 gap-2 items-center py-2">
+            <div className="col-span-6">
+              <label className="text-xs font-medium text-gray-500 mb-1 block">Account</label>
+              <Select
+                value={entry.account}
+                onValueChange={(value) => updateAccountEntry(entry.id, 'account', value)}
+                disabled={disabled}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-50">
+                  {costAccounts.map((account) => (
+                    <SelectItem key={account.code} value={account.code}>
+                      {account.code} - {account.description}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            <div className="col-span-1"></div>
+            <div className="col-span-3">
+              <label className="text-xs font-medium text-gray-500 mb-1 block">Amount</label>
+              <Input
+                type="number"
+                value={entry.amount}
+                onChange={(e) => updateAccountEntry(entry.id, 'amount', e.target.value)}
+                placeholder="0.00"
+                disabled={disabled}
+                className="text-sm text-right"
+                min="0"
+                max={totalAmount}
+                step="0.01"
+              />
+            </div>
+            <div className="col-span-1 flex justify-center">
+              {!disabled && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeEntry(entry.id)}
+                  className="h-8 w-8 p-0"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+            <div className="col-span-1"></div>
           </div>
         ))}
 
         {/* VAT Account Entries */}
         {vatAccountEntries.map((entry) => (
-          <div key={entry.id} className="bg-white p-3 rounded border">
-            <div className="grid grid-cols-12 gap-2 items-center">
-              <div className="col-span-6">
-                <label className="text-xs font-medium text-gray-500 mb-1 block">VAT Account</label>
-                <Select
-                  value={entry.vatAccount}
-                  onValueChange={(value) => updateVatAccountEntry(entry.id, 'vatAccount', value)}
-                  disabled={disabled}
-                >
-                  <SelectTrigger className="text-sm">
-                    <SelectValue placeholder="Select VAT account" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
-                    {vatAccounts.map((account) => (
-                      <SelectItem key={account.code} value={account.code}>
-                        {account.code} - {account.description}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-1"></div>
-              <div className="col-span-3">
-                <label className="text-xs font-medium text-gray-500 mb-1 block">VAT Amount</label>
-                <Input
-                  type="number"
-                  value={entry.vatAmount}
-                  onChange={(e) => updateVatAccountEntry(entry.id, 'vatAmount', e.target.value)}
-                  placeholder="0.00"
-                  disabled={disabled}
-                  className="text-sm text-right"
-                  min="0"
-                  max={totalVat}
-                  step="0.01"
-                />
-              </div>
-              <div className="col-span-1 flex justify-center">
-                {!disabled && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeEntry(entry.id)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-              <div className="col-span-1"></div>
+          <div key={entry.id} className="grid grid-cols-12 gap-2 items-center py-2">
+            <div className="col-span-6">
+              <label className="text-xs font-medium text-gray-500 mb-1 block">VAT Account</label>
+              <Select
+                value={entry.vatAccount}
+                onValueChange={(value) => updateVatAccountEntry(entry.id, 'vatAccount', value)}
+                disabled={disabled}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Select VAT account" />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-50">
+                  {vatAccounts.map((account) => (
+                    <SelectItem key={account.code} value={account.code}>
+                      {account.code} - {account.description}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            <div className="col-span-1"></div>
+            <div className="col-span-3">
+              <label className="text-xs font-medium text-gray-500 mb-1 block">VAT Amount</label>
+              <Input
+                type="number"
+                value={entry.vatAmount}
+                onChange={(e) => updateVatAccountEntry(entry.id, 'vatAmount', e.target.value)}
+                placeholder="0.00"
+                disabled={disabled}
+                className="text-sm text-right"
+                min="0"
+                max={totalVat}
+                step="0.01"
+              />
+            </div>
+            <div className="col-span-1 flex justify-center">
+              {!disabled && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeEntry(entry.id)}
+                  className="h-8 w-8 p-0"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+            <div className="col-span-1"></div>
           </div>
         ))}
       </div>
@@ -303,7 +300,8 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         <div className="grid grid-cols-12 gap-2">
           <div className="col-span-6 font-medium">Total Allocated:</div>
           <div className="col-span-1"></div>
-          <div className={`col-span-3 font-medium text-right ${isAmountValid ? "text-green-600" : "text-red-600"}`}>
+          <div className="col-span-2 text-xs font-medium text-gray-500">Account Amount</div>
+          <div className={`col-span-1 font-medium text-right ${isAmountValid ? "text-green-600" : "text-red-600"}`}>
             {formatCurrency(totalEntryAmount)}
           </div>
           <div className="col-span-2"></div>
@@ -312,7 +310,8 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         <div className="grid grid-cols-12 gap-2">
           <div className="col-span-6"></div>
           <div className="col-span-1"></div>
-          <div className={`col-span-3 font-medium text-right ${isVatAmountValid ? "text-green-600" : "text-red-600"}`}>
+          <div className="col-span-2 text-xs font-medium text-gray-500">VAT Amount</div>
+          <div className={`col-span-1 font-medium text-right ${isVatAmountValid ? "text-green-600" : "text-red-600"}`}>
             {formatCurrency(totalVatAmount)}
           </div>
           <div className="col-span-2"></div>
@@ -321,7 +320,8 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         <div className="grid grid-cols-12 gap-2">
           <div className="col-span-6 font-medium">Remaining:</div>
           <div className="col-span-1"></div>
-          <div className={`col-span-3 font-medium text-right ${remainingAmount >= 0 ? "text-gray-600" : "text-red-600"}`}>
+          <div className="col-span-2 text-xs font-medium text-gray-500">Account Amount</div>
+          <div className={`col-span-1 font-medium text-right ${remainingAmount >= 0 ? "text-gray-600" : "text-red-600"}`}>
             {formatCurrency(remainingAmount)}
           </div>
           <div className="col-span-2"></div>
@@ -330,7 +330,8 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         <div className="grid grid-cols-12 gap-2">
           <div className="col-span-6"></div>
           <div className="col-span-1"></div>
-          <div className={`col-span-3 font-medium text-right ${remainingVat >= 0 ? "text-gray-600" : "text-red-600"}`}>
+          <div className="col-span-2 text-xs font-medium text-gray-500">VAT Amount</div>
+          <div className={`col-span-1 font-medium text-right ${remainingVat >= 0 ? "text-gray-600" : "text-red-600"}`}>
             {formatCurrency(remainingVat)}
           </div>
           <div className="col-span-2"></div>
