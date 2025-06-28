@@ -159,6 +159,17 @@ const InvoiceView = () => {
 
   const [connectedSupplierInvoiceLines, setConnectedSupplierInvoiceLines] = useState<SupplierInvoiceLine[]>([]);
 
+  // Create a map from invoice line ID to booking number for quick lookup
+  const invoiceLineToBookingMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    allInvoiceLines.forEach(line => {
+      if (line.bookingNumber) {
+        map.set(line.id, line.bookingNumber);
+      }
+    });
+    return map;
+  }, [allInvoiceLines]);
+
   useEffect(() => {
     const loadConnectedSupplierInvoiceLines = async () => {
       if (!invoice || !invoice.id) return;
@@ -199,16 +210,18 @@ const InvoiceView = () => {
 
   const refreshInvoiceData = async () => {
     setDataRefreshKey(prev => prev + 1);
-    window.location.reload();
+    // Force a fresh load of the data
+    await new Promise(resolve => setTimeout(resolve, 100));
   };
 
   const getBookingNumberForSupplierLine = (supplierLine: SupplierInvoiceLine) => {
-    const originalLine = allInvoiceLines.find(line => line.id === supplierLine.invoiceLineId);
-    
-    if (originalLine?.bookingNumber) {
-      return originalLine.bookingNumber;
+    // First try to get the actual booking number from the invoice line
+    const actualBookingNumber = invoiceLineToBookingMap.get(supplierLine.invoiceLineId);
+    if (actualBookingNumber) {
+      return actualBookingNumber;
     }
     
+    // Fallback to generated booking number if not found
     const seed = supplierLine.id.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
@@ -219,19 +232,29 @@ const InvoiceView = () => {
   };
 
   const getEstimatedCostsForBooking = (bookingNumber: string) => {
-    // Filter lines to only include the current supplier
-    const originalLines = allInvoiceLines.filter(line => 
-      line.bookingNumber === bookingNumber &&
-      line.supplierId === invoice?.supplier.id // Only include lines from current supplier
-    );
+    console.log('Getting estimated costs for booking:', bookingNumber, 'for supplier:', invoice?.supplier.id);
+    
+    // Filter lines to only include the current supplier and exact booking number match
+    const originalLines = allInvoiceLines.filter(line => {
+      const matches = line.bookingNumber === bookingNumber && line.supplierId === invoice?.supplier.id;
+      if (matches) {
+        console.log('Found matching line:', line.id, line.description, 'estimated:', line.estimatedCost);
+      }
+      return matches;
+    });
+    
+    console.log('Found', originalLines.length, 'lines for booking', bookingNumber);
     
     const lineCurrency = originalLines.length > 0 ? originalLines[0].currency || 'USD' : 'USD';
     
-    return originalLines.reduce((acc, line) => ({
+    const totals = originalLines.reduce((acc, line) => ({
       estimatedCost: acc.estimatedCost + (line.estimatedCost || 0),
       estimatedVat: acc.estimatedVat + (line.estimatedVat || 0),
       currency: lineCurrency
     }), { estimatedCost: 0, estimatedVat: 0, currency: lineCurrency });
+    
+    console.log('Calculated estimated totals for booking', bookingNumber, ':', totals);
+    return totals;
   };
 
   const getEstimatedCostsForSupplierLinesInBooking = (supplierLines: SupplierInvoiceLine[]) => {
@@ -756,15 +779,19 @@ const InvoiceView = () => {
       registeredAt: string;
     }>);
     
-    // Now calculate estimated costs for each booking group - use the booking number directly
+    // Now calculate estimated costs for each booking group using the actual booking number
     Object.keys(grouped).forEach(bookingNumber => {
       const booking = grouped[bookingNumber];
+      
+      console.log('Calculating estimated costs for registered booking:', bookingNumber);
       
       // Use the booking number directly to get estimated costs for current supplier only
       const estimatedCosts = getEstimatedCostsForBooking(bookingNumber);
       booking.estimatedCost = estimatedCosts.estimatedCost;
       booking.estimatedVat = estimatedCosts.estimatedVat;
       booking.currency = estimatedCosts.currency;
+      
+      console.log('Set estimated costs for booking', bookingNumber, ':', estimatedCosts);
       
       // Get additional booking details from the first original line (from current supplier)
       const originalLine = allInvoiceLines.find(line => 
