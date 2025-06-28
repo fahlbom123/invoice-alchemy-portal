@@ -219,9 +219,11 @@ const InvoiceView = () => {
   };
 
   const getEstimatedCostsForBooking = (bookingNumber: string) => {
+    // Filter lines to only include the current supplier
     const originalLines = allInvoiceLines.filter(line => 
-      line.bookingNumber === bookingNumber || 
-      (!line.bookingNumber && getBookingNumberForSupplierLine({ id: line.id } as SupplierInvoiceLine) === bookingNumber)
+      (line.bookingNumber === bookingNumber || 
+       (!line.bookingNumber && getBookingNumberForSupplierLine({ id: line.id } as SupplierInvoiceLine) === bookingNumber)) &&
+      line.supplierId === invoice?.supplier.id // Only include lines from current supplier
     );
     
     const lineCurrency = originalLines.length > 0 ? originalLines[0].currency || 'USD' : 'USD';
@@ -236,8 +238,10 @@ const InvoiceView = () => {
   const getEstimatedCostsForSupplierLinesInBooking = (supplierLines: SupplierInvoiceLine[]) => {
     const uniqueInvoiceLineIds = [...new Set(supplierLines.map(line => line.invoiceLineId))];
     
+    // Filter to only include lines from the current supplier
     const matchingOriginalLines = allInvoiceLines.filter(line => 
-      uniqueInvoiceLineIds.includes(line.id)
+      uniqueInvoiceLineIds.includes(line.id) &&
+      line.supplierId === invoice?.supplier.id // Only include lines from current supplier
     );
     
     const lineCurrency = matchingOriginalLines.length > 0 ? matchingOriginalLines[0].currency || 'USD' : 'USD';
@@ -753,7 +757,7 @@ const InvoiceView = () => {
       registeredAt: string;
     }>);
     
-    // Now calculate estimated costs for each booking group
+    // Now calculate estimated costs for each booking group (filtered by current supplier)
     Object.keys(grouped).forEach(bookingNumber => {
       const booking = grouped[bookingNumber];
       const estimatedCosts = getEstimatedCostsForBooking(bookingNumber);
@@ -761,10 +765,11 @@ const InvoiceView = () => {
       booking.estimatedVat = estimatedCosts.estimatedVat;
       booking.currency = estimatedCosts.currency;
       
-      // Get additional booking details from the first original line
+      // Get additional booking details from the first original line (from current supplier)
       const originalLine = allInvoiceLines.find(line => 
-        line.bookingNumber === bookingNumber || 
-        (!line.bookingNumber && getBookingNumberForSupplierLine({ id: line.id } as SupplierInvoiceLine) === bookingNumber)
+        (line.bookingNumber === bookingNumber || 
+         (!line.bookingNumber && getBookingNumberForSupplierLine({ id: line.id } as SupplierInvoiceLine) === bookingNumber)) &&
+        line.supplierId === invoice?.supplier.id // Only get details from current supplier
       );
       
       if (originalLine) {
