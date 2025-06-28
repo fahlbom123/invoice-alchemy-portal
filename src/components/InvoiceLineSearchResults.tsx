@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { InvoiceLine, SupplierInvoiceLine } from "@/types/invoice";
@@ -32,7 +33,6 @@ interface SearchResultLine extends InvoiceLine {
   selected?: boolean;
   invoiceTotalAmount?: number;
   registeredActualCost?: number;
-  registeredActualVat?: number;
 }
 
 interface InvoiceLineSearchResultsProps {
@@ -49,12 +49,10 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
     return lines.map(line => {
       const registeredLines = allSupplierInvoiceLines.filter(sil => sil.invoiceLineId === line.id);
       const registeredActualCost = registeredLines.reduce((sum, sil) => sum + sil.actualCost, 0);
-      const registeredActualVat = registeredLines.reduce((sum, sil) => sum + sil.actualVat, 0);
       
       return {
         ...line,
         registeredActualCost,
-        registeredActualVat,
         // Ensure actualVat is always a number, never undefined
         actualVat: line.actualVat || 0
       };
@@ -117,16 +115,10 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
         if (line.id === id) {
           const updatedLine = { ...line, selected: checked };
           
-          // When checking a line, set actual cost and VAT to estimated values only if actual cost has no value
+          // When checking a line, set actual cost to estimated cost only if actual cost has no value
           if (checked) {
             if (!updatedLine.actualCost || updatedLine.actualCost === 0) {
               updatedLine.actualCost = line.estimatedCost;
-              // Ensure actualVat is always a number
-              updatedLine.actualVat = line.estimatedVat || 0;
-            }
-            // Ensure actualVat is never undefined
-            if (updatedLine.actualVat === undefined) {
-              updatedLine.actualVat = 0;
             }
           }
           
@@ -155,16 +147,10 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
           
           const updatedLine = { ...line, selected: checked };
           
-          // When checking all lines, set actual cost and VAT to estimated values only if actual cost has no value
+          // When checking all lines, set actual cost to estimated cost only if actual cost has no value
           if (checked) {
             if (!updatedLine.actualCost || updatedLine.actualCost === 0) {
               updatedLine.actualCost = line.estimatedCost;
-              // Ensure actualVat is always a number
-              updatedLine.actualVat = line.estimatedVat || 0;
-            }
-            // Ensure actualVat is never undefined
-            if (updatedLine.actualVat === undefined) {
-              updatedLine.actualVat = 0;
             }
           }
           
@@ -186,16 +172,9 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
     const selectedLinesData = lines.filter(line => line.selected);
     
     const totalEstimatedCost = selectedLinesData.reduce((sum, line) => sum + line.estimatedCost, 0);
-    const totalEstimatedVat = selectedLinesData.reduce((sum, line) => {
-      return sum + (line.estimatedVat || 0);
-    }, 0);
 
     const totalActualCost = selectedLinesData.reduce((sum, line) => {
       return sum + (line.actualCost || 0);
-    }, 0);
-    
-    const totalActualVat = selectedLinesData.reduce((sum, line) => {
-      return sum + (line.actualVat || 0);
     }, 0);
 
     // Calculate total invoiced amount from unique invoices - this should show the Total Amount incl VAT from supplier invoice details
@@ -209,15 +188,13 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
 
     return {
       totalEstimatedCost,
-      totalEstimatedVat,
       totalActualCost,
-      totalActualVat,
       totalInvoicedAmount,
       count: selectedLinesData.length
     };
   };
 
-  const { totalEstimatedCost, totalEstimatedVat, totalActualCost, totalActualVat, totalInvoicedAmount, count } = calculateSelectedTotals();
+  const { totalEstimatedCost, totalActualCost, totalInvoicedAmount, count } = calculateSelectedTotals();
 
   const handleEditActualCost = (lineId: string) => {
     if (lineId.includes('-cost')) {
@@ -410,8 +387,8 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
     
     // Call the onRegister callback with selected lines, totals, supplier invoice lines, and paid status
     if (onRegister) {
-      const { totalActualCost, totalActualVat } = calculateSelectedTotals();
-      onRegister(selectedLines, { totalActualCost, totalActualVat }, supplierInvoiceLines, allInvoiceLinesPaid);
+      const { totalActualCost } = calculateSelectedTotals();
+      onRegister(selectedLines, { totalActualCost, totalActualVat: 0 }, supplierInvoiceLines, allInvoiceLinesPaid);
     }
     
     toast.success(`Registered ${selectedLines.length} invoice lines to supplier invoice`);
@@ -488,9 +465,9 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
         <SelectedLinesSummary
           count={count}
           totalEstimatedCost={totalEstimatedCost}
-          totalEstimatedVat={totalEstimatedVat}
+          totalEstimatedVat={0}
           totalActualCost={totalActualCost}
-          totalActualVat={totalActualVat}
+          totalActualVat={0}
           totalInvoicedAmount={totalInvoicedAmount}
           invoiceTotalAmount={invoiceTotalAmount}
           onRegisterMultipleInvoices={handleRegisterMultipleInvoices}
@@ -505,7 +482,7 @@ const InvoiceLineSearchResults = ({ invoiceLines, invoiceTotalAmount, allSupplie
         onSelectLine={handleSelectLine}
         onSelectAll={handleSelectAll}
         onEditActualCost={handleEditActualCost}
-        onSaveActualCost={handleSaveActualCost}
+        onSaveActualCost={onSaveActualCost}
         onCancelEdit={handleCancelEdit}
         onToggleFullyPaid={handleToggleFullyPaid}
         setEditingCost={setEditingCost}

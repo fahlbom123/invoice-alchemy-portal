@@ -28,10 +28,7 @@ interface SearchResultLine {
   };
   selected?: boolean;
   currency?: string;
-  estimatedVat?: number;
-  actualVat?: number;
   registeredActualCost?: number;
-  registeredActualVat?: number;
 }
 
 interface SearchResultsTableProps {
@@ -85,19 +82,13 @@ const SearchResultsTable = ({
   const calculateTotals = (lineGroup: SearchResultLine[]) => {
     return lineGroup.reduce((totals, line) => {
       totals.estimatedCost += line.estimatedCost;
-      totals.estimatedVat += line.estimatedVat || 0;
       totals.actualCost += line.actualCost || 0;
-      totals.actualVat += line.actualVat || 0;
       totals.registeredCost += line.registeredActualCost || 0;
-      totals.registeredVat += line.registeredActualVat || 0;
       return totals;
     }, {
       estimatedCost: 0,
-      estimatedVat: 0,
       actualCost: 0,
-      actualVat: 0,
-      registeredCost: 0,
-      registeredVat: 0
+      registeredCost: 0
     });
   };
 
@@ -113,11 +104,8 @@ const SearchResultsTable = ({
       <TableCell></TableCell>
       <TableCell></TableCell>
       <TableCell className="text-right text-blue-800">{formatCurrency(totals.estimatedCost)}</TableCell>
-      <TableCell className="text-right text-blue-800">{formatCurrency(totals.estimatedVat)}</TableCell>
       <TableCell className="text-right text-blue-800">{formatCurrency(totals.actualCost)}</TableCell>
-      <TableCell className="text-right text-blue-800">{formatCurrency(totals.actualVat)}</TableCell>
       <TableCell className="text-right text-blue-800">{formatCurrency(totals.registeredCost)}</TableCell>
-      <TableCell className="text-right text-blue-800">{formatCurrency(totals.registeredVat)}</TableCell>
       <TableCell></TableCell>
       <TableCell></TableCell>
     </TableRow>
@@ -135,11 +123,8 @@ const SearchResultsTable = ({
       <TableCell></TableCell>
       <TableCell></TableCell>
       <TableCell className="text-right">{formatCurrency(totals.estimatedCost)}</TableCell>
-      <TableCell className="text-right">{formatCurrency(totals.estimatedVat)}</TableCell>
       <TableCell className="text-right">{formatCurrency(totals.actualCost)}</TableCell>
-      <TableCell className="text-right">{formatCurrency(totals.actualVat)}</TableCell>
       <TableCell className="text-right">{formatCurrency(totals.registeredCost)}</TableCell>
-      <TableCell className="text-right">{formatCurrency(totals.registeredVat)}</TableCell>
       <TableCell></TableCell>
       <TableCell></TableCell>
     </TableRow>
@@ -153,11 +138,8 @@ const SearchResultsTable = ({
       <h5 className="font-medium text-blue-800 mb-2">Subtotal for Booking {bookingNumber}:</h5>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div>Est. Cost: {formatCurrency(totals.estimatedCost)}</div>
-        <div>Est. VAT: {formatCurrency(totals.estimatedVat)}</div>
         <div>Actual Cost: {formatCurrency(totals.actualCost)}</div>
-        <div>Actual VAT: {formatCurrency(totals.actualVat)}</div>
         <div>Reg. Cost: {formatCurrency(totals.registeredCost)}</div>
-        <div>Reg. VAT: {formatCurrency(totals.registeredVat)}</div>
       </div>
     </div>
   );
@@ -170,11 +152,8 @@ const SearchResultsTable = ({
       <h4 className="font-semibold mb-2">Total for {supplierName}:</h4>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div>Est. Cost: {formatCurrency(totals.estimatedCost)}</div>
-        <div>Est. VAT: {formatCurrency(totals.estimatedVat)}</div>
         <div>Actual Cost: {formatCurrency(totals.actualCost)}</div>
-        <div>Actual VAT: {formatCurrency(totals.actualVat)}</div>
         <div>Reg. Cost: {formatCurrency(totals.registeredCost)}</div>
-        <div>Reg. VAT: {formatCurrency(totals.registeredVat)}</div>
       </div>
     </div>
   );
@@ -200,11 +179,8 @@ const SearchResultsTable = ({
               <TableHead>Qty</TableHead>
               <TableHead>Curr.</TableHead>
               <TableHead>Est. Cost</TableHead>
-              <TableHead>Est. VAT</TableHead>
               <TableHead>Actual Cost</TableHead>
-              <TableHead>Actual VAT</TableHead>
               <TableHead>Registered Cost</TableHead>
-              <TableHead>Registered VAT</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Fully Paid</TableHead>
             </TableRow>
