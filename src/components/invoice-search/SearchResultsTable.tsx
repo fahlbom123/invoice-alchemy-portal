@@ -32,6 +32,8 @@ interface SearchResultLine {
   selected?: boolean;
   currency?: string;
   registeredActualCost?: number;
+  firstName?: string;
+  lastName?: string;
 }
 
 interface SearchResultsTableProps {
@@ -221,7 +223,8 @@ const SearchResultsTable = ({
         />
       </TableHead>
       <TableHead>Booking Number</TableHead>
-      <TableHead>Name</TableHead>
+      <TableHead>First Name</TableHead>
+      <TableHead>Last Name</TableHead>
       <TableHead>Supplier</TableHead>
       <TableHead>Departure Date</TableHead>
       <TableHead>Est. Curr.</TableHead>
@@ -269,7 +272,8 @@ const SearchResultsTable = ({
           )}
         </TableCell>
         <TableCell className="text-blue-800 font-medium">{bookingNumber}</TableCell>
-        <TableCell className="text-blue-800">{bookingDetails.fullName}</TableCell>
+        <TableCell className="text-blue-800">{bookingDetails.firstName}</TableCell>
+        <TableCell className="text-blue-800">{bookingDetails.lastName}</TableCell>
         <TableCell className="text-blue-800">{firstLine.supplierName}</TableCell>
         <TableCell className="text-blue-800">{firstLine.departureDate || '-'}</TableCell>
         <TableCell className="text-blue-800">{firstLine.currency || 'SEK'}</TableCell>
@@ -363,7 +367,7 @@ const SearchResultsTable = ({
   }) => (
     <TableRow className="bg-gray-100 font-semibold border-t-2 border-gray-300">
       <TableCell></TableCell>
-      <TableCell colSpan={4} className="text-right">
+      <TableCell colSpan={5} className="text-right">
         Total for {supplierName}:
       </TableCell>
       <TableCell></TableCell>
@@ -405,9 +409,11 @@ const SearchResultsTable = ({
               disabled={!hasUnpaidLines}
             />
           )}
-          <h5 className="font-medium text-blue-800">Booking {bookingNumber} - {bookingDetails.fullName}</h5>
+          <h5 className="font-medium text-blue-800">Booking {bookingNumber}</h5>
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm">
+          <div>First Name: <span className="font-medium">{bookingDetails.firstName || '-'}</span></div>
+          <div>Last Name: <span className="font-medium">{bookingDetails.lastName || '-'}</span></div>
           <div>Supplier: {firstLine.supplierName}</div>
           <div>Departure: {firstLine.departureDate || '-'}</div>
           <div>Est. Cost: {formatCurrency(totals.estimatedCost)}</div>
