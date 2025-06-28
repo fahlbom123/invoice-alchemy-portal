@@ -17,12 +17,33 @@ interface AccountingFormProps {
   totalVat: number;
   currency: string;
   disabled?: boolean;
+  defaultAccount?: string;
 }
 
-const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false }: AccountingFormProps) => {
+const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, defaultAccount = '' }: AccountingFormProps) => {
   const [entries, setEntries] = useState<AccountingEntry[]>([
-    { id: '1', account: '', amount: 0 }
+    { id: '1', account: defaultAccount, amount: totalAmount }
   ]);
+
+  // Update the first entry when defaultAccount or totalAmount changes
+  useEffect(() => {
+    setEntries(prevEntries => {
+      if (prevEntries.length === 0) {
+        return [{ id: '1', account: defaultAccount, amount: totalAmount }];
+      }
+      
+      // Update the first entry with new defaults
+      const updatedEntries = [...prevEntries];
+      if (updatedEntries[0]) {
+        updatedEntries[0] = {
+          ...updatedEntries[0],
+          account: defaultAccount,
+          amount: totalAmount
+        };
+      }
+      return updatedEntries;
+    });
+  }, [defaultAccount, totalAmount]);
 
   const totalEntryAmount = entries.reduce((sum, entry) => sum + entry.amount, 0);
   const remainingAmount = totalAmount - totalEntryAmount;
