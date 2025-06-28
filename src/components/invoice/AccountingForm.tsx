@@ -145,19 +145,6 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
     <div className="bg-gray-50 p-4 rounded-md">
       <h4 className="font-medium mb-3">Accounting ({currency})</h4>
       
-      {/* Summary */}
-      <div className="space-y-2 text-sm mb-4">
-        <div className="flex justify-between">
-          <span>Total Amount:</span>
-          <span className="font-medium">{formatCurrency(totalAmount)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Total VAT:</span>
-          <span className="font-medium">{formatCurrency(totalVat)}</span>
-        </div>
-        <Separator />
-      </div>
-
       {/* Account Entries - Single Header for all entries */}
       <div className="space-y-2 mb-4">
         <div className="flex justify-between items-center">
