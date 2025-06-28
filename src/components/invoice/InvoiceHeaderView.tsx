@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -45,7 +44,6 @@ const InvoiceHeaderView = ({
 
   // Calculate remaining amounts
   const remainingCost = (formData.totalAmount || 0) - totalActualCost;
-  const remainingVat = (formData.totalVat || 0) - totalActualVat;
 
   // Helper function to get month name
   const getMonthName = (monthNumber: number) => {
@@ -198,23 +196,11 @@ const InvoiceHeaderView = ({
                     {formatCurrency(totalActualCost)}
                   </span>
                 </div>
-                <div className="flex justify-between font-medium">
-                  <span>Registered Actual VAT:</span>
-                  <span className={totalActualVat > 0 ? "text-green-600" : "text-gray-500"}>
-                    {formatCurrency(totalActualVat)}
-                  </span>
-                </div>
                 <Separator />
                 <div className="flex justify-between font-medium">
                   <span>Remaining Cost:</span>
                   <span className={remainingCost !== 0 ? (remainingCost > 0 ? "text-orange-600" : "text-red-600") : "text-gray-500"}>
                     {formatCurrency(remainingCost)}
-                  </span>
-                </div>
-                <div className="flex justify-between font-medium">
-                  <span>Remaining VAT:</span>
-                  <span className={remainingVat !== 0 ? (remainingVat > 0 ? "text-orange-600" : "text-red-600") : "text-gray-500"}>
-                    {formatCurrency(remainingVat)}
                   </span>
                 </div>
               </div>
