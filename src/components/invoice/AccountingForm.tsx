@@ -52,7 +52,8 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false }: A
           const clampedAmount = Math.min(Math.max(0, numValue), maxAmount);
           return { ...entry, [field]: clampedAmount };
         }
-        return { ...entry, [field]: value };
+        // Ensure account field is always a string
+        return { ...entry, [field]: String(value) };
       }
       return entry;
     }));
