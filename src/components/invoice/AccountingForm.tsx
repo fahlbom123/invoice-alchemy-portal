@@ -84,11 +84,31 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
   const remainingAmount = totalAmount - totalEntryAmount;
   const remainingVat = totalVat - totalVatAmount;
 
+  // Get available accounts for a specific entry (excluding already selected ones)
+  const getAvailableAccounts = (currentEntryId: string) => {
+    const selectedAccounts = accountEntries
+      .filter(entry => entry.id !== currentEntryId)
+      .map(entry => entry.account)
+      .filter(account => account !== '');
+    
+    return costAccounts.filter(account => !selectedAccounts.includes(account.code));
+  };
+
+  // Get available VAT accounts for a specific entry (excluding already selected ones)
+  const getAvailableVatAccounts = (currentEntryId: string) => {
+    const selectedVatAccounts = vatAccountEntries
+      .filter(entry => entry.id !== currentEntryId)
+      .map(entry => entry.vatAccount)
+      .filter(account => account !== '');
+    
+    return vatAccounts.filter(account => !selectedVatAccounts.includes(account.code));
+  };
+
   const addAccountEntry = () => {
     const newEntry: AccountEntry = {
       id: `account-${Date.now()}`,
       type: 'account',
-      account: defaultAccount,
+      account: '',
       amount: 0
     };
     setEntries([...entries, newEntry]);
@@ -98,7 +118,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
     const newEntry: VatAccountEntry = {
       id: `vat-${Date.now()}`,
       type: 'vatAccount',
-      vatAccount: defaultVatAccount,
+      vatAccount: '',
       vatAmount: 0
     };
     setEntries([...entries, newEntry]);
@@ -195,7 +215,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                   <SelectValue placeholder="Select account" />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-50">
-                  {costAccounts.map((account) => (
+                  {getAvailableAccounts(entry.id).map((account) => (
                     <SelectItem key={account.code} value={account.code}>
                       {account.code} - {account.description}
                     </SelectItem>
@@ -253,7 +273,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                   <SelectValue placeholder="Select VAT account" />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-50">
-                  {vatAccounts.map((account) => (
+                  {getAvailableVatAccounts(entry.id).map((account) => (
                     <SelectItem key={account.code} value={account.code}>
                       {account.code} - {account.description}
                     </SelectItem>
