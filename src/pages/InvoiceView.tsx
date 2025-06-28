@@ -825,12 +825,14 @@ const InvoiceView = () => {
                       <TableHead>Est. Cost</TableHead>
                       <TableHead>Actual Curr.</TableHead>
                       <TableHead>Actual Cost</TableHead>
+                      <TableHead>Reg. Cost</TableHead>
                       {!isSentToAccounting && <TableHead>Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {groupedBookingTotals.map((booking) => {
                       const isFullyPaid = fullyPaidStatus[booking.bookingNumber] || false;
+                      const registeredCost = booking.totalActualCost + booking.totalActualVat;
                       return (
                         <TableRow key={booking.bookingNumber}>
                           <TableCell>
@@ -881,6 +883,9 @@ const InvoiceView = () => {
                           <TableCell className="text-green-600">
                             {formatCurrency(booking.totalActualCost)}
                           </TableCell>
+                          <TableCell className="text-green-600 font-medium">
+                            {formatCurrency(registeredCost)}
+                          </TableCell>
                           {!isSentToAccounting && (
                             <TableCell>
                               <div className="flex gap-2">
@@ -907,7 +912,7 @@ const InvoiceView = () => {
                     <span>Total Registered:</span>
                     <span className="text-green-600">
                       {currency} {formatCurrency(
-                        groupedBookingTotals.reduce((sum, booking) => sum + booking.totalActualCost, 0)
+                        groupedBookingTotals.reduce((sum, booking) => sum + booking.totalActualCost + booking.totalActualVat, 0)
                       )}
                     </span>
                   </div>
