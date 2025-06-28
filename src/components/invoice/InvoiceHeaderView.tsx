@@ -1,5 +1,3 @@
-
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -88,7 +86,7 @@ const InvoiceHeaderView = ({
                 <p className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{internalSupplierInvoiceId}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Supplier Invoice No</label>
+                <label className="text-sm font-medium text-gray-500">Supplier Invoice No (Invoice ID)</label>
                 <p className="text-sm">{formData.invoiceNumber}</p>
               </div>
             </div>
@@ -228,4 +226,3 @@ const InvoiceHeaderView = ({
 };
 
 export default InvoiceHeaderView;
-
