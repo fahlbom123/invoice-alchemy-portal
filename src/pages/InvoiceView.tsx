@@ -839,11 +839,12 @@ const InvoiceView = () => {
       booking.estimatedVat = estimatedCosts.estimatedVat;
       booking.currency = estimatedCosts.currency;
       
-      console.log(`Estimated costs for booking ${bookingNumber}:`, {
+      console.log(`Final costs for booking ${bookingNumber}:`, {
         estimatedCost: booking.estimatedCost,
         estimatedVat: booking.estimatedVat,
         actualCost: booking.totalActualCost,
-        actualVat: booking.totalActualVat
+        actualVat: booking.totalActualVat,
+        currency: booking.currency
       });
       
       // Get additional booking details from the first invoice line that matches the booking number and supplier
