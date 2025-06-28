@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,6 +33,8 @@ const InvoiceLineSearch = () => {
   const [description, setDescription] = useState<string>("");
   const [bookingNumber, setBookingNumber] = useState<string>("");
   const [confirmationNumber, setConfirmationNumber] = useState<string>("");
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
   const [departureDateStart, setDepartureDateStart] = useState<string>("");
   const [departureDateEnd, setDepartureDateEnd] = useState<string>("");
   const [paymentStatus, setPaymentStatus] = useState<string>("all");
@@ -60,6 +61,8 @@ const InvoiceLineSearch = () => {
       description,
       bookingNumber,
       confirmationNumber,
+      firstName,
+      lastName,
       departureDateStart,
       departureDateEnd,
       paymentStatus,
@@ -79,6 +82,13 @@ const InvoiceLineSearch = () => {
       const matchesConfirmationNumber = !confirmationNumber || 
         (line.confirmationNumber && line.confirmationNumber.toLowerCase().includes(confirmationNumber.toLowerCase()));
       
+      // Name search parameters
+      const matchesFirstName = !firstName || 
+        (line.firstName && line.firstName.toLowerCase().includes(firstName.toLowerCase()));
+      
+      const matchesLastName = !lastName || 
+        (line.lastName && line.lastName.toLowerCase().includes(lastName.toLowerCase()));
+      
       // Date range check
       let matchesDepartureDate = true;
       if (line.departureDate) {
@@ -97,15 +107,16 @@ const InvoiceLineSearch = () => {
       const matchesPaymentStatus = paymentStatus === "all" || line.paymentStatus === paymentStatus;
       
       return matchesSupplier && matchesDescription && 
-             matchesBookingNumber && matchesConfirmationNumber && matchesDepartureDate && 
-             matchesPaymentStatus;
+             matchesBookingNumber && matchesConfirmationNumber && 
+             matchesFirstName && matchesLastName && 
+             matchesDepartureDate && matchesPaymentStatus;
     });
     
     console.log("Search results:", filtered.length, "lines found from", allInvoiceLines.length, "total lines");
     setSearchResults(filtered);
     setHasSearched(true);
     setSearchKey(prev => prev + 1);
-  }, [allInvoiceLines, supplierId, description, bookingNumber, confirmationNumber, departureDateStart, departureDateEnd, paymentStatus]);
+  }, [allInvoiceLines, supplierId, description, bookingNumber, confirmationNumber, firstName, lastName, departureDateStart, departureDateEnd, paymentStatus]);
 
   // Auto-refresh search results when invoice lines data changes
   useEffect(() => {
@@ -141,6 +152,8 @@ const InvoiceLineSearch = () => {
     setDescription("");
     setBookingNumber("");
     setConfirmationNumber("");
+    setFirstName("");
+    setLastName("");
     setDepartureDateStart("");
     setDepartureDateEnd("");
     setPaymentStatus("all");
@@ -217,6 +230,26 @@ const InvoiceLineSearch = () => {
                   value={confirmationNumber}
                   onChange={(e) => setConfirmationNumber(e.target.value)}
                   placeholder="Search by confirmation number..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Search by first name..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Search by last name..."
                 />
               </div>
 
