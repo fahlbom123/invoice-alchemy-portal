@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -122,29 +121,29 @@ const SearchResultsTable = ({
     return selectedUnpaidLines.length > 0 && selectedUnpaidLines.length < unpaidLines.length;
   };
 
-  // Handle booking cost editing
-  const handleEditBookingCost = (bookingNumber: string, currentCost: number) => {
+  // Handle booking cost editing - now edits actual cost
+  const handleEditBookingCost = (bookingNumber: string, currentActualCost: number) => {
     setEditingBookingCost(bookingNumber);
-    setEditingBookingCostValue(currentCost.toString());
+    setEditingBookingCostValue(currentActualCost.toString());
   };
 
   const handleSaveBookingCost = (bookingNumber: string, bookingLines: SearchResultLine[]) => {
-    const newTotalCost = parseFloat(editingBookingCostValue) || 0;
-    const currentTotalCost = bookingLines.reduce((sum, line) => sum + (line.actualCost || 0), 0);
+    const newTotalActualCost = parseFloat(editingBookingCostValue) || 0;
+    const currentTotalActualCost = bookingLines.reduce((sum, line) => sum + (line.actualCost || 0), 0);
     
-    if (newTotalCost === currentTotalCost) {
+    if (newTotalActualCost === currentTotalActualCost) {
       setEditingBookingCost(null);
       setEditingBookingCostValue("");
       return;
     }
 
-    // Distribute the new total cost proportionally among the lines based on their estimated costs
+    // Distribute the new total actual cost proportionally among the lines based on their estimated costs
     const totalEstimatedCost = bookingLines.reduce((sum, line) => sum + line.estimatedCost, 0);
     
     if (totalEstimatedCost > 0) {
       bookingLines.forEach(line => {
         const proportion = line.estimatedCost / totalEstimatedCost;
-        const newActualCost = newTotalCost * proportion;
+        const newActualCost = newTotalActualCost * proportion;
         
         // Trigger the line edit to update the actual cost
         // We need to simulate the editing process for each line
@@ -181,7 +180,7 @@ const SearchResultsTable = ({
               checked={isSelected}
               ref={(el) => {
                 if (el) {
-                  const checkboxEl = el as any;
+                  const checkboxEl = el as HTMLInputElement;
                   checkboxEl.indeterminate = isPartiallySelected && !isSelected;
                 }
               }}
@@ -278,7 +277,7 @@ const SearchResultsTable = ({
               checked={isSelected}
               ref={(el) => {
                 if (el) {
-                  const checkboxEl = el as any;
+                  const checkboxEl = el as HTMLInputElement;
                   checkboxEl.indeterminate = isPartiallySelected && !isSelected;
                 }
               }}
