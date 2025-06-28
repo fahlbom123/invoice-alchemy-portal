@@ -113,35 +113,6 @@ const InvoiceView = () => {
     }
   }, [invoice]);
 
-  const handleSendToAccounting = async () => {
-    if (!invoice) return;
-
-    try {
-      const updatedInvoice = {
-        ...invoice,
-        status: "sent_to_accounting",
-        updatedAt: new Date().toISOString(),
-      };
-
-      await saveInvoice(updatedInvoice);
-      setIsSentToAccounting(true);
-      
-      toast({
-        title: "Invoice Sent to Accounting",
-        description: "Supplier invoice has been sent to accounting successfully.",
-      });
-      
-      await refreshInvoiceData();
-    } catch (error) {
-      console.error("Error sending invoice to accounting:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send supplier invoice to accounting.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const [registeredTotals, setRegisteredTotals] = useState<{
     totalActualCost: number;
     totalActualVat: number;
@@ -150,7 +121,7 @@ const InvoiceView = () => {
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
   const [editingLine, setEditingLine] = useState<SupplierInvoiceLine | null>(null);
 
-  const [supplierId, setSupplierId] = useState<string>(invoice?.supplier.id || "all");
+  const [supplierId, setSupplierId] = useState<string>("all");
   const [description, setDescription] = useState<string>("");
   const [bookingNumber, setBookingNumber] = useState<string>("");
   const [confirmationNumber, setConfirmationNumber] = useState<string>("");
@@ -161,6 +132,13 @@ const InvoiceView = () => {
   const [paymentStatus, setPaymentStatus] = useState<string>("all");
   const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Set default supplier when invoice is loaded
+  useEffect(() => {
+    if (invoice && invoice.supplier.id) {
+      setSupplierId(invoice.supplier.id);
+    }
+  }, [invoice]);
 
   const allInvoiceLines = supabaseInvoiceLines.map(line => {
     const booking = mockBookings.find(b => b.bookingNumber === line.bookingNumber);
@@ -446,7 +424,7 @@ const InvoiceView = () => {
   };
 
   const handleClear = () => {
-    setSupplierId("all");
+    setSupplierId(invoice?.supplier.id || "all");
     setDescription("");
     setBookingNumber("");
     setConfirmationNumber("");
