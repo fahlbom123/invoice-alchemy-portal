@@ -1,5 +1,3 @@
-
-
 import React, { useState } from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -67,7 +65,6 @@ const SearchResultsTable = ({
             <TableHead className="w-12">
               <Checkbox
                 checked={allSelected}
-                indeterminate={someSelected && !allSelected}
                 onCheckedChange={onSelectAll}
                 disabled={lines.every(line => line.paymentStatus === "paid")}
               />
