@@ -661,13 +661,12 @@ const InvoiceView = () => {
           estimatedCost: 0,
           estimatedVat: 0,
           currency: 'USD',
-          firstName: '',
-          lastName: '',
           departureDate: '',
           description: '',
           supplierName: '',
           confirmationNumber: '',
-          paymentStatus: 'unpaid' as const
+          paymentStatus: 'unpaid' as const,
+          registeredAt: ''
         };
       }
       acc[bookingNumber].lines.push(line);
@@ -679,13 +678,16 @@ const InvoiceView = () => {
         acc[bookingNumber].estimatedCost += originalLine.estimatedCost || 0;
         acc[bookingNumber].estimatedVat += originalLine.estimatedVat || 0;
         acc[bookingNumber].currency = originalLine.currency || 'USD';
-        acc[bookingNumber].firstName = originalLine.firstName || '';
-        acc[bookingNumber].lastName = originalLine.lastName || '';
         acc[bookingNumber].departureDate = originalLine.departureDate || '';
         acc[bookingNumber].description = originalLine.description;
         acc[bookingNumber].supplierName = originalLine.supplierName;
         acc[bookingNumber].confirmationNumber = originalLine.confirmationNumber || '';
         acc[bookingNumber].paymentStatus = originalLine.paymentStatus || 'unpaid';
+      }
+      
+      // Set registered datetime from the earliest supplier invoice line creation date
+      if (!acc[bookingNumber].registeredAt || line.createdAt < acc[bookingNumber].registeredAt) {
+        acc[bookingNumber].registeredAt = line.createdAt;
       }
       
       return acc;
@@ -697,13 +699,12 @@ const InvoiceView = () => {
       estimatedCost: number;
       estimatedVat: number;
       currency: string;
-      firstName: string;
-      lastName: string;
       departureDate: string;
       description: string;
       supplierName: string;
       confirmationNumber: string;
       paymentStatus: 'paid' | 'unpaid' | 'partial';
+      registeredAt: string;
     }>);
     
     return Object.values(grouped);
@@ -817,9 +818,8 @@ const InvoiceView = () => {
                       </TableHead>
                       <TableHead>Booking Number</TableHead>
                       <TableHead>Supplier</TableHead>
-                      <TableHead>First Name</TableHead>
-                      <TableHead>Last Name</TableHead>
                       <TableHead>Departure Date</TableHead>
+                      <TableHead>Registered At</TableHead>
                       <TableHead>Payment Status</TableHead>
                       <TableHead>Est. Curr.</TableHead>
                       <TableHead>Est. Cost</TableHead>
@@ -854,10 +854,11 @@ const InvoiceView = () => {
                             </BookingSummaryPopover>
                           </TableCell>
                           <TableCell>{booking.supplierName}</TableCell>
-                          <TableCell>{booking.firstName}</TableCell>
-                          <TableCell>{booking.lastName}</TableCell>
                           <TableCell>
                             {booking.departureDate ? new Date(booking.departureDate).toLocaleDateString() : ''}
+                          </TableCell>
+                          <TableCell>
+                            {booking.registeredAt ? new Date(booking.registeredAt).toLocaleString() : ''}
                           </TableCell>
                           <TableCell>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
