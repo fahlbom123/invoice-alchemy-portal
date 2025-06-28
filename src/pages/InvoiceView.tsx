@@ -731,18 +731,6 @@ const InvoiceView = () => {
       acc[bookingNumber].totalActualCost += line.actualCost;
       acc[bookingNumber].totalActualVat += line.actualVat;
       
-      const originalLine = allInvoiceLines.find(origLine => origLine.id === line.invoiceLineId);
-      if (originalLine && acc[bookingNumber].description === '') {
-        acc[bookingNumber].estimatedCost += originalLine.estimatedCost || 0;
-        acc[bookingNumber].estimatedVat += originalLine.estimatedVat || 0;
-        acc[bookingNumber].currency = originalLine.currency || 'USD';
-        acc[bookingNumber].departureDate = originalLine.departureDate || '';
-        acc[bookingNumber].description = originalLine.description;
-        acc[bookingNumber].supplierName = originalLine.supplierName;
-        acc[bookingNumber].confirmationNumber = originalLine.confirmationNumber || '';
-        acc[bookingNumber].paymentStatus = originalLine.paymentStatus || 'unpaid';
-      }
-      
       // Set registered datetime from the earliest supplier invoice line creation date
       if (!acc[bookingNumber].registeredAt || line.createdAt < acc[bookingNumber].registeredAt) {
         acc[bookingNumber].registeredAt = line.createdAt;
@@ -764,6 +752,29 @@ const InvoiceView = () => {
       paymentStatus: 'paid' | 'unpaid' | 'partial';
       registeredAt: string;
     }>);
+    
+    // Now calculate estimated costs for each booking group
+    Object.keys(grouped).forEach(bookingNumber => {
+      const booking = grouped[bookingNumber];
+      const estimatedCosts = getEstimatedCostsForBooking(bookingNumber);
+      booking.estimatedCost = estimatedCosts.estimatedCost;
+      booking.estimatedVat = estimatedCosts.estimatedVat;
+      booking.currency = estimatedCosts.currency;
+      
+      // Get additional booking details from the first original line
+      const originalLine = allInvoiceLines.find(line => 
+        line.bookingNumber === bookingNumber || 
+        (!line.bookingNumber && getBookingNumberForSupplierLine({ id: line.id } as SupplierInvoiceLine) === bookingNumber)
+      );
+      
+      if (originalLine) {
+        booking.departureDate = originalLine.departureDate || '';
+        booking.description = originalLine.description;
+        booking.supplierName = originalLine.supplierName;
+        booking.confirmationNumber = originalLine.confirmationNumber || '';
+        booking.paymentStatus = originalLine.paymentStatus || 'unpaid';
+      }
+    });
     
     return Object.values(grouped);
   };
@@ -891,6 +902,7 @@ const InvoiceView = () => {
                     {groupedBookingTotals.map((booking) => {
                       const isFullyPaid = fullyPaidStatus[booking.bookingNumber] || false;
                       const registeredCost = booking.totalActualCost + booking.totalActualVat;
+                      const estimatedTotal = booking.estimatedCost + booking.estimatedVat;
                       return (
                         <TableRow key={booking.bookingNumber}>
                           <TableCell>
@@ -934,7 +946,7 @@ const InvoiceView = () => {
                             {booking.currency}
                           </TableCell>
                           <TableCell className="text-blue-600">
-                            {formatCurrency(booking.estimatedCost)}
+                            {formatCurrency(estimatedTotal)}
                           </TableCell>
                           <TableCell className="text-green-600">
                             {booking.currency}
