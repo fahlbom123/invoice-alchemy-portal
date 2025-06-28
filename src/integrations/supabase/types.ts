@@ -21,12 +21,10 @@ export type Database = {
           description: string
           estimated_cost: number
           estimated_vat: number | null
-          first_name: string | null
           fully_invoiced: boolean | null
           id: string
           invoice_id: string | null
           invoice_type: string | null
-          last_name: string | null
           payment_status: string | null
           quantity: number
           supplier_id: string
@@ -46,12 +44,10 @@ export type Database = {
           description: string
           estimated_cost: number
           estimated_vat?: number | null
-          first_name?: string | null
           fully_invoiced?: boolean | null
           id?: string
           invoice_id?: string | null
           invoice_type?: string | null
-          last_name?: string | null
           payment_status?: string | null
           quantity?: number
           supplier_id: string
@@ -71,12 +67,10 @@ export type Database = {
           description?: string
           estimated_cost?: number
           estimated_vat?: number | null
-          first_name?: string | null
           fully_invoiced?: boolean | null
           id?: string
           invoice_id?: string | null
           invoice_type?: string | null
-          last_name?: string | null
           payment_status?: string | null
           quantity?: number
           supplier_id?: string

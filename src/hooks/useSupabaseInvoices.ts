@@ -295,9 +295,7 @@ export function useSupabaseInvoiceById(id: string) {
           currency: line.currency,
           invoiceType: line.invoice_type as "single" | "multi",
           estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
-          actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined,
-          firstName: line.first_name,
-          lastName: line.last_name
+          actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined
         }));
 
         // Transform supplier invoice lines - these are the registered lines
@@ -418,9 +416,7 @@ export function useSupabaseInvoiceLines() {
           estimatedVat: line.estimated_vat ? parseFloat(String(line.estimated_vat)) : undefined,
           actualVat: line.actual_vat ? parseFloat(String(line.actual_vat)) : undefined,
           invoiceId: line.invoice_id,
-          invoiceNumber: '', // Will be populated if needed
-          firstName: line.first_name,
-          lastName: line.last_name
+          invoiceNumber: '' // Will be populated if needed
         }));
         
         console.log('Loaded invoice lines from Supabase:', transformedLines);
