@@ -188,7 +188,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         </div>
         
         {/* Headers - only show once at the top */}
-        {(accountEntries.length > 0 || vatAccountEntries.length > 0) && (
+        {accountEntries.length > 0 && (
           <div className="grid grid-cols-12 gap-2 items-center text-xs font-medium text-gray-500 pb-1">
             <div className="col-span-6">Account</div>
             <div className="col-span-1"></div>
@@ -248,6 +248,17 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
             <div className="col-span-1"></div>
           </div>
         ))}
+
+        {/* VAT Amount Header - only show when there are VAT entries */}
+        {vatAccountEntries.length > 0 && (
+          <div className="grid grid-cols-12 gap-2 items-center text-xs font-medium text-gray-500 pb-1 mt-4">
+            <div className="col-span-6">VAT Account</div>
+            <div className="col-span-1"></div>
+            <div className="col-span-3 text-right">VAT Amount</div>
+            <div className="col-span-1"></div>
+            <div className="col-span-1"></div>
+          </div>
+        )}
 
         {/* VAT Account Entries */}
         {vatAccountEntries.map((entry) => (
