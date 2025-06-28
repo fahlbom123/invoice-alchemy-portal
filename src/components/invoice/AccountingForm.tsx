@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,12 +42,10 @@ const costAccounts = [
 ];
 
 const vatAccounts = [
-  { code: "2610", description: "Input VAT 25%" },
-  { code: "2611", description: "Input VAT 12%" },
-  { code: "2612", description: "Input VAT 6%" },
-  { code: "2615", description: "Input VAT 0%" },
-  { code: "2620", description: "VAT on imports" },
-  { code: "2640", description: "Deductible VAT" },
+  { code: "2641", description: "Input VAT 25%" },
+  { code: "2645", description: "Input VAT 12%" },
+  { code: "2649", description: "Input VAT 6%" },
+  { code: "2611", description: "Input VAT 0%" },
 ];
 
 const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, defaultAccount = '', defaultVatAccount = '' }: AccountingFormProps) => {
