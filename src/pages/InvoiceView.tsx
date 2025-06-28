@@ -22,8 +22,8 @@ import { ArrowLeft, Edit, Trash2, Save, X, Lock, Send } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { mockBookings } from "@/data/mockData";
 
-// Define a simple interface for the raw Supabase data
 interface RawSupplierInvoiceLine {
   id: string;
   invoice_line_id: string;
@@ -40,7 +40,6 @@ const InvoiceView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // Add key to force re-fetching when data changes
   const [dataRefreshKey, setDataRefreshKey] = useState(0);
   
   const { invoice, isLoading } = useSupabaseInvoiceById(id || "");
@@ -49,19 +48,14 @@ const InvoiceView = () => {
   const { suppliers } = useSuppliers();
   const { saveInvoice } = useSaveInvoice();
 
-  // Fetch projects from Supabase
   const { projects, isLoading: isLoadingProjects } = useSupabaseProjects();
   
-  // Find the actual project data if the invoice has a project ID
   const selectedProject = invoice?.projectId ? projects.find(p => p.id === invoice.projectId) : null;
 
-  // Add state to track if invoice is cancelled
   const [isCancelled, setIsCancelled] = useState(false);
 
-  // Add state to track if invoice is sent to accounting
   const [isSentToAccounting, setIsSentToAccounting] = useState(false);
 
-  // Check if invoice is cancelled or sent to accounting when component loads
   useEffect(() => {
     if (invoice) {
       setIsCancelled(invoice.status === "cancelled");
@@ -69,10 +63,8 @@ const InvoiceView = () => {
     }
   }, [invoice]);
 
-  // Check if cancel button should be enabled (no lines connected)
   const canCancelInvoice = !invoice?.supplierInvoiceLines || invoice.supplierInvoiceLines.length === 0;
 
-  // Update formData state to populate with invoice data
   const [formData, setFormData] = useState<InvoiceFormData>({
     invoiceNumber: "",
     reference: "",
@@ -95,7 +87,6 @@ const InvoiceView = () => {
     projectId: undefined,
   });
 
-  // Populate formData when invoice data is loaded
   useEffect(() => {
     if (invoice) {
       setFormData({
@@ -122,7 +113,6 @@ const InvoiceView = () => {
     }
   }, [invoice]);
 
-  // Add function to send invoice to accounting
   const handleSendToAccounting = async () => {
     if (!invoice) return;
 
@@ -141,7 +131,6 @@ const InvoiceView = () => {
         description: "Supplier invoice has been sent to accounting successfully.",
       });
       
-      // Refresh the data instead of full page reload
       await refreshInvoiceData();
     } catch (error) {
       console.error("Error sending invoice to accounting:", error);
@@ -153,17 +142,14 @@ const InvoiceView = () => {
     }
   };
 
-  // Add state for registered totals
   const [registeredTotals, setRegisteredTotals] = useState<{
     totalActualCost: number;
     totalActualVat: number;
   } | null>(null);
 
-  // Add state for editing supplier invoice lines
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
   const [editingLine, setEditingLine] = useState<SupplierInvoiceLine | null>(null);
 
-  // Search state - initialize supplierId with invoice supplier if available
   const [supplierId, setSupplierId] = useState<string>(invoice?.supplier.id || "all");
   const [description, setDescription] = useState<string>("");
   const [bookingNumber, setBookingNumber] = useState<string>("");
@@ -176,40 +162,41 @@ const InvoiceView = () => {
   const [searchResults, setSearchResults] = useState<InvoiceLine[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Use Supabase invoice lines instead of invoice lines from invoices
-  const allInvoiceLines = supabaseInvoiceLines.map(line => ({
-    ...line,
-    invoiceId: line.invoiceId || '',
-    invoiceNumber: line.invoiceNumber || '',
-    bookingNumber: line.bookingNumber || "",
-    confirmationNumber: line.confirmationNumber || "",
-    departureDate: line.departureDate || "",
-    paymentStatus: line.paymentStatus || "unpaid",
-    invoiceTotalAmount: 0
-  }));
+  const allInvoiceLines = supabaseInvoiceLines.map(line => {
+    const booking = mockBookings.find(b => b.bookingNumber === line.bookingNumber);
+    
+    return {
+      ...line,
+      invoiceId: line.invoiceId || '',
+      invoiceNumber: line.invoiceNumber || '',
+      bookingNumber: line.bookingNumber || "",
+      confirmationNumber: line.confirmationNumber || "",
+      departureDate: line.departureDate || "",
+      paymentStatus: line.paymentStatus || "unpaid",
+      invoiceTotalAmount: 0,
+      firstName: booking?.firstName || '',
+      lastName: booking?.lastName || ''
+    };
+  });
 
-  // Get supplier invoice lines that are actually connected to THIS invoice
   const [connectedSupplierInvoiceLines, setConnectedSupplierInvoiceLines] = useState<SupplierInvoiceLine[]>([]);
 
-  // Load supplier invoice lines that are connected to this specific invoice
   useEffect(() => {
     const loadConnectedSupplierInvoiceLines = async () => {
       if (!invoice || !invoice.id) return;
 
       try {
-        // Get supplier invoice lines that are directly linked to this supplier invoice
         const { data, error } = await supabase
           .from('supplier_invoice_lines')
           .select('*')
           .eq('supplier_invoice_id', invoice.id)
-          .order('created_at', { ascending: true }); // Order by creation time to maintain consistency
+          .order('created_at', { ascending: true });
 
         if (error) {
           console.error('Error loading connected supplier invoice lines:', error);
           return;
         }
 
-        // Transform the data with simple type conversion
         const transformedLines: SupplierInvoiceLine[] = (data || []).map((line: any) => ({
           id: String(line.id),
           invoiceLineId: String(line.invoice_line_id),
@@ -232,23 +219,18 @@ const InvoiceView = () => {
     loadConnectedSupplierInvoiceLines();
   }, [invoice?.id, dataRefreshKey]);
 
-  // Add function to refresh invoice data
   const refreshInvoiceData = async () => {
     setDataRefreshKey(prev => prev + 1);
-    // Also trigger a page reload to ensure fresh data
     window.location.reload();
   };
 
-  // Function to get booking number for supplier invoice line by matching with original invoice line
   const getBookingNumberForSupplierLine = (supplierLine: SupplierInvoiceLine) => {
-    // Find the original invoice line that this supplier line references
     const originalLine = allInvoiceLines.find(line => line.id === supplierLine.invoiceLineId);
     
     if (originalLine?.bookingNumber) {
       return originalLine.bookingNumber;
     }
     
-    // Fallback: generate consistent random number if no booking number exists
     const seed = supplierLine.id.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
@@ -258,14 +240,12 @@ const InvoiceView = () => {
     return (10000000 + random).toString();
   };
 
-  // Function to get estimated costs and currency for a booking number
   const getEstimatedCostsForBooking = (bookingNumber: string) => {
     const originalLines = allInvoiceLines.filter(line => 
       line.bookingNumber === bookingNumber || 
       (!line.bookingNumber && getBookingNumberForSupplierLine({ id: line.id } as SupplierInvoiceLine) === bookingNumber)
     );
     
-    // Get the currency from the first line (they should all have the same currency for a booking)
     const lineCurrency = originalLines.length > 0 ? originalLines[0].currency || 'USD' : 'USD';
     
     return originalLines.reduce((acc, line) => ({
@@ -275,20 +255,15 @@ const InvoiceView = () => {
     }), { estimatedCost: 0, estimatedVat: 0, currency: lineCurrency });
   };
 
-  // Add new function to get estimated costs for unique invoice lines in a booking's supplier lines
   const getEstimatedCostsForSupplierLinesInBooking = (supplierLines: SupplierInvoiceLine[]) => {
-    // Get unique invoice line IDs from the supplier lines
     const uniqueInvoiceLineIds = [...new Set(supplierLines.map(line => line.invoiceLineId))];
     
-    // Find the original invoice lines that match these IDs
     const matchingOriginalLines = allInvoiceLines.filter(line => 
       uniqueInvoiceLineIds.includes(line.id)
     );
     
-    // Get the currency from the first line
     const lineCurrency = matchingOriginalLines.length > 0 ? matchingOriginalLines[0].currency || 'USD' : 'USD';
     
-    // Sum up the estimated costs and VAT for these unique lines
     return matchingOriginalLines.reduce((acc, line) => ({
       estimatedCost: acc.estimatedCost + (line.estimatedCost || 0),
       estimatedVat: acc.estimatedVat + (line.estimatedVat || 0),
@@ -296,7 +271,6 @@ const InvoiceView = () => {
     }), { estimatedCost: 0, estimatedVat: 0, currency: lineCurrency });
   };
 
-  // Function to group supplier invoice lines by booking number
   const groupSupplierLinesByBooking = (lines: SupplierInvoiceLine[]) => {
     const grouped = lines.reduce((acc, line) => {
       const bookingNumber = getBookingNumberForSupplierLine(line);
@@ -309,9 +283,7 @@ const InvoiceView = () => {
     return grouped;
   };
 
-  // Add function to check if this is the first occurrence of an invoice line ID within a booking
   const isFirstOccurrenceOfInvoiceLine = (supplierLines: SupplierInvoiceLine[], currentLine: SupplierInvoiceLine, currentIndex: number) => {
-    // Check if this is the first supplier line that references this invoice line ID within this booking group
     const previousLinesWithSameInvoiceLineId = supplierLines
       .slice(0, currentIndex)
       .filter(line => line.invoiceLineId === currentLine.invoiceLineId);
@@ -319,24 +291,20 @@ const InvoiceView = () => {
     return previousLinesWithSameInvoiceLineId.length === 0;
   };
 
-  // Add function to start editing a supplier invoice line
   const handleEditSupplierLine = (line: SupplierInvoiceLine) => {
     setEditingLineId(line.id);
     setEditingLine({ ...line });
   };
 
-  // Add function to cancel editing
   const handleCancelEdit = () => {
     setEditingLineId(null);
     setEditingLine(null);
   };
 
-  // Add function to save edited supplier invoice line
   const handleSaveSupplierLine = async () => {
     if (!invoice || !editingLine) return;
 
     try {
-      // Update in Supabase
       const { error } = await supabase
         .from('supplier_invoice_lines')
         .update({
@@ -364,7 +332,6 @@ const InvoiceView = () => {
       setEditingLineId(null);
       setEditingLine(null);
       
-      // Refresh the data instead of full page reload
       await refreshInvoiceData();
     } catch (error) {
       console.error("Error updating supplier invoice line:", error);
@@ -376,12 +343,10 @@ const InvoiceView = () => {
     }
   };
 
-  // Add function to delete supplier invoice line
   const handleDeleteSupplierLine = async (supplierLineId: string) => {
     if (!invoice) return;
 
     try {
-      // Delete from Supabase
       const { error } = await supabase
         .from('supplier_invoice_lines')
         .delete()
@@ -402,7 +367,6 @@ const InvoiceView = () => {
         description: "Supplier invoice line has been deleted successfully.",
       });
       
-      // Refresh the data instead of full page reload
       await refreshInvoiceData();
     } catch (error) {
       console.error("Error deleting supplier invoice line:", error);
@@ -414,14 +378,13 @@ const InvoiceView = () => {
     }
   };
 
-  // Add function to undo cancel supplier invoice
   const handleUndoCancelInvoice = async () => {
     if (!invoice) return;
 
     try {
       const updatedInvoice = {
         ...invoice,
-        status: "unpaid", // Reset to unpaid status
+        status: "unpaid",
         updatedAt: new Date().toISOString(),
       };
 
@@ -433,7 +396,6 @@ const InvoiceView = () => {
         description: "Supplier invoice has been restored successfully.",
       });
       
-      // Refresh the data instead of full page reload
       await refreshInvoiceData();
     } catch (error) {
       console.error("Error restoring invoice:", error);
@@ -445,7 +407,6 @@ const InvoiceView = () => {
     }
   };
 
-  // Add function to cancel supplier invoice
   const handleCancelInvoice = async () => {
     if (!invoice) return;
 
@@ -464,7 +425,6 @@ const InvoiceView = () => {
         description: "Supplier invoice has been cancelled successfully.",
       });
       
-      // Refresh the data instead of full page reload
       await refreshInvoiceData();
     } catch (error) {
       console.error("Error cancelling invoice:", error);
@@ -476,10 +436,8 @@ const InvoiceView = () => {
     }
   };
 
-  // Add state for tracking fully paid status for each booking
   const [fullyPaidStatus, setFullyPaidStatus] = useState<Record<string, boolean>>({});
 
-  // Add function to handle fully paid checkbox changes
   const handleFullyPaidChange = (bookingNumber: string, isChecked: boolean) => {
     setFullyPaidStatus(prev => ({
       ...prev,
@@ -487,7 +445,6 @@ const InvoiceView = () => {
     }));
   };
 
-  // Add missing search and registration functions
   const handleClear = () => {
     setSupplierId("all");
     setDescription("");
@@ -516,7 +473,6 @@ const InvoiceView = () => {
       totalLines: allInvoiceLines.length
     });
     
-    // Filter invoice lines based on search criteria
     const filtered = allInvoiceLines.filter(line => {
       const matchesSupplier = supplierId === "all" || line.supplierId === supplierId;
       const matchesDescription = !description || 
@@ -528,14 +484,12 @@ const InvoiceView = () => {
       const matchesConfirmationNumber = !confirmationNumber || 
         (line.confirmationNumber && line.confirmationNumber.toLowerCase().includes(confirmationNumber.toLowerCase()));
       
-      // First name and last name search
       const matchesFirstName = !firstName || 
         (line.firstName && line.firstName.toLowerCase().includes(firstName.toLowerCase()));
       
       const matchesLastName = !lastName || 
         (line.lastName && line.lastName.toLowerCase().includes(lastName.toLowerCase()));
       
-      // Date range check
       let matchesDepartureDate = true;
       if (line.departureDate) {
         if (departureDateStart && new Date(line.departureDate) < new Date(departureDateStart)) {
@@ -567,16 +521,15 @@ const InvoiceView = () => {
     try {
       console.log("Registering lines to supplier invoice:", selectedLines);
       
-      // Transform selectedLines to the format needed for insertion
       const linesToInsert = selectedLines.map(line => ({
         supplier_invoice_id: invoice.id,
-        invoice_line_id: line.id, // Use 'id' from SearchResultLine
+        invoice_line_id: line.id,
         actual_cost: line.actualCost || 0,
         actual_vat: line.actualVat || 0,
         description: line.description,
         supplier_name: invoice.supplier.name,
         currency: invoice.currency || 'USD',
-        created_by: 'User', // This should ideally come from auth context
+        created_by: 'User',
       }));
 
       const { error } = await supabase
@@ -598,7 +551,6 @@ const InvoiceView = () => {
         description: `Successfully registered ${selectedLines.length} invoice lines.`,
       });
       
-      // Refresh the data
       await refreshInvoiceData();
     } catch (error) {
       console.error("Error in handleRegistration:", error);
@@ -614,7 +566,6 @@ const InvoiceView = () => {
     try {
       console.log("Updating line statuses:", lineUpdates);
       
-      // Update payment status in Supabase for each line
       for (const update of lineUpdates) {
         const { error } = await supabase
           .from('invoice_lines')
@@ -632,7 +583,6 @@ const InvoiceView = () => {
         description: "Invoice line payment status has been updated.",
       });
       
-      // Refresh search results if we have searched
       if (hasSearched) {
         handleSearch();
       }
@@ -646,7 +596,6 @@ const InvoiceView = () => {
     }
   };
 
-  // Function to generate line numbers based on unique invoice line IDs
   const generateLineNumbers = (supplierLines: SupplierInvoiceLine[]) => {
     const lineNumbers: Record<string, string> = {};
     const uniqueLineCounter: Record<string, number> = {};
@@ -657,13 +606,11 @@ const InvoiceView = () => {
       const invoiceLineId = line.invoiceLineId;
       
       if (!uniqueLineCounter[invoiceLineId]) {
-        // This is the first occurrence of this invoice line ID
         uniqueLineCounter[invoiceLineId] = mainCounter;
         subLineCounter[invoiceLineId] = 1;
         lineNumbers[line.id] = mainCounter.toString();
         mainCounter++;
       } else {
-        // This is a subsequent occurrence of the same invoice line ID
         subLineCounter[invoiceLineId]++;
         lineNumbers[line.id] = `${uniqueLineCounter[invoiceLineId]}.${subLineCounter[invoiceLineId] - 1}`;
       }
@@ -672,7 +619,6 @@ const InvoiceView = () => {
     return lineNumbers;
   };
 
-  // Generate internal supplier invoice ID from the invoice ID (first 8 characters)
   const internalSupplierInvoiceId = invoice ? `SI-${invoice.id.substring(0, 8).toUpperCase()}` : '';
 
   if (isLoading || isLoadingInvoices || isLoadingInvoiceLines) {
@@ -690,14 +636,12 @@ const InvoiceView = () => {
     );
   }
 
-  // Transform selectedProject to match expected interface
   const transformedSelectedProject = selectedProject ? {
     id: selectedProject.id,
     project_number: selectedProject.projectNumber || '',
     description: selectedProject.description
   } : null;
 
-  // Function to group supplier invoice lines by booking number and calculate totals
   const groupSupplierLinesByBookingWithTotals = (lines: SupplierInvoiceLine[]) => {
     const grouped = lines.reduce((acc, line) => {
       const bookingNumber = getBookingNumberForSupplierLine(line);
@@ -723,7 +667,6 @@ const InvoiceView = () => {
       acc[bookingNumber].totalActualCost += line.actualCost;
       acc[bookingNumber].totalActualVat += line.actualVat;
       
-      // Get details from the first original line for this booking
       const originalLine = allInvoiceLines.find(origLine => origLine.id === line.invoiceLineId);
       if (originalLine && acc[bookingNumber].description === '') {
         acc[bookingNumber].estimatedCost += originalLine.estimatedCost || 0;
@@ -759,7 +702,6 @@ const InvoiceView = () => {
     return Object.values(grouped);
   };
 
-  // Use the connected supplier invoice lines instead of all supplier invoice lines
   const groupedBookingTotals = groupSupplierLinesByBookingWithTotals(connectedSupplierInvoiceLines);
 
   const currency = invoice.currency || 'USD';
@@ -819,7 +761,6 @@ const InvoiceView = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {/* Supplier Information */}
               <div className="space-y-2">
                 <h3 className="text-lg font-medium">Supplier</h3>
                 <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
@@ -827,10 +768,8 @@ const InvoiceView = () => {
                 </div>
               </div>
 
-              {/* Supplier Details */}
               <SupplierDetails supplier={invoice.supplier} />
 
-              {/* Invoice Header Information */}
               <InvoiceHeaderView 
                 formData={formData} 
                 registeredTotals={registeredTotals}
@@ -845,7 +784,6 @@ const InvoiceView = () => {
           </CardContent>
         </Card>
 
-        {/* Registered Bookings - Show booking totals instead of individual lines */}
         {connectedSupplierInvoiceLines && connectedSupplierInvoiceLines.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
@@ -947,7 +885,6 @@ const InvoiceView = () => {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => {
-                                    // Delete all supplier invoice lines for this booking
                                     booking.lines.forEach(line => handleDeleteSupplierLine(line.id));
                                   }}
                                   disabled={isFullyPaid}
@@ -979,10 +916,8 @@ const InvoiceView = () => {
           </Card>
         )}
 
-        {/* Only show search forms if not cancelled or sent to accounting */}
         {!isCancelled && !isSentToAccounting && (
           <>
-            {/* Search Forms for Invoice lines */}
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle>Search bookings ({allInvoiceLines.length} total lines available)</CardTitle>
@@ -1117,7 +1052,6 @@ const InvoiceView = () => {
               </CardContent>
             </Card>
 
-            {/* Search Results for Invoice lines */}
             {hasSearched && (
               <Card>
                 <CardHeader>
