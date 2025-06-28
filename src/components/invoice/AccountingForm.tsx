@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -131,16 +130,15 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
 
       {/* Combined Account and VAT Entries */}
       <div className="space-y-3 mb-4">
-        <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-600">
+        <div className="grid grid-cols-10 gap-2 text-sm font-medium text-gray-600">
           <div className="col-span-3">Account</div>
           <div className="col-span-2">Amount</div>
           <div className="col-span-3">VAT Account</div>
           <div className="col-span-2">VAT Amount</div>
-          <div className="col-span-2">Total</div>
         </div>
         
         {entries.map((entry, index) => (
-          <div key={entry.id} className="grid grid-cols-12 gap-2 items-center">
+          <div key={entry.id} className="grid grid-cols-10 gap-2 items-center">
             <div className="col-span-3">
               <Select
                 value={entry.account}
@@ -203,10 +201,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
                 step="0.01"
               />
             </div>
-            <div className="col-span-1 text-sm font-medium">
-              {formatCurrency(entry.amount + entry.vatAmount)}
-            </div>
-            <div className="col-span-1">
+            <div className="col-span-1 flex justify-center">
               {entries.length > 1 && !disabled && (
                 <Button
                   variant="outline"
@@ -236,7 +231,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         {/* Totals */}
         <Separator className="my-3" />
         <div className="space-y-2 text-sm">
-          <div className="grid grid-cols-12 gap-2">
+          <div className="grid grid-cols-10 gap-2">
             <div className="col-span-3 font-medium">Total Allocated:</div>
             <div className={`col-span-2 font-medium ${isAmountValid ? "text-green-600" : "text-red-600"}`}>
               {formatCurrency(totalEntryAmount)}
@@ -245,13 +240,9 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
             <div className={`col-span-2 font-medium ${isVatAmountValid ? "text-green-600" : "text-red-600"}`}>
               {formatCurrency(totalVatAmount)}
             </div>
-            <div className="col-span-1 font-medium text-green-600">
-              {formatCurrency(totalEntryAmount + totalVatAmount)}
-            </div>
-            <div className="col-span-1"></div>
           </div>
           
-          <div className="grid grid-cols-12 gap-2">
+          <div className="grid grid-cols-10 gap-2">
             <div className="col-span-3 font-medium">Remaining:</div>
             <div className={`col-span-2 font-medium ${remainingAmount >= 0 ? "text-gray-600" : "text-red-600"}`}>
               {formatCurrency(remainingAmount)}
@@ -260,10 +251,6 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
             <div className={`col-span-2 font-medium ${remainingVat >= 0 ? "text-gray-600" : "text-red-600"}`}>
               {formatCurrency(remainingVat)}
             </div>
-            <div className="col-span-1 font-medium text-gray-600">
-              {formatCurrency(remainingAmount + remainingVat)}
-            </div>
-            <div className="col-span-1"></div>
           </div>
           
           {(!isAmountValid || !isVatAmountValid) && (
