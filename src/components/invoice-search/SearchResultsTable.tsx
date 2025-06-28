@@ -1,9 +1,12 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import SearchResultRow from "./SearchResultRow";
 import { formatCurrency } from "@/lib/formatters";
+import { Edit, Save, X } from "lucide-react";
 
 interface SearchResultLine {
   id: string;
@@ -60,6 +63,10 @@ const SearchResultsTable = ({
   setEditingCost,
   setEditingVat,
 }: SearchResultsTableProps) => {
+  // State for booking subtotal editing
+  const [editingBookingCost, setEditingBookingCost] = useState<string | null>(null);
+  const [editingBookingCostValue, setEditingBookingCostValue] = useState<string>("");
+
   // Group lines by supplier, then by booking number
   const groupedLines = lines.reduce((groups, line) => {
     const supplierKey = `${line.supplierId}-${line.supplierName}`;
@@ -115,6 +122,47 @@ const SearchResultsTable = ({
     return selectedUnpaidLines.length > 0 && selectedUnpaidLines.length < unpaidLines.length;
   };
 
+  // Handle booking cost editing
+  const handleEditBookingCost = (bookingNumber: string, currentCost: number) => {
+    setEditingBookingCost(bookingNumber);
+    setEditingBookingCostValue(currentCost.toString());
+  };
+
+  const handleSaveBookingCost = (bookingNumber: string, bookingLines: SearchResultLine[]) => {
+    const newTotalCost = parseFloat(editingBookingCostValue) || 0;
+    const currentTotalCost = bookingLines.reduce((sum, line) => sum + (line.actualCost || 0), 0);
+    
+    if (newTotalCost === currentTotalCost) {
+      setEditingBookingCost(null);
+      setEditingBookingCostValue("");
+      return;
+    }
+
+    // Distribute the new total cost proportionally among the lines based on their estimated costs
+    const totalEstimatedCost = bookingLines.reduce((sum, line) => sum + line.estimatedCost, 0);
+    
+    if (totalEstimatedCost > 0) {
+      bookingLines.forEach(line => {
+        const proportion = line.estimatedCost / totalEstimatedCost;
+        const newActualCost = newTotalCost * proportion;
+        
+        // Trigger the line edit to update the actual cost
+        // We need to simulate the editing process for each line
+        onEditActualCost(`${line.id}-cost`);
+        setEditingCost(newActualCost.toString());
+        onSaveActualCost(line.id);
+      });
+    }
+
+    setEditingBookingCost(null);
+    setEditingBookingCostValue("");
+  };
+
+  const handleCancelBookingEdit = () => {
+    setEditingBookingCost(null);
+    setEditingBookingCostValue("");
+  };
+
   const BookingSubtotalRow = ({ bookingNumber, bookingLines, totals }: { 
     bookingNumber: string; 
     bookingLines: SearchResultLine[];
@@ -123,6 +171,7 @@ const SearchResultsTable = ({
     const isSelected = isBookingSelected(bookingLines);
     const isPartiallySelected = isBookingPartiallySelected(bookingLines);
     const hasUnpaidLines = bookingLines.some(line => line.paymentStatus !== "paid");
+    const isEditingThisBooking = editingBookingCost === bookingNumber;
 
     return (
       <TableRow className="bg-blue-50 font-medium border-t border-blue-200">
@@ -147,7 +196,44 @@ const SearchResultsTable = ({
         <TableCell></TableCell>
         <TableCell></TableCell>
         <TableCell className="text-right text-blue-800">{formatCurrency(totals.estimatedCost)}</TableCell>
-        <TableCell className="text-right text-blue-800">{formatCurrency(totals.actualCost)}</TableCell>
+        <TableCell className="text-right text-blue-800">
+          {isEditingThisBooking ? (
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                step="0.01"
+                value={editingBookingCostValue}
+                onChange={(e) => setEditingBookingCostValue(e.target.value)}
+                className="w-24 h-8"
+              />
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => handleSaveBookingCost(bookingNumber, bookingLines)}
+              >
+                <Save className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleCancelBookingEdit}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span>{formatCurrency(totals.actualCost)}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleEditBookingCost(bookingNumber, totals.actualCost)}
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+        </TableCell>
         <TableCell className="text-right text-blue-800">{formatCurrency(totals.registeredCost)}</TableCell>
         <TableCell></TableCell>
         <TableCell></TableCell>
@@ -182,6 +268,7 @@ const SearchResultsTable = ({
     const isSelected = isBookingSelected(bookingLines);
     const isPartiallySelected = isBookingPartiallySelected(bookingLines);
     const hasUnpaidLines = bookingLines.some(line => line.paymentStatus !== "paid");
+    const isEditingThisBooking = editingBookingCost === bookingNumber;
 
     return (
       <div className="bg-blue-50 p-3 rounded-md border border-blue-200 mt-2">
@@ -203,7 +290,48 @@ const SearchResultsTable = ({
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div>Est. Cost: {formatCurrency(totals.estimatedCost)}</div>
-          <div>Actual Cost: {formatCurrency(totals.actualCost)}</div>
+          <div className="flex items-center gap-2">
+            Actual Cost: 
+            {isEditingThisBooking ? (
+              <div className="flex items-center gap-1">
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={editingBookingCostValue}
+                  onChange={(e) => setEditingBookingCostValue(e.target.value)}
+                  className="w-20 h-6 text-xs"
+                />
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => handleSaveBookingCost(bookingNumber, bookingLines)}
+                  className="h-6 w-6 p-0"
+                >
+                  <Save className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCancelBookingEdit}
+                  className="h-6 w-6 p-0"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <span>{formatCurrency(totals.actualCost)}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleEditBookingCost(bookingNumber, totals.actualCost)}
+                  className="h-6 w-6 p-0"
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+          </div>
           <div>Reg. Cost: {formatCurrency(totals.registeredCost)}</div>
         </div>
       </div>
