@@ -53,7 +53,6 @@ const InvoiceView = () => {
   const selectedProject = invoice?.projectId ? projects.find(p => p.id === invoice.projectId) : null;
 
   const [isCancelled, setIsCancelled] = useState(false);
-
   const [isSentToAccounting, setIsSentToAccounting] = useState(false);
 
   useEffect(() => {
@@ -189,8 +188,8 @@ const InvoiceView = () => {
         const transformedLines: SupplierInvoiceLine[] = (data || []).map((line: any) => ({
           id: String(line.id),
           invoiceLineId: String(line.invoice_line_id),
-          actualCost: Number(line.actual_cost),
-          actualVat: Number(line.actual_vat),
+          actualCost: Number(line.actual_cost) || 0,
+          actualVat: Number(line.actual_vat) || 0,
           currency: String(line.currency),
           createdAt: String(line.created_at),
           createdBy: line.created_by ? String(line.created_by) : 'System',
@@ -198,7 +197,8 @@ const InvoiceView = () => {
           supplierName: String(line.supplier_name),
         }));
 
-        console.log('Connected supplier invoice lines for this invoice:', transformedLines);
+        console.log('Connected supplier invoice lines loaded:', transformedLines);
+        console.log('Actual costs from supplier lines:', transformedLines.map(l => ({ id: l.id, actualCost: l.actualCost, actualVat: l.actualVat })));
         setConnectedSupplierInvoiceLines(transformedLines);
       } catch (error) {
         console.error('Error in loadConnectedSupplierInvoiceLines:', error);
@@ -218,6 +218,7 @@ const InvoiceView = () => {
     // First try to get the actual booking number from the invoice line
     const actualBookingNumber = invoiceLineToBookingMap.get(supplierLine.invoiceLineId);
     if (actualBookingNumber) {
+      console.log(`Found actual booking number ${actualBookingNumber} for supplier line ${supplierLine.id}`);
       return actualBookingNumber;
     }
     
@@ -228,7 +229,9 @@ const InvoiceView = () => {
     }, 0);
     
     const random = Math.abs(seed) % 90000000;
-    return (10000000 + random).toString();
+    const generatedBooking = (10000000 + random).toString();
+    console.log(`Generated fallback booking number ${generatedBooking} for supplier line ${supplierLine.id}`);
+    return generatedBooking;
   };
 
   const getEstimatedCostsForBooking = (bookingNumber: string) => {
@@ -238,7 +241,14 @@ const InvoiceView = () => {
     const originalLines = allInvoiceLines.filter(line => {
       const matches = line.bookingNumber === bookingNumber && line.supplierId === invoice?.supplier.id;
       if (matches) {
-        console.log('Found matching line:', line.id, line.description, 'estimated:', line.estimatedCost, 'estimatedVat:', line.estimatedVat);
+        console.log('Found matching line for estimated costs:', {
+          lineId: line.id,
+          description: line.description,
+          estimatedCost: line.estimatedCost,
+          estimatedVat: line.estimatedVat,
+          bookingNumber: line.bookingNumber,
+          supplierId: line.supplierId
+        });
       }
       return matches;
     });
@@ -523,7 +533,16 @@ const InvoiceView = () => {
     if (!invoice) return;
 
     try {
-      console.log("Registering lines to supplier invoice:", selectedLines);
+      console.log("Registering lines to supplier invoice:", {
+        selectedLines: selectedLines.map(l => ({ 
+          id: l.id, 
+          bookingNumber: l.bookingNumber,
+          actualCost: l.actualCost,
+          actualVat: l.actualVat,
+          description: l.description 
+        })),
+        totals
+      });
       
       // Group selected lines by booking number to handle multiple registrations
       const linesByBooking = selectedLines.reduce((acc, line) => {
@@ -536,12 +555,15 @@ const InvoiceView = () => {
       }, {} as Record<string, SearchResultLine[]>);
 
       for (const [bookingNumber, bookingLines] of Object.entries(linesByBooking)) {
+        console.log(`Processing booking ${bookingNumber} with ${bookingLines.length} lines`);
+        
         // Check if this booking already has registered lines for this supplier invoice
         const existingSupplierLines = connectedSupplierInvoiceLines.filter(line => 
           getBookingNumberForSupplierLine(line) === bookingNumber
         );
 
         if (existingSupplierLines.length > 0) {
+          console.log(`Updating existing lines for booking ${bookingNumber}`);
           // Update existing supplier invoice lines with new actual costs
           for (const bookingLine of bookingLines) {
             const matchingSupplierLine = existingSupplierLines.find(sl => 
@@ -549,6 +571,7 @@ const InvoiceView = () => {
             );
 
             if (matchingSupplierLine) {
+              console.log(`Updating existing supplier line ${matchingSupplierLine.id} with actualCost: ${bookingLine.actualCost}, actualVat: ${bookingLine.actualVat}`);
               // Update existing supplier invoice line
               const { error } = await supabase
                 .from('supplier_invoice_lines')
@@ -564,6 +587,7 @@ const InvoiceView = () => {
                 throw error;
               }
             } else {
+              console.log(`Creating new supplier line for booking line ${bookingLine.id} with actualCost: ${bookingLine.actualCost}, actualVat: ${bookingLine.actualVat}`);
               // Create new supplier invoice line for this booking line
               const { error } = await supabase
                 .from('supplier_invoice_lines')
@@ -585,17 +609,21 @@ const InvoiceView = () => {
             }
           }
         } else {
+          console.log(`Creating new lines for booking ${bookingNumber}`);
           // Create new supplier invoice lines for this booking
-          const linesToInsert = bookingLines.map(line => ({
-            supplier_invoice_id: invoice.id,
-            invoice_line_id: line.id,
-            actual_cost: line.actualCost || 0,
-            actual_vat: line.actualVat || 0,
-            description: line.description,
-            supplier_name: invoice.supplier.name,
-            currency: invoice.currency || 'USD',
-            created_by: 'User',
-          }));
+          const linesToInsert = bookingLines.map(line => {
+            console.log(`Inserting line ${line.id} with actualCost: ${line.actualCost}, actualVat: ${line.actualVat}`);
+            return {
+              supplier_invoice_id: invoice.id,
+              invoice_line_id: line.id,
+              actual_cost: line.actualCost || 0,
+              actual_vat: line.actualVat || 0,
+              description: line.description,
+              supplier_name: invoice.supplier.name,
+              currency: invoice.currency || 'USD',
+              created_by: 'User',
+            };
+          });
 
           const { error } = await supabase
             .from('supplier_invoice_lines')
@@ -613,6 +641,7 @@ const InvoiceView = () => {
         description: `Successfully registered/updated ${selectedLines.length} invoice lines.`,
       });
       
+      console.log("Registration completed, refreshing data...");
       await refreshInvoiceData();
     } catch (error) {
       console.error("Error in handleRegistration:", error);
@@ -734,7 +763,8 @@ const InvoiceView = () => {
   } : null;
 
   const groupSupplierLinesByBookingWithTotals = (lines: SupplierInvoiceLine[]) => {
-    console.log('Grouping supplier lines by booking, input lines:', lines.map(l => ({ 
+    console.log('=== Starting groupSupplierLinesByBookingWithTotals ===');
+    console.log('Input supplier lines:', lines.map(l => ({ 
       id: l.id, 
       invoiceLineId: l.invoiceLineId,
       actualCost: l.actualCost, 
@@ -744,6 +774,8 @@ const InvoiceView = () => {
     
     const grouped = lines.reduce((acc, line) => {
       const bookingNumber = getBookingNumberForSupplierLine(line);
+      console.log(`Processing supplier line ${line.id} for booking ${bookingNumber}`);
+      
       if (!acc[bookingNumber]) {
         acc[bookingNumber] = {
           bookingNumber,
@@ -767,10 +799,11 @@ const InvoiceView = () => {
       const actualCost = Number(line.actualCost) || 0;
       const actualVat = Number(line.actualVat) || 0;
       
+      console.log(`Adding costs for booking ${bookingNumber}: actualCost=${actualCost}, actualVat=${actualVat}`);
       acc[bookingNumber].totalActualCost += actualCost;
       acc[bookingNumber].totalActualVat += actualVat;
       
-      console.log('Added line to booking', bookingNumber, '- line actualCost:', actualCost, 'line actualVat:', actualVat, 'running actualCost total:', acc[bookingNumber].totalActualCost, 'running actualVat total:', acc[bookingNumber].totalActualVat);
+      console.log(`Running totals for booking ${bookingNumber}: totalActualCost=${acc[bookingNumber].totalActualCost}, totalActualVat=${acc[bookingNumber].totalActualVat}`);
       
       // Set registered datetime from the earliest supplier invoice line creation date
       if (!acc[bookingNumber].registeredAt || line.createdAt < acc[bookingNumber].registeredAt) {
@@ -798,7 +831,7 @@ const InvoiceView = () => {
     Object.keys(grouped).forEach(bookingNumber => {
       const booking = grouped[bookingNumber];
       
-      console.log('Calculating estimated costs for registered booking:', bookingNumber);
+      console.log(`Calculating estimated costs for booking ${bookingNumber}`);
       
       // Get estimated costs from original invoice lines that match this booking
       const estimatedCosts = getEstimatedCostsForBooking(bookingNumber);
@@ -806,7 +839,12 @@ const InvoiceView = () => {
       booking.estimatedVat = estimatedCosts.estimatedVat;
       booking.currency = estimatedCosts.currency;
       
-      console.log('Set estimated costs for booking', bookingNumber, '- estimatedCost:', booking.estimatedCost, 'estimatedVat:', booking.estimatedVat, 'actualCost:', booking.totalActualCost, 'actualVat:', booking.totalActualVat);
+      console.log(`Estimated costs for booking ${bookingNumber}:`, {
+        estimatedCost: booking.estimatedCost,
+        estimatedVat: booking.estimatedVat,
+        actualCost: booking.totalActualCost,
+        actualVat: booking.totalActualVat
+      });
       
       // Get additional booking details from the first invoice line that matches the booking number and supplier
       const originalLine = allInvoiceLines.find(line => 
@@ -820,29 +858,36 @@ const InvoiceView = () => {
         booking.supplierName = originalLine.supplierName;
         booking.confirmationNumber = originalLine.confirmationNumber || '';
         booking.paymentStatus = originalLine.paymentStatus || 'unpaid';
-        console.log('Set booking details for', bookingNumber, '- supplier:', booking.supplierName, 'description:', booking.description);
+        console.log(`Set booking details for ${bookingNumber} from original line:`, {
+          supplier: booking.supplierName,
+          description: booking.description
+        });
       } else {
-        console.log('No original line found for booking', bookingNumber, 'with supplier', invoice?.supplier.id);
+        console.log(`No original line found for booking ${bookingNumber} with supplier ${invoice?.supplier.id}`);
         // Set fallback values from supplier invoice line
         if (booking.lines.length > 0) {
           const firstLine = booking.lines[0];
           booking.supplierName = firstLine.supplierName;
           booking.description = firstLine.description;
           booking.currency = firstLine.currency;
-          console.log('Used fallback values from supplier line for booking', bookingNumber);
+          console.log(`Used fallback values from supplier line for booking ${bookingNumber}`);
         }
       }
     });
     
     const result = Object.values(grouped);
-    console.log('Final grouped booking totals:', result.map(b => ({
-      bookingNumber: b.bookingNumber,
-      totalActualCost: b.totalActualCost,
-      totalActualVat: b.totalActualVat,
-      estimatedCost: b.estimatedCost,
-      estimatedVat: b.estimatedVat,
-      supplierName: b.supplierName
-    })));
+    console.log('=== Final grouped booking totals ===');
+    result.forEach(b => {
+      console.log(`Booking ${b.bookingNumber}:`, {
+        totalActualCost: b.totalActualCost,
+        totalActualVat: b.totalActualVat,
+        estimatedCost: b.estimatedCost,
+        estimatedVat: b.estimatedVat,
+        supplierName: b.supplierName,
+        registeredTotal: b.totalActualCost + b.totalActualVat,
+        estimatedTotal: b.estimatedCost + b.estimatedVat
+      });
+    });
     
     return result;
   };
