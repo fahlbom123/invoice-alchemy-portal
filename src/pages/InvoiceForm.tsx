@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { useSuppliers } from "@/hooks/useSuppliers";
 import { useInvoiceById, useSaveInvoice, useInvoices } from "@/hooks/useInvoices";
 import { useSupabaseProjects } from "@/hooks/useSupabaseProjects";
 import { InvoiceFormData } from "@/types/invoice";
+import { mockSuppliers } from "@/data/mockData";
 import SupplierSelector from "@/components/invoice/SupplierSelector";
 import SupplierDetails from "@/components/invoice/SupplierDetails";
 import InvoiceHeaderForm from "@/components/invoice/InvoiceHeaderForm";
@@ -28,7 +28,7 @@ const InvoiceForm = () => {
   const isEditing = Boolean(id);
   const { invoice, isLoading: isLoadingInvoice } = useInvoiceById(id || "");
   const { invoices } = useInvoices();
-  const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers();
+  const suppliers = mockSuppliers; // Use mock suppliers instead of Supabase
   const { projects, isLoading: isLoadingProjects } = useSupabaseProjects();
   const { saveInvoice, isLoading: isSaving } = useSaveInvoice();
   const navigate = useNavigate();
@@ -110,7 +110,7 @@ const InvoiceForm = () => {
     }
   }, [projects, formData.projectId, selectedProject]);
 
-  if ((isLoadingInvoice && isEditing) || isLoadingSuppliers || isLoadingProjects) {
+  if ((isLoadingInvoice && isEditing) || isLoadingProjects) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
