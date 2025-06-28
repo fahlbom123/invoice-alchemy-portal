@@ -450,12 +450,12 @@ const InvoiceView = () => {
     }
   };
 
-  const [fullyPaidStatus, setFullyPaidStatus] = useState<Record<string, string>>({});
+  const [fullyPaidStatus, setFullyPaidStatus] = useState<Record<string, boolean>>({});
 
-  const handleFullyPaidChange = (bookingNumber: string, value: string) => {
+  const handleFullyPaidChange = (bookingNumber: string, isChecked: boolean) => {
     setFullyPaidStatus(prev => ({
       ...prev,
-      [bookingNumber]: value
+      [bookingNumber]: isChecked
     }));
   };
 
@@ -909,19 +909,6 @@ const InvoiceView = () => {
 
   const groupedBookingTotals = groupSupplierLinesByBookingWithTotals(connectedSupplierInvoiceLines);
 
-  // Set default fully paid status based on cost comparison
-  useEffect(() => {
-    const defaultStatus: Record<string, string> = {};
-    groupedBookingTotals.forEach(booking => {
-      const estimatedTotal = booking.estimatedCost + booking.estimatedVat;
-      const registeredTotal = booking.totalActualCost + booking.totalActualVat;
-      
-      // Set as "paid" if estimated cost matches registered cost, otherwise "unpaid"
-      defaultStatus[booking.bookingNumber] = Math.abs(estimatedTotal - registeredTotal) < 0.01 ? "paid" : "unpaid";
-    });
-    setFullyPaidStatus(defaultStatus);
-  }, [groupedBookingTotals]);
-
   const currency = invoice.currency || 'USD';
 
   return (
@@ -1014,6 +1001,18 @@ const InvoiceView = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>
+                        <Checkbox
+                          checked={groupedBookingTotals.length > 0 && groupedBookingTotals.every(booking => fullyPaidStatus[booking.bookingNumber])}
+                          onCheckedChange={(checked) => {
+                            const newStatus = Object.fromEntries(
+                              groupedBookingTotals.map(booking => [booking.bookingNumber, checked as boolean])
+                            );
+                            setFullyPaidStatus(newStatus);
+                          }}
+                          disabled={isSentToAccounting}
+                        />
+                      </TableHead>
                       <TableHead>Booking Number</TableHead>
                       <TableHead>Supplier</TableHead>
                       <TableHead>Departure Date</TableHead>
@@ -1024,17 +1023,23 @@ const InvoiceView = () => {
                       <TableHead>Actual Curr.</TableHead>
                       <TableHead>Actual Cost</TableHead>
                       <TableHead>Reg. Cost</TableHead>
-                      <TableHead>Fully Paid</TableHead>
                       {!isSentToAccounting && <TableHead>Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {groupedBookingTotals.map((booking) => {
-                      const fullyPaidValue = fullyPaidStatus[booking.bookingNumber] || "unpaid";
+                      const isFullyPaid = fullyPaidStatus[booking.bookingNumber] || false;
                       const registeredCost = booking.totalActualCost + booking.totalActualVat;
                       const estimatedTotal = booking.estimatedCost + booking.estimatedVat;
                       return (
                         <TableRow key={booking.bookingNumber}>
+                          <TableCell>
+                            <Checkbox
+                              checked={isFullyPaid}
+                              onCheckedChange={(checked) => handleFullyPaidChange(booking.bookingNumber, checked as boolean)}
+                              disabled={isSentToAccounting}
+                            />
+                          </TableCell>
                           <TableCell>
                             <BookingSummaryPopover
                               bookingNumber={booking.bookingNumber}
@@ -1080,22 +1085,6 @@ const InvoiceView = () => {
                           <TableCell className="text-green-600 font-medium">
                             {formatCurrency(registeredCost)}
                           </TableCell>
-                          <TableCell>
-                            <Select
-                              value={fullyPaidValue}
-                              onValueChange={(value) => handleFullyPaidChange(booking.bookingNumber, value)}
-                              disabled={isSentToAccounting}
-                            >
-                              <SelectTrigger className="w-24">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="unpaid">Unpaid</SelectItem>
-                                <SelectItem value="paid">Paid</SelectItem>
-                                <SelectItem value="partial">Partial</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
                           {!isSentToAccounting && (
                             <TableCell>
                               <div className="flex gap-2">
@@ -1105,7 +1094,7 @@ const InvoiceView = () => {
                                   onClick={() => {
                                     booking.lines.forEach(line => handleDeleteSupplierLine(line.id));
                                   }}
-                                  disabled={fullyPaidValue === "paid"}
+                                  disabled={isFullyPaid}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
