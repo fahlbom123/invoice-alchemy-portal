@@ -26,6 +26,8 @@ export interface InvoiceLine {
   supplierPartNumber: string;
   bookingNumber?: string;
   confirmationNumber?: string;
+  firstName?: string;
+  lastName?: string;
   departureDate?: string;
   paymentStatus?: "paid" | "unpaid" | "partial";
   fullyInvoiced?: boolean;
