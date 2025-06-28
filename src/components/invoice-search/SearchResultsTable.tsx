@@ -31,6 +31,8 @@ interface SearchResultLine {
   selected?: boolean;
   currency?: string;
   registeredActualCost?: number;
+  firstName?: string;
+  lastName?: string;
 }
 
 interface SearchResultsTableProps {
@@ -162,6 +164,27 @@ const SearchResultsTable = ({
     setEditingBookingCostValue("");
   };
 
+  const BookingHeaderRow = () => (
+    <TableRow className="bg-gray-200 font-semibold">
+      <TableHead className="w-12">
+        <Checkbox 
+          onCheckedChange={(checked) => onSelectAll(!!checked)} 
+        />
+      </TableHead>
+      <TableHead>Booking Number</TableHead>
+      <TableHead>Name</TableHead>
+      <TableHead>Supplier</TableHead>
+      <TableHead>Departure Date</TableHead>
+      <TableHead>Est. Curr.</TableHead>
+      <TableHead>Est. Cost</TableHead>
+      <TableHead>Actual Curr.</TableHead>
+      <TableHead>Actual Cost</TableHead>
+      <TableHead>Reg. Curr.</TableHead>
+      <TableHead>Reg. Cost</TableHead>
+      <TableHead>Status</TableHead>
+    </TableRow>
+  );
+
   const BookingSubtotalRow = ({ bookingNumber, bookingLines, totals }: { 
     bookingNumber: string; 
     bookingLines: SearchResultLine[];
@@ -171,6 +194,12 @@ const SearchResultsTable = ({
     const isPartiallySelected = isBookingPartiallySelected(bookingLines);
     const hasUnpaidLines = bookingLines.some(line => line.paymentStatus !== "paid");
     const isEditingThisBooking = editingBookingCost === bookingNumber;
+    
+    // Get representative data from first line
+    const firstLine = bookingLines[0];
+    const fullName = [firstLine.firstName, firstLine.lastName].filter(Boolean).join(' ') || '-';
+    const isPaid = bookingLines.every(line => line.paymentStatus === "paid");
+    const status = isPaid ? "Paid" : bookingLines.some(line => line.paymentStatus === "paid") ? "Partial" : "Unpaid";
 
     return (
       <TableRow className="bg-blue-50 font-medium border-t border-blue-200">
@@ -189,12 +218,13 @@ const SearchResultsTable = ({
             />
           )}
         </TableCell>
-        <TableCell colSpan={5} className="text-right text-blue-800">
-          Subtotal for Booking {bookingNumber}:
-        </TableCell>
-        <TableCell></TableCell>
-        <TableCell></TableCell>
+        <TableCell className="text-blue-800 font-medium">{bookingNumber}</TableCell>
+        <TableCell className="text-blue-800">{fullName}</TableCell>
+        <TableCell className="text-blue-800">{firstLine.supplierName}</TableCell>
+        <TableCell className="text-blue-800">{firstLine.departureDate || '-'}</TableCell>
+        <TableCell className="text-blue-800">{firstLine.currency || 'SEK'}</TableCell>
         <TableCell className="text-right text-blue-800">{formatCurrency(totals.estimatedCost)}</TableCell>
+        <TableCell className="text-blue-800">{firstLine.currency || 'SEK'}</TableCell>
         <TableCell className="text-right text-blue-800">
           {isEditingThisBooking ? (
             <div className="flex items-center gap-2">
@@ -233,9 +263,9 @@ const SearchResultsTable = ({
             </div>
           )}
         </TableCell>
+        <TableCell className="text-blue-800">{firstLine.currency || 'SEK'}</TableCell>
         <TableCell className="text-right text-blue-800">{formatCurrency(totals.registeredCost)}</TableCell>
-        <TableCell></TableCell>
-        <TableCell></TableCell>
+        <TableCell className="text-blue-800">{status}</TableCell>
       </TableRow>
     );
   };
@@ -246,15 +276,15 @@ const SearchResultsTable = ({
   }) => (
     <TableRow className="bg-gray-100 font-semibold border-t-2 border-gray-300">
       <TableCell></TableCell>
-      <TableCell colSpan={5} className="text-right">
+      <TableCell colSpan={4} className="text-right">
         Total for {supplierName}:
       </TableCell>
       <TableCell></TableCell>
-      <TableCell></TableCell>
       <TableCell className="text-right">{formatCurrency(totals.estimatedCost)}</TableCell>
-      <TableCell className="text-right">{formatCurrency(totals.actualCost)}</TableCell>
-      <TableCell className="text-right">{formatCurrency(totals.registeredCost)}</TableCell>
       <TableCell></TableCell>
+      <TableCell className="text-right">{formatCurrency(totals.actualCost)}</TableCell>
+      <TableCell></TableCell>
+      <TableCell className="text-right">{formatCurrency(totals.registeredCost)}</TableCell>
       <TableCell></TableCell>
     </TableRow>
   );
@@ -268,6 +298,8 @@ const SearchResultsTable = ({
     const isPartiallySelected = isBookingPartiallySelected(bookingLines);
     const hasUnpaidLines = bookingLines.some(line => line.paymentStatus !== "paid");
     const isEditingThisBooking = editingBookingCost === bookingNumber;
+    const firstLine = bookingLines[0];
+    const fullName = [firstLine.firstName, firstLine.lastName].filter(Boolean).join(' ') || '-';
 
     return (
       <div className="bg-blue-50 p-3 rounded-md border border-blue-200 mt-2">
@@ -285,9 +317,11 @@ const SearchResultsTable = ({
               disabled={!hasUnpaidLines}
             />
           )}
-          <h5 className="font-medium text-blue-800">Subtotal for Booking {bookingNumber}:</h5>
+          <h5 className="font-medium text-blue-800">Booking {bookingNumber} - {fullName}</h5>
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm">
+          <div>Supplier: {firstLine.supplierName}</div>
+          <div>Departure: {firstLine.departureDate || '-'}</div>
           <div>Est. Cost: {formatCurrency(totals.estimatedCost)}</div>
           <div className="flex items-center gap-2">
             Actual Cost: 
@@ -357,26 +391,7 @@ const SearchResultsTable = ({
       <div className="hidden md:block border rounded-md overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox 
-                  onCheckedChange={(checked) => onSelectAll(!!checked)} 
-                />
-              </TableHead>
-              <TableHead>Invoice</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead>Booking</TableHead>
-              <TableHead>Confirmation</TableHead>
-              <TableHead>Departure Date</TableHead>
-              <TableHead>Qty</TableHead>
-              <TableHead>Curr.</TableHead>
-              <TableHead>Est. Cost</TableHead>
-              <TableHead>Actual Cost</TableHead>
-              <TableHead>Registered Cost</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Fully Paid</TableHead>
-            </TableRow>
+            <BookingHeaderRow />
           </TableHeader>
           <TableBody>
             {Object.entries(groupedLines).map(([supplierKey, { supplierName, bookings }]) => {
@@ -391,23 +406,7 @@ const SearchResultsTable = ({
                     
                     return (
                       <React.Fragment key={`${supplierKey}-${bookingNumber}`}>
-                        {bookingLines.map((line) => (
-                          <SearchResultRow
-                            key={line.id}
-                            line={line}
-                            editingLine={editingLine}
-                            editingCost={editingCost}
-                            editingVat={editingVat}
-                            onSelectLine={onSelectLine}
-                            onEditActualCost={onEditActualCost}
-                            onSaveActualCost={onSaveActualCost}
-                            onCancelEdit={onCancelEdit}
-                            onToggleFullyPaid={onToggleFullyPaid}
-                            setEditingCost={setEditingCost}
-                            setEditingVat={setEditingVat}
-                            hideCheckbox={true}
-                          />
-                        ))}
+                        {/* Hide individual invoice lines, just show booking total */}
                         <BookingSubtotalRow 
                           bookingNumber={bookingNumber} 
                           bookingLines={bookingLines}
@@ -448,24 +447,6 @@ const SearchResultsTable = ({
                 
                 return (
                   <div key={`${supplierKey}-${bookingNumber}`} className="space-y-2">
-                    {bookingLines.map((line) => (
-                      <SearchResultRow
-                        key={line.id}
-                        line={line}
-                        editingLine={editingLine}
-                        editingCost={editingCost}
-                        editingVat={editingVat}
-                        onSelectLine={onSelectLine}
-                        onEditActualCost={onEditActualCost}
-                        onSaveActualCost={onSaveActualCost}
-                        onCancelEdit={onCancelEdit}
-                        onToggleFullyPaid={onToggleFullyPaid}
-                        setEditingCost={setEditingCost}
-                        setEditingVat={setEditingVat}
-                        isMobile={true}
-                        hideCheckbox={true}
-                      />
-                    ))}
                     <MobileBookingSubtotal 
                       bookingNumber={bookingNumber} 
                       bookingLines={bookingLines}
