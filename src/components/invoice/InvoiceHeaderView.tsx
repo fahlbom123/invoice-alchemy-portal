@@ -59,6 +59,9 @@ const InvoiceHeaderView = ({
   const currency = formData.currency || 'SEK';
   const currencyRate = getCurrencyRate(currency);
 
+  // Generate internal supplier invoice ID from the invoice ID (first 8 characters)
+  const internalSupplierInvoiceId = `SI-${invoiceId.substring(0, 8).toUpperCase()}`;
+
   return (
     <Card>
       <CardHeader>
@@ -80,75 +83,86 @@ const InvoiceHeaderView = ({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-500">Invoice Number</label>
-                <p className="text-sm">{formData.invoiceNumber}</p>
+                <label className="text-sm font-medium text-gray-500">Internal Supplier Invoice ID</label>
+                <p className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{internalSupplierInvoiceId}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Reference</label>
-                <p className="text-sm">{formData.reference}</p>
+                <label className="text-sm font-medium text-gray-500">Invoice Number</label>
+                <p className="text-sm">{formData.invoiceNumber}</p>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Reference</label>
+                <p className="text-sm">{formData.reference}</p>
+              </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Invoice Date</label>
                 <p className="text-sm">
                   {formData.invoiceDate ? new Date(formData.invoiceDate).toLocaleDateString() : 'Not set'}
                 </p>
               </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">Due Date</label>
                 <p className="text-sm">
                   {formData.dueDate ? new Date(formData.dueDate).toLocaleDateString() : 'Not set'}
                 </p>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">Status</label>
                 <p className="text-sm capitalize">{formData.status}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Source</label>
-                <p className="text-sm">{formData.source || 'Manual'}</p>
-              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <label className="text-sm font-medium text-gray-500">Source</label>
+                <p className="text-sm">{formData.source || 'Manual'}</p>
+              </div>
+              <div>
                 <label className="text-sm font-medium text-gray-500">Currency</label>
                 <p className="text-sm">{formData.currency || 'SEK'}</p>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">Exchange Rate</label>
                 <p className="text-sm">
                   {currencyRate !== 1.0 ? `1 ${currency} = ${currencyRate} SEK` : 'Base currency'}
                 </p>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">Account</label>
                 <p className="text-sm">{formData.account || 'Not set'}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">VAT Account</label>
-                <p className="text-sm">{formData.vatAccount || 'Not set'}</p>
-              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <label className="text-sm font-medium text-gray-500">VAT Account</label>
+                <p className="text-sm">{formData.vatAccount || 'Not set'}</p>
+              </div>
+              <div>
                 <label className="text-sm font-medium text-gray-500">Periodization Year</label>
                 <p className="text-sm">{formData.periodizationYear || 'Not set'}</p>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">Periodization Month</label>
                 <p className="text-sm">
                   {formData.periodizationMonth ? getMonthName(formData.periodizationMonth) : 'Not set'}
                 </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">OCR</label>
+                <p className="text-sm">{formData.ocr || 'Not set'}</p>
               </div>
             </div>
 
@@ -157,11 +171,6 @@ const InvoiceHeaderView = ({
               <p className="text-sm">
                 {selectedProject ? `${selectedProject.project_number} - ${selectedProject.description}` : 'No project selected'}
               </p>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-500">OCR</label>
-              <p className="text-sm">{formData.ocr || 'Not set'}</p>
             </div>
 
             <div>
