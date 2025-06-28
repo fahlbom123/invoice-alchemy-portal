@@ -92,24 +92,65 @@ const SearchResultsTable = ({
     });
   };
 
-  const BookingSubtotalRow = ({ bookingNumber, totals }: { 
+  // Handle booking selection - select/deselect all lines in a booking
+  const handleBookingSelection = (bookingLines: SearchResultLine[], checked: boolean) => {
+    bookingLines.forEach(line => {
+      // Don't allow selection of paid lines
+      if (line.paymentStatus !== "paid") {
+        onSelectLine(line.id, checked);
+      }
+    });
+  };
+
+  // Check if all lines in a booking are selected
+  const isBookingSelected = (bookingLines: SearchResultLine[]) => {
+    const unpaidLines = bookingLines.filter(line => line.paymentStatus !== "paid");
+    return unpaidLines.length > 0 && unpaidLines.every(line => line.selected);
+  };
+
+  // Check if some lines in a booking are selected
+  const isBookingPartiallySelected = (bookingLines: SearchResultLine[]) => {
+    const unpaidLines = bookingLines.filter(line => line.paymentStatus !== "paid");
+    const selectedUnpaidLines = unpaidLines.filter(line => line.selected);
+    return selectedUnpaidLines.length > 0 && selectedUnpaidLines.length < unpaidLines.length;
+  };
+
+  const BookingSubtotalRow = ({ bookingNumber, bookingLines, totals }: { 
     bookingNumber: string; 
+    bookingLines: SearchResultLine[];
     totals: ReturnType<typeof calculateTotals> 
-  }) => (
-    <TableRow className="bg-blue-50 font-medium border-t border-blue-200">
-      <TableCell></TableCell>
-      <TableCell colSpan={6} className="text-right text-blue-800">
-        Subtotal for Booking {bookingNumber}:
-      </TableCell>
-      <TableCell></TableCell>
-      <TableCell></TableCell>
-      <TableCell className="text-right text-blue-800">{formatCurrency(totals.estimatedCost)}</TableCell>
-      <TableCell className="text-right text-blue-800">{formatCurrency(totals.actualCost)}</TableCell>
-      <TableCell className="text-right text-blue-800">{formatCurrency(totals.registeredCost)}</TableCell>
-      <TableCell></TableCell>
-      <TableCell></TableCell>
-    </TableRow>
-  );
+  }) => {
+    const isSelected = isBookingSelected(bookingLines);
+    const isPartiallySelected = isBookingPartiallySelected(bookingLines);
+    const hasUnpaidLines = bookingLines.some(line => line.paymentStatus !== "paid");
+
+    return (
+      <TableRow className="bg-blue-50 font-medium border-t border-blue-200">
+        <TableCell>
+          {hasUnpaidLines && (
+            <Checkbox 
+              checked={isSelected}
+              ref={(el) => {
+                if (el) el.indeterminate = isPartiallySelected && !isSelected;
+              }}
+              onCheckedChange={(checked) => handleBookingSelection(bookingLines, !!checked)}
+              disabled={!hasUnpaidLines}
+            />
+          )}
+        </TableCell>
+        <TableCell colSpan={5} className="text-right text-blue-800">
+          Subtotal for Booking {bookingNumber}:
+        </TableCell>
+        <TableCell></TableCell>
+        <TableCell></TableCell>
+        <TableCell className="text-right text-blue-800">{formatCurrency(totals.estimatedCost)}</TableCell>
+        <TableCell className="text-right text-blue-800">{formatCurrency(totals.actualCost)}</TableCell>
+        <TableCell className="text-right text-blue-800">{formatCurrency(totals.registeredCost)}</TableCell>
+        <TableCell></TableCell>
+        <TableCell></TableCell>
+      </TableRow>
+    );
+  };
 
   const SupplierSubtotalRow = ({ supplierName, totals }: { 
     supplierName: string; 
@@ -117,7 +158,7 @@ const SearchResultsTable = ({
   }) => (
     <TableRow className="bg-gray-100 font-semibold border-t-2 border-gray-300">
       <TableCell></TableCell>
-      <TableCell colSpan={6} className="text-right">
+      <TableCell colSpan={5} className="text-right">
         Total for {supplierName}:
       </TableCell>
       <TableCell></TableCell>
@@ -130,19 +171,38 @@ const SearchResultsTable = ({
     </TableRow>
   );
 
-  const MobileBookingSubtotal = ({ bookingNumber, totals }: { 
+  const MobileBookingSubtotal = ({ bookingNumber, bookingLines, totals }: { 
     bookingNumber: string; 
+    bookingLines: SearchResultLine[];
     totals: ReturnType<typeof calculateTotals> 
-  }) => (
-    <div className="bg-blue-50 p-3 rounded-md border border-blue-200 mt-2">
-      <h5 className="font-medium text-blue-800 mb-2">Subtotal for Booking {bookingNumber}:</h5>
-      <div className="grid grid-cols-2 gap-2 text-sm">
-        <div>Est. Cost: {formatCurrency(totals.estimatedCost)}</div>
-        <div>Actual Cost: {formatCurrency(totals.actualCost)}</div>
-        <div>Reg. Cost: {formatCurrency(totals.registeredCost)}</div>
+  }) => {
+    const isSelected = isBookingSelected(bookingLines);
+    const isPartiallySelected = isBookingPartiallySelected(bookingLines);
+    const hasUnpaidLines = bookingLines.some(line => line.paymentStatus !== "paid");
+
+    return (
+      <div className="bg-blue-50 p-3 rounded-md border border-blue-200 mt-2">
+        <div className="flex items-center gap-2 mb-2">
+          {hasUnpaidLines && (
+            <Checkbox 
+              checked={isSelected}
+              ref={(el) => {
+                if (el) el.indeterminate = isPartiallySelected && !isSelected;
+              }}
+              onCheckedChange={(checked) => handleBookingSelection(bookingLines, !!checked)}
+              disabled={!hasUnpaidLines}
+            />
+          )}
+          <h5 className="font-medium text-blue-800">Subtotal for Booking {bookingNumber}:</h5>
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div>Est. Cost: {formatCurrency(totals.estimatedCost)}</div>
+          <div>Actual Cost: {formatCurrency(totals.actualCost)}</div>
+          <div>Reg. Cost: {formatCurrency(totals.registeredCost)}</div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const MobileSupplierSubtotal = ({ supplierName, totals }: { 
     supplierName: string; 
@@ -212,10 +272,12 @@ const SearchResultsTable = ({
                             onToggleFullyPaid={onToggleFullyPaid}
                             setEditingCost={setEditingCost}
                             setEditingVat={setEditingVat}
+                            hideCheckbox={true}
                           />
                         ))}
                         <BookingSubtotalRow 
                           bookingNumber={bookingNumber} 
+                          bookingLines={bookingLines}
                           totals={bookingTotals} 
                         />
                       </React.Fragment>
@@ -268,10 +330,12 @@ const SearchResultsTable = ({
                         setEditingCost={setEditingCost}
                         setEditingVat={setEditingVat}
                         isMobile={true}
+                        hideCheckbox={true}
                       />
                     ))}
                     <MobileBookingSubtotal 
                       bookingNumber={bookingNumber} 
+                      bookingLines={bookingLines}
                       totals={bookingTotals} 
                     />
                   </div>
