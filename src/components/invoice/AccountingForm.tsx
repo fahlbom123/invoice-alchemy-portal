@@ -307,8 +307,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
       <Separator className="my-3" />
       <div className="space-y-2 text-sm">
         <div className="grid grid-cols-12 gap-1">
-          <div className="col-span-4 font-medium">Total Allocated:</div>
-          <div className="col-span-2 text-xs font-medium text-gray-500">Account Amount</div>
+          <div className="col-span-6 font-medium">Total Allocated:</div>
           <div className="col-span-1"></div>
           <div className={`col-span-4 font-medium text-right ${isAmountValid ? "text-green-600" : "text-red-600"}`}>
             {formatCurrency(totalEntryAmount)}
@@ -317,8 +316,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         </div>
         
         <div className="grid grid-cols-12 gap-1">
-          <div className="col-span-4"></div>
-          <div className="col-span-2 text-xs font-medium text-gray-500">VAT Amount</div>
+          <div className="col-span-6"></div>
           <div className="col-span-1"></div>
           <div className={`col-span-4 font-medium text-right ${isVatAmountValid ? "text-green-600" : "text-red-600"}`}>
             {formatCurrency(totalVatAmount)}
@@ -327,8 +325,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         </div>
         
         <div className="grid grid-cols-12 gap-1">
-          <div className="col-span-4 font-medium">Remaining:</div>
-          <div className="col-span-2 text-xs font-medium text-gray-500">Account Amount</div>
+          <div className="col-span-6 font-medium">Remaining:</div>
           <div className="col-span-1"></div>
           <div className={`col-span-4 font-medium text-right ${remainingAmount >= 0 ? "text-gray-600" : "text-red-600"}`}>
             {formatCurrency(remainingAmount)}
@@ -337,8 +334,7 @@ const AccountingForm = ({ totalAmount, totalVat, currency, disabled = false, def
         </div>
         
         <div className="grid grid-cols-12 gap-1">
-          <div className="col-span-4"></div>
-          <div className="col-span-2 text-xs font-medium text-gray-500">VAT Amount</div>
+          <div className="col-span-6"></div>
           <div className="col-span-1"></div>
           <div className={`col-span-4 font-medium text-right ${remainingVat >= 0 ? "text-gray-600" : "text-red-600"}`}>
             {formatCurrency(remainingVat)}
