@@ -7,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from "sonner";
 import { useInvoiceById, useSaveInvoice, useInvoices } from "@/hooks/useInvoices";
 import { useSupabaseProjects } from "@/hooks/useSupabaseProjects";
+import { useSuppliers } from "@/hooks/useSuppliers";
 import { InvoiceFormData } from "@/types/invoice";
 import { mockSuppliers } from "@/data/mockData";
 import SupplierSelector from "@/components/invoice/SupplierSelector";
@@ -28,7 +29,7 @@ const InvoiceForm = () => {
   const isEditing = Boolean(id);
   const { invoice, isLoading: isLoadingInvoice } = useInvoiceById(id || "");
   const { invoices } = useInvoices();
-  const suppliers = mockSuppliers; // Use mock suppliers instead of Supabase
+  const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers();
   const { projects, isLoading: isLoadingProjects } = useSupabaseProjects();
   const { saveInvoice, isLoading: isSaving } = useSaveInvoice();
   const navigate = useNavigate();
@@ -110,7 +111,7 @@ const InvoiceForm = () => {
     }
   }, [projects, formData.projectId, selectedProject]);
 
-  if ((isLoadingInvoice && isEditing) || isLoadingProjects) {
+  if ((isLoadingInvoice && isEditing) || isLoadingSuppliers || isLoadingProjects) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
