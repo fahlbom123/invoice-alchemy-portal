@@ -22,18 +22,13 @@ const SupplierDetails = ({ supplier }: SupplierDetailsProps) => {
           {supplier.accountNumber && (
             <p><span className="font-medium">Account Number:</span> {supplier.accountNumber}</p>
           )}
-          
-          {(supplier.defaultCurrency || supplier.currencyRate) && (
-            <div className="space-y-1 pt-2">
-              <h5 className="font-medium text-gray-600">Currency Information</h5>
-              {supplier.defaultCurrency && (
-                <p><span className="font-medium">Default Currency:</span> {supplier.defaultCurrency}</p>
-              )}
-              {supplier.currencyRate && (
-                <p><span className="font-medium">Currency Rate:</span> {supplier.currencyRate}</p>
-              )}
-            </div>
+          {supplier.defaultCurrency && (
+            <p><span className="font-medium">Default Currency:</span> {supplier.defaultCurrency}</p>
           )}
+          {supplier.currencyRate && (
+            <p><span className="font-medium">Currency Rate:</span> {supplier.currencyRate}</p>
+          )}
+          <p><span className="font-medium">Payment Days:</span> {supplier.paymentDays || 'Not specified'}</p>
         </div>
         
         <div className="space-y-4">
