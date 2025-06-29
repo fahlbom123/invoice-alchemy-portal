@@ -30,8 +30,7 @@ export function useSupabaseSuppliers() {
             accountNumber: supplier.account_number,
             defaultCurrency: supplier.default_currency,
             currencyRate: supplier.currency_rate,
-            // payment_days doesn't exist in the database, so we'll set a default or leave undefined
-            paymentDays: undefined, // This will make the UI show "Not specified"
+            paymentDays: supplier.payment_days,
             address: supplier.address,
             zipCode: supplier.zip_code,
             city: supplier.city,

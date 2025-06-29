@@ -289,6 +289,7 @@ export type Database = {
           iban: string | null
           id: string
           name: string
+          payment_days: number | null
           phone: string
           swift: string | null
           updated_at: string | null
@@ -306,6 +307,7 @@ export type Database = {
           iban?: string | null
           id?: string
           name: string
+          payment_days?: number | null
           phone: string
           swift?: string | null
           updated_at?: string | null
@@ -323,6 +325,7 @@ export type Database = {
           iban?: string | null
           id?: string
           name?: string
+          payment_days?: number | null
           phone?: string
           swift?: string | null
           updated_at?: string | null
