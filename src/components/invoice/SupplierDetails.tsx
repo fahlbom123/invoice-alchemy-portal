@@ -28,7 +28,7 @@ const SupplierDetails = ({ supplier }: SupplierDetailsProps) => {
           {supplier.currencyRate && (
             <p><span className="font-medium">Currency Rate:</span> {supplier.currencyRate}</p>
           )}
-          <p><span className="font-medium">Payment Days:</span> {supplier.paymentDays || 'Not specified'}</p>
+          <p><span className="font-medium">Payment Days:</span> {supplier.paymentDays ? `${supplier.paymentDays} days` : 'Not specified'}</p>
         </div>
         
         <div className="space-y-4">
