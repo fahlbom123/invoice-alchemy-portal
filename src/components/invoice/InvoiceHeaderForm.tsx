@@ -244,13 +244,13 @@ const InvoiceHeaderForm = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="ocr">OCR</Label>
+        <Label htmlFor="ocr">Payment ref</Label>
         <Input
           id="ocr"
           name="ocr"
           value={formData.ocr || ""}
           onChange={handleInputChange}
-          placeholder="OCR number"
+          placeholder="Payment reference"
         />
       </div>
 
